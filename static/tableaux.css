@@ -1,0 +1,37 @@
+th input {
+    font-weight: bold;
+    text-align: center;
+}
+
+th input, td input {
+    width: 4em;
+    margin-top: 10px;
+    float: left;
+}
+
+tr.candidate td input {
+    margin-bottom: 0px;
+}
+
+table#tableaux {
+    border-collapse: collapse;
+    width: 50%;
+    margin-left: 1em;
+    margin-right: auto;
+}
+
+#header th {
+    border-bottom: 2px solid black;
+}
+
+th, td {
+    padding-left: 5px;
+    padding-right: 5px;
+    text-align: center;
+}
+
+#buttons td {
+    text-align: right;
+}
+
+

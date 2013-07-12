@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>Rank-o-Matic</title>
+    <link href="/static/bootstrap/css/bootstrap.css" type="text/css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='tableaux.css') }}>
+    <style>.content {padding-top: 80px;}</style>
+  </head>
+  <body>
+
+    {%- block topbar %}
+    <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+        <div class="container">
+            <a href="/" class="brand">Rank-o-Matic</a>
+        </div>
+      </div>
+    </div>
+    {%- endblock %}
+    <div class="container">
+      <div class="content">
+        {%- block pageheader %}{% endblock -%}
+        {% block content -%}{%- endblock %}
+      </div>
+    </div>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    {% block js_footer -%}{%- endblock %}
+  </body>
+</html>

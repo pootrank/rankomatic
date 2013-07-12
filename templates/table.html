@@ -1,0 +1,83 @@
+{%- extends 'layout.html' -%}
+{%- block content %}
+        <form action="poop" method="POST">
+          <div class="row">
+            <div class="span3">
+              <table id="buttons" cellspacing="0">
+                <tr>
+                  <td>Constraints:</td>
+                  <td>
+                    <div class="btn-group">
+                      <button id="add_constraint" class="btn" type="button">+</button>
+                      <button id="delete_constraint" class="btn" type="button">-</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Input/Output Pairs:</td>
+                  <td>
+                    <div class="btn-group">
+                      <button id="add_candidate" class="btn" type="button">+</button>
+                      <button id="delete_candidate" class="btn" type="button">-</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2">
+                    <button type="submit" class="btn btn-primary btn-block">Rank!</button>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <div class="span9">
+              <fieldset>
+                <table id="tableaux" class="condensed" cellspacing="0">
+                {%- for tableaux_field in form -%}
+                  {%- if tableaux_field.type in ['CSRFTokenField', 'HiddenField'] %}
+                  {{ tableaux_field() }}
+                  {%- elif tableaux_field.name == 'constraints' %}
+                  <thead>
+                    <tr id="header">
+                      <th>Input</th>
+                      <th>Output</th>
+                      <th>Optimal?</th>
+                      {%- set i = 1 %}
+                      {%- for constraint in tableaux_field %}
+                      <th>{{ constraint(value="C" ~ i) }}</th>
+                      {%- set i = i + 1 %}
+                      {%- endfor %}
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {%- else -%}
+                    {%- for candidate in tableaux_field %}
+                    <tr class="candidate">
+                    {%- for cand_field in candidate -%}
+                      {%- if cand_field.type in ['CSRFTokenField', 'HiddenField'] %}
+                      {{ cand_field() }}
+                      {% elif 'inp' in cand_field.name  -%}
+                        <td>{{ cand_field(value="I1") }}</td>
+                      {% elif 'outp' in cand_field.name  -%}
+                        <td>{{ cand_field(value="O1") }}</td>
+                      {% elif 'optimal' in cand_field.name  -%}
+                        <td>{{ cand_field(value="") }}</td>
+                      {%- elif 'vvector' in cand_field.name -%}
+                      {%- for constraint in cand_field %}
+                      <td>{{ constraint(value="") }}</td>
+                      {%- endfor -%}
+                      {%- endif -%}
+                    {%- endfor %}
+                    </tr>
+                    {%- endfor -%}
+                  {%- endif -%}
+                {%- endfor %}
+                  </tbody>
+                </table>
+              </fieldset>
+            </div>
+          </div>
+        </form>
+{%- endblock -%}
+{%- block js_footer -%}
+<script type="text/javascript" src="{{ url_for('static', filename='tableaux.js') }}"></script>
+{%- endblock -%}
