@@ -92,8 +92,6 @@ class User(DynamicDocument):
 
 
 
-
+# create WTForm classes for candidate and tableaux models
 candidate_form = model_form(Candidate)
 tableaux_form = model_form(Tableaux)
-user_form = model_form(User)
-
