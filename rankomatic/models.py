@@ -8,7 +8,7 @@ website. They are implemented for MongoDB using MongoEngine. As of now the
 models are User, Tableaux, and Candidate.
 
 User: Self-explanatory. A user of the website.
-Tableaux: Represents an user's tableaux or dataset. Consists of a list of
+Tableaux: Represents a user's tableaux or dataset. Consists of a list of
           constraint names and a list of Candidates.
 Candidate: A single row from the Tableaux, in OT terms an input-outuput pair.
            Also contains whether or not the output is optimal for the input
@@ -20,9 +20,11 @@ from mongoengine import (DynamicDocument, DynamicEmbeddedDocument,
                          EmbeddedDocumentField, StringField,
                          BooleanField, ListField, IntField)
 from flask.ext.mongoengine.wtf import model_form
+import hashlib
+import os
 
 
-#TODO create User class
+
 class Candidate(DynamicEmbeddedDocument):
     """
     A single row from the Tableaux, in OT terms an input-outuput pair.
@@ -39,7 +41,7 @@ class Candidate(DynamicEmbeddedDocument):
     )
 
 
-class Tableaux(DynamicDocument):
+class Tableaux(DynamicEmbeddedDocument):
     """
     Represents an user's tableaux or dataset. Consists of a list of constraint
     names and a list of Candidates.
@@ -55,6 +57,35 @@ class Tableaux(DynamicDocument):
         default=lambda: [Candidate(csrf_enabled=False)]
     )
 
+
+class User(DynamicDocument):
+    """
+    A user of the application, has a name, salted password digest, salt, and a
+    list of Tableaux belonging to the user.
+    """
+    username = StringField(required=True, max_length=255)
+    password_digest = StringField(required=True)
+    salt = StringField(required=True, max_length=64)
+    datasets = ListField(EmbeddedDocumentField(Tableaux))
+
+    def set_password(self, password):
+        self.salt = os.urandom(64)
+        h = hashlib.sha512()
+        password += self.salt
+        h.update(password)
+        self.password_digest = h.digest()
+
+
+    def is_password_valid(self, guess):
+        h = hashlib.sha512()
+        guess += self.salt
+        h.update(guess)
+        return h.digest() == self.password_digest
+
+
+
+
 candidate_form = model_form(Candidate)
 tableaux_form = model_form(Tableaux)
+user_form = model_form(User)
 
