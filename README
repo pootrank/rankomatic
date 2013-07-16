@@ -1,0 +1,18 @@
+###############################################################################
+# Author: Cameron Jeffers                                                     #
+# Company: Stanford University                                                #
+# Email: cwjeffers18@gmail.com                                                #
+###############################################################################
+This app is an Optimality Theory (OT) constraint-ranking website. Implemented
+using Flask, it is built on a Python implementation of Alex Djalali's solution
+to the ranking problem in theoretical OT. For the details of his solution, see
+his paper "A constructive solution to the ranking problem in Partial Order
+Optimality Theory" (2013) which can be found at
+stanford.edu/~djalali/publications.html. For the source of his implementation,
+refer to github.com/alexdjalali/OT.
+
+The app is organized loosely according to the recommendations in the Flask
+documentation (flask.pocoo.org/docs/). The views are implemented using Flask
+Blueprints for modularity.
+###############################################################################
+

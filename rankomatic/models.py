@@ -22,6 +22,7 @@ from mongoengine import (DynamicDocument, DynamicEmbeddedDocument,
 from flask.ext.mongoengine.wtf import model_form
 
 
+#TODO create User class
 class Candidate(DynamicEmbeddedDocument):
     """
     A single row from the Tableaux, in OT terms an input-outuput pair.
