@@ -13,7 +13,7 @@
       <div class="signin-options">
         <h3 class="form-signin-heading">Don't have an account yet?</h3>
         <a class="btn btn-block btn-primary" href="{{ url_for('users.signup')}}">Create an account and get started</a>
-        <button class="btn btn-block" href="">Get started without being able to save datasets</button>
+        <a class="btn btn-block" href="{{ url_for('calculator.calculator') }}">Get started without being able to save datasets</a>
       </div>
     </div>
 {%- endblock -%}

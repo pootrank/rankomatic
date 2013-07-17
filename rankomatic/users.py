@@ -31,8 +31,8 @@ class LoginView(MethodView):
             user = None
         if user and user.is_password_valid(password):
             session['username'] = username
-            flash('You logged in successfully')
-            return redirect(url_for('.login'))
+            flash('Welcome, %s!' % session['username'])
+            return redirect(url_for('calculator.calculator'))
             #TODO redirect to table
         else:
             flash('Incorrect username/password combination')

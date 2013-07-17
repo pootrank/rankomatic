@@ -9,30 +9,22 @@ Instantiates the app as a Python module; everything defined in here is available
 for import from the rankomatic module.
 """
 #TODO make sure documentation is up to date
-from flask import Flask, render_template, request
+from flask import Flask
 from flask.ext.mongoengine import MongoEngine
-from models import tableaux_form
+from rankomatic.config import Config, ProductionConfig, TestingConfig, DevelopmentConfig
 
-#TODO figure out better config system
 app = Flask(__name__)
-app.config['MONGODB_SETTINGS'] = { 'DB': 'rankomatic' }
-app.config['SECRET_KEY'] = 'keepThisSecret'
-app.config['DEBUG'] = True
+app.config.from_object(ProductionConfig)
 
 db = MongoEngine(app)
-
-
-#TODO implement this using separate Blueprints
-#@app.route("/")
-def table():
-    form = tableaux_form(request.form)
-    return render_template("table.html", form=form)
 
 
 def register_blueprints(app):
     # prevent circular imports
     from rankomatic.users import users
+    from rankomatic.calculator import calculator
     app.register_blueprint(users)
+    app.register_blueprint(calculator)
 
 register_blueprints(app)
 
