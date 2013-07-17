@@ -8,6 +8,7 @@ and imports and attaches the desired blueprints which contain the views.
 Instantiates the app as a Python module; everything defined in here is available
 for import from the rankomatic module.
 """
+#TODO make sure documentation is up to date
 from flask import Flask, render_template, request
 from flask.ext.mongoengine import MongoEngine
 from models import tableaux_form
@@ -22,12 +23,21 @@ db = MongoEngine(app)
 
 
 #TODO implement this using separate Blueprints
-@app.route("/")
+#@app.route("/")
 def table():
     form = tableaux_form(request.form)
     return render_template("table.html", form=form)
 
 #TODO register blueprints here
+
+def register_blueprints(app):
+    # prevent circular imports
+    from rankomatic.users import users
+    app.register_blueprint(users)
+
+register_blueprints(app)
+
+
 
 if __name__ == '__main__':
     app.run()
