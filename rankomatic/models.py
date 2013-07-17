@@ -65,19 +65,19 @@ class User(DynamicDocument):
     """
     username = StringField(required=True, max_length=255)
     password_digest = StringField(required=True)
-    salt = StringField(required=True, max_length=64)
-    datasets = ListField(EmbeddedDocumentField(Tableaux))
+    salt = StringField(required=True)
+    datasets = ListField(EmbeddedDocumentField(Tableaux), default=lambda: [])
 
     def set_password(self, password):
         """
         Adds a randomly generated salt to the User, then appends it to the
         password before hashing it, then saves the digest.
         """
-        self.salt = os.urandom(64)
+        self.salt = os.urandom(64).encode('hex')
         h = hashlib.sha512()
         password += self.salt
         h.update(password)
-        self.password_digest = h.digest()
+        self.password_digest = h.hexdigest()
 
 
     def is_password_valid(self, guess):
@@ -88,7 +88,7 @@ class User(DynamicDocument):
         h = hashlib.sha512()
         guess += self.salt
         h.update(guess)
-        return h.digest() == self.password_digest
+        return h.hexdigest() == self.password_digest
 
 
 

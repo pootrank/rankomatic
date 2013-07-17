@@ -28,7 +28,6 @@ def table():
     form = tableaux_form(request.form)
     return render_template("table.html", form=form)
 
-#TODO register blueprints here
 
 def register_blueprints(app):
     # prevent circular imports

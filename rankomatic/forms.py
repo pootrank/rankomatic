@@ -14,6 +14,13 @@ class LoginForm(Form):
     """
     For use with logging in, only two fields
     """
-    username = TextField('Username')
-    password = PasswordField('Password')
+    username = TextField()
+    password = PasswordField()
 
+
+class SignupForm(LoginForm):
+    """
+    For use with signing up, same as LoginForm except it has a password
+    confirmation field
+    """
+    password_conf = PasswordField()

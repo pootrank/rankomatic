@@ -1,0 +1,13 @@
+{%- extends 'layout.html' -%}
+{%- block content %}
+<div class="container">
+  <form class="form-signin" action="." method="POST">
+    <h2 class="form-signin-heading">Create an account</h2>
+    {{ form.csrf_token }}
+    {{ form.username(class="input-block-level", placeholder='Choose a username') }}
+    {{ form.password(class="input-block-level", placeholder='Password -- at least six characters long') }}
+    {{ form.password_conf(class="input-block-level", placeholder='Re-type your password')}}
+    <button class="btn btn-large btn-primary" type="submit">Create user account</button>
+  </form>
+</div>
+{%- endblock -%}
