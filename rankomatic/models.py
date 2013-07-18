@@ -91,7 +91,3 @@ class User(DynamicDocument):
         return h.hexdigest() == self.password_digest
 
 
-
-# create WTForm classes for candidate and tableaux models
-candidate_form = model_form(Candidate)
-tableaux_form = model_form(Tableaux)

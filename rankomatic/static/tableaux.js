@@ -1,3 +1,13 @@
+/*
+* File: tableaux.js
+* Author: Cameron Jeffers
+* Email: cwjeffers18@gmail.com
+*
+* This file defines an ExpandoTableaux class that takes the IDs of the table and
+* of the add and delete buttons, then attaches functions to those buttons that add
+* or delete constraints and input/output pairs to the table.
+*/
+
 var MIN_TABLEAUX_IND = 3;
 var MAX_TABLEAUX_IND = 8;
 
@@ -11,9 +21,8 @@ ExpandoTableaux = function( tableaux_id,
                             add_row_btn_id,
                             del_row_btn_id )
 {
-    /*
-    * Prepend a "#" to each of the arguments, for use with jQuery
-    */
+
+    // Prepend a "#" to each of the arguments, for use with jQuery
     for (var i = 0; i < arguments.length; ++i) {
         arguments[i] = "#" + arguments[i];
     }

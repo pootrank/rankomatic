@@ -16,31 +16,31 @@ content = Blueprint('content', __name__, template_folder='templates')
 class LandingView(MethodView):
 
     def get(self):
-        return render_template('landing.html', form=LoginForm())
+        return render_template('landing.html', form=LoginForm(), active='landing')
 
 
 class GlossaryView(MethodView):
 
     def get(self):
-        return render_template('glossary.html')
+        return render_template('glossary.html', active='glossary')
 
 
 class AboutView(MethodView):
 
     def get(self):
-        return render_template('about.html')
+        return render_template('about.html', active='about')
 
 
 class ContactView(MethodView):
 
     def get(self):
-        return render_template('contact.html')
+        return render_template('contact.html', active='contact')
 
 
 class CiteView(MethodView):
 
     def get(self):
-        return render_template('cite.html')
+        return render_template('cite.html', active='cite')
 
 
 content.add_url_rule('/', view_func=LandingView.as_view('landing'))

@@ -6,14 +6,35 @@
     <link href="/static/bootstrap/css/bootstrap.css" type="text/css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='tableaux.css') }}>
     <style>.content {padding-top: 80px;}</style>
+    {%- block head -%}{%- endblock -%}
   </head>
   <body>
 
     {%- block topbar %}
-    <div class="navbar navbar-inverse">
+    <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-            <a href="/" class="brand">Rank-o-Matic</a>
+          <a href="{{ url_for('content.landing') }}" class="brand">Rank-o-Matic</a>
+          <ul class="nav pull-left">
+            <li class="{%- if active == 'landing' -%}active{%- endif -%}">
+              <a href="{{ url_for('content.landing') }}">Home</a>
+            </li>
+            <li class="{%- if active == 'calculator' -%}active{%- endif -%}">
+              <a href="{{ url_for('calculator.calculator') }}">Calculator</a>
+            </li>
+            <li class="{%- if active == 'glossary' -%}active{%- endif -%}">
+              <a href="{{ url_for('content.glossary') }}">Glossary</a>
+            </li>
+            <li class="{%- if active == 'about' -%}active{%- endif -%}">
+              <a href="{{ url_for('content.about') }}">About</a>
+            </li>
+            <li class="{%- if active == 'contact' -%}active{%- endif -%}">
+              <a href="{{ url_for('content.contact') }}">Contact</a>
+            </li>
+            <li class="{%- if active == 'cite' -%}active{%- endif -%}">
+              <a href="{{ url_for('content.cite') }}">Citations</a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
