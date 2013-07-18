@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+{% block content %}
+ <div class="container">
+  <!-- Main hero unit for a primary marketing message or call to action -->
+  <div class="hero-unit">
+    <h1>Rank 'em.</h1>
+      <p>This website is your source for everything OT. Learn it, teach it, use it, rank it.</p>
+      <p><a href="{{ url_for('calculator.calculator') }}" class="btn btn-primary btn-large">Rank constraints &raquo;</a></p>
+  </div>
+
+  <!-- Example row of columns -->
+  <div class="row">
+    <div class="span4">
+      <h2>Sign in</h2>
+      <p>Sign in here so you can save and continue working on your datasets.</p>
+      <div class="container">
+        <form class="form-landing span3" action="{{ url_for('users.login') }}" method="POST">
+          {{ form.csrf_token }}
+          {{ form.username(class="input-landing input-block-level", placeholder='Username') }}
+          {{ form.password(class="input-landing input-block-level", placeholder='Password') }}
+          <button class="btn btn-primary" type="submit">Log in</button>
+        </form>
+      </div>
+    </div>
+    <div class="span4">
+      <h2>Calculator</h2>
+      <p>Click here to get started with the constraint-ranking calculator.</p>
+      <p><a class="btn" href="#">View details &raquo;</a></p>
+    </div>
+    <div class="span4">
+      <h2>Learn more</h2>
+      <div class="btn-group btn-group-vertical">
+        <a class="btn btn-info" href="{{ url_for('content.glossary') }}">Glossary</a>
+        <a class="btn btn-info" href="{{ url_for('content.about') }}">About this site</a>
+        <a class="btn btn-info" href="{{ url_for('content.contact') }}">Contact us</a>
+        <a class="btn btn-info" href="{{ url_for('content.cite') }}">Citations</a>
+      </div>
+    </div>
+  </div>
+</div> <!-- /container -->
+{% endblock %}

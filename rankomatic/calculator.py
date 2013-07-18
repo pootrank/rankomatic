@@ -18,7 +18,7 @@ class CalculatorView(MethodView):
     """
 
     def get(self):
-        return(render_template('tableaux.html', form=TableauxForm()))
+        return render_template('tableaux.html', form=TableauxForm())
 
 
 calculator.add_url_rule('/calculator/', view_func=CalculatorView.as_view('calculator'))

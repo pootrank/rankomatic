@@ -69,5 +69,5 @@ class SignupView(MethodView):
         return redirect(url_for('.login'))
 
 
-users.add_url_rule('/', view_func=LoginView.as_view('login'))
+users.add_url_rule('/login/', view_func=LoginView.as_view('login'))
 users.add_url_rule('/signup/', view_func=SignupView.as_view('signup'))
