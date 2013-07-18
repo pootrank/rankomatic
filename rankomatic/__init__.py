@@ -14,8 +14,8 @@ from flask.ext.mongoengine import MongoEngine
 from rankomatic.config import ProductionConfig, TestingConfig, DevelopmentConfig
 
 app = Flask(__name__)
-app.config.from_object(DevelopmentConfig)
-#app.config.from_object(ProductionConfig)
+#app.config.from_object(DevelopmentConfig)
+app.config.from_object(ProductionConfig)
 #app.config.from_object(TestingConfig)
 
 db = MongoEngine(app)
