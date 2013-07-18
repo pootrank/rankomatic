@@ -1,7 +1,4 @@
 {%- extends 'layout.html' -%}
-{%- block head -%}
-<style>body { background-color: #f5f5f5; }</style>
-{%- endblock -%}
 {%- block content %}
     <div class="container">
       <form class="form-signin" action="." method="POST">
@@ -15,8 +12,7 @@
     <div class="container">
       <div class="signin-options">
         <h3 class="form-signin-heading">Don't have an account yet?</h3>
-        <a class="btn btn-block btn-primary" href="{{ url_for('users.signup')}}">Create an account and get started</a>
-        <a class="btn btn-block" href="{{ url_for('calculator.calculator') }}">Get started without being able to save datasets</a>
+        <a class="btn btn-block btn-primary" href="{{ url_for('users.signup')}}">Create an account</a>
       </div>
     </div>
 {%- endblock -%}

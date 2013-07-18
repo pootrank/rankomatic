@@ -18,7 +18,8 @@ users = Blueprint('users', __name__, template_folder='templates')
 class LoginView(MethodView):
 
     def get(self):
-        return render_template('login.html', form=LoginForm())
+        return render_template('login.html', form=LoginForm(),
+                               bodyclass='simple-form')
 
     def post(self):
         form = LoginForm(request.form)
@@ -42,7 +43,8 @@ class LoginView(MethodView):
 class SignupView(MethodView):
 
     def get(self):
-        return render_template('signup.html', form=SignupForm())
+        return render_template('signup.html', form=SignupForm(),
+                               bodyclass='simple-form')
 
     def post(self):
         form = SignupForm(request.form)
@@ -51,7 +53,7 @@ class SignupView(MethodView):
 
         cancel_create = False  # track errors in creation
         user = User.objects(username=username)
-        if user:
+        if user or username == 'about':
             flash('That username has already been chosen. Try a different one.')
             cancel_create = True
         if password != form.password_conf.data:
@@ -69,5 +71,33 @@ class SignupView(MethodView):
         return redirect(url_for('.login'))
 
 
+class LogoutView(MethodView):
+
+    def get(self):
+        session['username'] = None
+        flash('You were successfully logged out')
+        return redirect(url_for('content.landing'))
+
+
+class AccountView(MethodView):
+
+    def get(self, username):
+        if session['username'] == username:
+            return render_template('account.html',
+                                user=User.objects.get_or_404(username=username))
+        else:
+            flash('Only a user who is logged in can view their account')
+            return redirect(url_for('users.login'))
+
+
+class AboutAccountView(MethodView):
+
+    def get(self):
+        return render_template('about_account.html')
+
+
 users.add_url_rule('/login/', view_func=LoginView.as_view('login'))
 users.add_url_rule('/signup/', view_func=SignupView.as_view('signup'))
+users.add_url_rule('/logout/', view_func=LogoutView.as_view('logout'))
+users.add_url_rule('/account/<username>/', view_func=AccountView.as_view('account'))
+users.add_url_rule('/account/about/', view_func=AboutAccountView.as_view('about_account'))
