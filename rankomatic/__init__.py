@@ -9,14 +9,12 @@ Instantiates the app as a Python module; everything defined in here is available
 for import from the rankomatic module.
 """
 #TODO make sure documentation is up to date
-from flask import Flask, render_template
+from flask import Flask
 from flask.ext.mongoengine import MongoEngine
-from rankomatic.config import ProductionConfig, TestingConfig, DevelopmentConfig
 
 app = Flask(__name__)
-app.config.from_object(DevelopmentConfig)
-#app.config.from_object(ProductionConfig)
-#app.config.from_object(TestingConfig)
+app.config.from_object('rankomatic.config.default-config')
+app.config.from_envvar('APP_CONFIG', silent=True)
 
 db = MongoEngine(app)
 

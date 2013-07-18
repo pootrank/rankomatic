@@ -10,13 +10,14 @@ from flask import Blueprint, render_template
 from flask.views import MethodView
 from rankomatic.forms import LoginForm
 
-content = Blueprint('content', __name__, template_folder='templates')
+content = Blueprint('content', __name__, template_folder='templates/content')
 
 
 class LandingView(MethodView):
 
     def get(self):
-        return render_template('landing.html', form=LoginForm(), active='landing')
+        return render_template('landing.html', form=LoginForm(),
+                               active='landing')
 
 
 class GlossaryView(MethodView):

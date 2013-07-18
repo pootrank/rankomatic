@@ -10,7 +10,8 @@ from flask import Blueprint, render_template
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 
-calculator = Blueprint('calculator', __name__, template_folder='templates')
+calculator = Blueprint('calculator', __name__,
+                       template_folder='templates/calculator')
 
 class CalculatorView(MethodView):
     """

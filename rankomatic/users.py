@@ -13,7 +13,7 @@ from flask.views import MethodView
 from rankomatic.forms import LoginForm, SignupForm
 from rankomatic.models import User
 
-users = Blueprint('users', __name__, template_folder='templates')
+users = Blueprint('users', __name__, template_folder='templates/users')
 
 class LoginView(MethodView):
 
