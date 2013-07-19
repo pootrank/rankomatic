@@ -68,7 +68,7 @@ ExpandoTableaux = function( tableaux_id,
             // update all the violation vectors in the table
             $(tableaux_id + " td:last-child").each(function(){
                 candidate_ind = $(this).parent().index();
-                var name_str = "candidates" + candidate_ind +
+                var name_str = "candidates-" + candidate_ind +
                                "-vvector-" + constraint_ind;
                 $(this).find("input").attr({id: name_str,
                                             name: name_str,
@@ -79,7 +79,7 @@ ExpandoTableaux = function( tableaux_id,
 
 
     /*
-    * Helper function whcih updates the various inputs in the row.
+    * Helper function which updates the various inputs in the row.
     *
     * Args:
     *   $row -- the jQuery row to search in
@@ -135,7 +135,7 @@ ExpandoTableaux = function( tableaux_id,
 
 
 /*
-* Call the constructor when the DOM is ready
+* Call the constructor when the DOM is ready. Change the arguments to reuse.
 */
 $(document).ready(function() {
     ExpandoTableaux("tableaux", "add_constraint", "delete_constraint",
