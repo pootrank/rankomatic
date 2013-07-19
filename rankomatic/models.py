@@ -33,7 +33,7 @@ class Candidate(db.DynamicEmbeddedDocument):
     vvector = db.ListField(
         db.IntField(required=True),
         required=True,
-        default=lambda: [db.IntField(default="") for x in range(3)]
+        default=lambda: [db.IntField() for x in range(3)]
     )
 
 

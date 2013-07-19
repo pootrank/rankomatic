@@ -6,7 +6,7 @@ Email: cwjeffers18@gmail.com
 Defines a calculator Blueprint. Displays the calculator, reads the form,
 returns the results, etc.
 """
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 
@@ -21,6 +21,30 @@ class CalculatorView(MethodView):
     def get(self):
         return render_template('tableaux.html', form=TableauxForm(),
                                active='calculator')
+
+    def post(self):
+        form = TableauxForm(request.form)
+        data = form.data
+
+        # convert the data into what is used by the ranking library
+        for c in data['candidates']:
+            c['output'] = c.pop('outp')
+            c['input'] = c.pop('inp')
+            vvec_dict = {}
+            for i in range(len(c['vvector'])):
+                vvec_dict[i + 1] = c['vvector'][i]
+            c['vvector'] = vvec_dict
+
+        # An ugly method to show we have what we want
+        ret = "dataset:<br>"
+        for c in data['candidates']:
+            ret += str(c) + "<br>"
+
+        ret += "<br>constraints:<br>"
+        for c in data['constraints']:
+            ret += c + ", "
+
+        return ret
 
 
 calculator.add_url_rule('/calculator/',
