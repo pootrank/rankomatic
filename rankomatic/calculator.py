@@ -35,7 +35,7 @@ class CalculatorView(MethodView):
                 vvec_dict[i + 1] = c['vvector'][i]
             c['vvector'] = vvec_dict
 
-        # An ugly method to show we have what we want
+        # An ugly way to show we have what we want
         ret = "dataset:<br>"
         for c in data['candidates']:
             ret += str(c) + "<br>"
@@ -44,7 +44,7 @@ class CalculatorView(MethodView):
         for c in data['constraints']:
             ret += c + ", "
 
-        return ret
+        return render_template('grammars.html', data = ret)
 
 
 calculator.add_url_rule('/calculator/',
