@@ -3,14 +3,17 @@ th input {
     text-align: center;
 }
 
-th input, td input {
+th input, tr.candidate td input {
     width: 4em;
-    margin-top: 10px;
-    float: left;
+    margin: 6px 3px;
 }
 
-tr.candidate td input {
-    margin-bottom: 0px;
+tr.candidate td input[type="checkbox"] {
+    margin: auto;
+}
+
+.new-input {
+    border-top: 2px solid #c0c0c0;
 }
 
 table#tableaux {
@@ -28,6 +31,7 @@ th, td {
     padding-left: 5px;
     padding-right: 5px;
     text-align: center;
+    vertical-align: middle;
 }
 
 #buttons td {
@@ -51,6 +55,7 @@ th, td {
 body {
     margin-top: 40px;
 }
+
 
 body.simple-form {
     background-color: #f5f5f5;

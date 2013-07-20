@@ -8,13 +8,21 @@
 * or delete constraints and input/output pairs to the table.
 */
 
-var MIN_TABLEAUX_IND = 3;
+var FIRST_CONSTRAINT_IND = 3;
+var MIN_TABLEAUX_IND = 4;
 var MAX_TABLEAUX_IND = 8;
 
 /*
 * Constructor for ExpandoTableaux class. Registers appropriate methods with
 * add and subtract buttons whose IDs are passed in.
 */
+
+// slight extension for jQuery
+$.fn.exists = function() {
+    return this.length !== 0;
+}
+
+
 ExpandoTableaux = function( tableaux_id,
                             add_col_btn_id,
                             del_col_btn_id,
@@ -59,7 +67,7 @@ ExpandoTableaux = function( tableaux_id,
 
             // update the new header constraint
             var header = $(tableaux_id + " th:last-child");
-            var constraint_ind = header.index() - MIN_TABLEAUX_IND;
+            var constraint_ind = header.index() - FIRST_CONSTRAINT_IND;
             var name_str = "constraints-" + constraint_ind;
             header.find("input").attr({id: name_str,
                                        name: name_str,
@@ -98,6 +106,22 @@ ExpandoTableaux = function( tableaux_id,
     }
 
     /*
+    * Helper function to add the class to rows above and below if the values
+    * match.
+    */
+    function update_neighbor_class($row, this_val, neighbor_val)
+    {
+        if (neighbor_val != this_val) {
+            if (!$row.find('td').hasClass('new-input')) {
+                $row.find('td').addClass('new-input');
+            }
+        } else {
+            $row.find('td').removeClass('new-input');
+        }
+    }
+
+
+    /*
     * Event handler for adding a row to the table. Clones the row above and
     * updates the HTML attributes as necessary.
     */
@@ -115,9 +139,29 @@ ExpandoTableaux = function( tableaux_id,
         update_input(row, 'inp', candidate_ind, "I" + (candidate_ind + 1));
         update_input(row, 'outp', candidate_ind, "O" + (candidate_ind + 1));
         update_input(row, 'optimal', candidate_ind, "");
-        for (var i = 0; i < row.children('td').size() - MIN_TABLEAUX_IND; ++i) {
+        for (var i = 0; i < row.children('td').size() - FIRST_CONSTRAINT_IND; ++i) {
             update_input(row, 'vvector-' + i, candidate_ind, "")
         }
+
+        row.find('input[name$="inp"]').change(function(e) {
+            // exclude top row
+            if (this.name != 'candidates-0-inp') {
+
+                // get input above
+                var row_ind = parseInt(this.name.match('-(.*)-')[1]);
+                var prev_inp = $('input[name*="-' + (row_ind-1) + '-inp"]');
+
+                // if value is different, add class
+                update_neighbor_class(row, this.value, prev_inp.val());
+
+                // get input below
+                var next_inp = $('input[name*="-' + (row_ind+1) + '-inp"]');
+                if (next_inp.exists()) {
+                    var next_row = next_inp.closest('tr');
+                    update_neighbor_class(next_row, this.value, next_inp.val());
+                }
+            }
+        });
     });
 
 
