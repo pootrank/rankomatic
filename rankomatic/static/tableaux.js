@@ -122,6 +122,30 @@ ExpandoTableaux = function( tableaux_id,
 
 
     /*
+    * Function to add or remove classes to rows depending on whether or not
+    * the row above has a matching input.
+    */
+    function divide_rows(e) {
+        // get input above
+        var row_ind = parseInt(this.name.match('-(.*)-')[1]);
+        var prev_inp = $('input[name*="-' + (row_ind-1) + '-inp"]');
+        var row = $(this).closest('tr');
+
+        // get input above
+        if (prev_inp.exists()) {
+            update_neighbor_class(row, this.value, prev_inp.val());
+        }
+
+        // get input below
+        var next_inp = $('input[name*="-' + (row_ind+1) + '-inp"]');
+        if (next_inp.exists()) {
+            var next_row = next_inp.closest('tr');
+            update_neighbor_class(next_row, this.value, next_inp.val());
+        }
+    }
+
+
+    /*
     * Event handler for adding a row to the table. Clones the row above and
     * updates the HTML attributes as necessary.
     */
@@ -143,25 +167,12 @@ ExpandoTableaux = function( tableaux_id,
             update_input(row, 'vvector-' + i, candidate_ind, "")
         }
 
-        row.find('input[name$="inp"]').change(function(e) {
-            // exclude top row
-            if (this.name != 'candidates-0-inp') {
+        // clear and register event handlers
+        $('input[name$="inp"]').unbind('change');
+        $('input[name$="inp"]').change(divide_rows);
 
-                // get input above
-                var row_ind = parseInt(this.name.match('-(.*)-')[1]);
-                var prev_inp = $('input[name*="-' + (row_ind-1) + '-inp"]');
-
-                // if value is different, add class
-                update_neighbor_class(row, this.value, prev_inp.val());
-
-                // get input below
-                var next_inp = $('input[name*="-' + (row_ind+1) + '-inp"]');
-                if (next_inp.exists()) {
-                    var next_row = next_inp.closest('tr');
-                    update_neighbor_class(next_row, this.value, next_inp.val());
-                }
-            }
-        });
+        // run it once in case anything changed
+        $('input[name$="inp"]').each(divide_rows);
     });
 
 
