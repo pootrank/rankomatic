@@ -14,11 +14,11 @@
             </td>
           </tr>
           <tr>
-            <td>Input/Output Pairs:</td>
+            <td>Input Groups:</td>
             <td>
               <div class="btn-group">
-                <button id="add_candidate" class="btn" type="button">+</button>
-                <button id="delete_candidate" class="btn" type="button">-</button>
+                <button id="add_input_group" class="btn" type="button">+</button>
+                <button id="delete_input_group" class="btn" type="button">-</button>
               </div>
             </td>
           </tr>
@@ -32,45 +32,38 @@
       <div class="span9">
         <fieldset>
           <table id="tableaux" class="condensed" cellspacing="0">
-          {%- for tableaux_field in form -%}
-            {%- if tableaux_field.type in ['CSRFTokenField', 'HiddenField'] %}
-              {{ tableaux_field() }}
-            {%- elif tableaux_field.name == 'constraints' %}
-            <thead>
-              <tr id="header">
-                <th>Input</th>
-                <th>Output</th>
-                <th>Optimal?</th>
-                {%- set i = 1 %}
-                {%- for constraint in tableaux_field %}
-                  <th>{{ constraint(value="C" ~ i) }}</th>
+          {{ form.csrf_token() }}
+          <thead>
+            <tr id="tableaux_header">
+              <th>Input</th>
+              <th>Output</th>
+              <th>Optimal?</th>
+              {%- set i = 1 %}
+              {%- for constraint in form.constraints %}
+                <th>{{ constraint(value="C" ~ i) }}</th>
                 {%- set i = i + 1 %}
-                {%- endfor %}
-              </tr>
-            </thead>
+              {%- endfor %}
+              <th class="borderless"></th>
+            </tr>
+          </thead>
             <tbody>
-            {%- else -%}
-              {%- for candidate in tableaux_field %}
+              {%- for candidate in form.candidates %}
                 <tr class="candidate">
-                {%- for cand_field in candidate -%}
-                  {%- if cand_field.type in ['CSRFTokenField', 'HiddenField'] %}
-                    {{ cand_field() }}
-                  {% elif 'inp' in cand_field.name  -%}
-                    <td>{{ cand_field(value="I1") }}</td>
-                  {% elif 'outp' in cand_field.name  -%}
-                    <td>{{ cand_field(value="O1") }}</td>
-                  {% elif 'optimal' in cand_field.name  -%}
-                    <td>{{ cand_field(value="") }}</td>
-                  {%- elif 'vvector' in cand_field.name -%}
-                  {%- for constraint in cand_field %}
-                    <td>{{ constraint(value="") }}</td>
-                  {%- endfor -%}
-                  {%- endif -%}
-                {%- endfor %}
+                {{ candidate.csrf_token() }}
+                <td>{{ candidate.inp(value="I1") }}</td>
+                <td>{{ candidate.outp(value="O1") }}</td>
+                <td>{{ candidate.optimal(value="") }}</td>
+                {%- for constraint in candidate.vvector %}
+                  <td>{{ constraint(value="") }}</td>
+                {%- endfor -%}
+                <td class="borderless">
+                  <div class="btn-group">
+                    <button class="btn btn-small add_output" id="turd" data-toggle="tooltip" type=button title="Add an output to this input group">+</button>
+                    <button class="btn btn-small delete_output" id="poop" data-toggle="tooltip" type=button title="Delete an output from this input group">-</button>
+                  </div>
+                </td>
                 </tr>
-              {%- endfor -%}
-            {%- endif -%}
-          {%- endfor %}
+              {%- endfor %}
             </tbody>
           </table>
         </fieldset>

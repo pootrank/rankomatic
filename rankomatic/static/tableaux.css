@@ -8,6 +8,11 @@ th input, tr.candidate td input {
     margin: 6px 3px;
 }
 
+tr#tableaux_header th.borderless,
+tr.candidate td.borderless {
+    border: none;
+}
+
 tr.candidate td input[type="checkbox"] {
     margin: auto;
 }
@@ -23,7 +28,7 @@ table#tableaux {
     margin-right: auto;
 }
 
-#header th {
+#tableaux_header th {
     border-bottom: 2px solid black;
 }
 
