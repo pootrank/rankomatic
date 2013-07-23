@@ -11,11 +11,59 @@
 var FIRST_CONSTRAINT_IND = 3;
 var MIN_TABLEAUX_IND = 5;
 var MAX_TABLEAUX_IND = 9;
+var num_rows_added = 0;
 
 // slight extension for jQuery
 $.fn.exists = function() {
     return this.length !== 0;
 }
+
+/*** Helper functions ****** Helper functions ****** Helper functions ***/
+/*
+* Function: update_input
+* ======================
+* Given an input name, index, value, and a row to search in, updates the input.
+* Args:
+*   $row -- the jQuery row to search in
+*   name -- a string with the unique suffix for the input
+*   ind -- the candidate index of the row
+*   val -- the value to set the input as, if null will remain the same
+*/
+function update_input($row, name, val) {
+    var name_str = 'candidates-' + num_rows_added + '-' + name;
+    var input = $row.find('input[name$="' + name + '"]');
+    input.attr({id: name_str, name: name_str})
+    if (val != null) {
+        input.val(val);
+    }
+}
+
+/*
+* Function update_row_values
+* ==========================
+* Wrapper function for update_input, calls update_input on all the relevant
+* input elements.
+*
+* Args:
+*     candidate_ind -- the index of the candidate row
+*     $row -- a jQuery object corresponding to the row to update
+*     output_row -- a boolean that is true if the row is an output only row
+*/
+function update_row_values($row, candidate_ind, output_only) {
+    if (output_only) {
+        var input_name = null;
+    } else {
+        var input_name = "I" + (candidate_ind + 1);
+    }
+    update_input($row, 'csrf_token', null);
+    update_input($row, 'inp',  "I" + (candidate_ind + 1));
+    update_input($row, 'outp', "O" + (candidate_ind + 1));
+    update_input($row, 'optimal', "");
+    for (var i = 0; i < $row.children('td').size() - FIRST_CONSTRAINT_IND; ++i) {
+        update_input($row, 'vvector-' + i, "");
+    }
+}
+
 /*
 * Function: outer_html
 * ====================
@@ -28,6 +76,7 @@ function outer_html($elem) {
     $elem.unwrap();
     return ret
 }
+/*****************************************************************************/
 
 /*** Column add/delete ****** Column add/delete ****** Column add/delete ***/
 /*
@@ -85,43 +134,20 @@ function delete_constraint_column(e) {
 
 /****** Input group add/delete ****** Input group add/delete ******/
 /*
-* Helper function which updates the various inputs in the row.
-*
-* Args:
-*   $row -- the jQuery row to search in
-*   name -- a string with the unique suffix for the input
-*   ind -- the candidate index of the row
-*   val -- the value to set the input as, if null will remain the same
+* Function: update_output_rows
+* ============================
+* Change handler for the input row input-fields which update all the output
+* rows to match th input row.
 */
-function update_input($row, name, ind, val) {
-    var name_str = 'candidates-' + ind + '-' + name;
-    var input = $row.find('input[name$="' + name + '"]');
-    input.attr({id: name_str, name: name_str})
-    if (val != null) {
-        input.val(val);
-    }
+function update_output_rows(e) {
+    var input_group = $(this).closest('tbody.input-group');
+    new_val = this.value;
+    input_group.find('input[name$="inp"]').each(function() {
+        obj = $(this);
+        obj.val(new_val);
+        obj.attr('value', new_val);
+    });
 }
-
-/*
-* Function update_row_values
-* ==========================
-* Wrapper function for update_input, calls update_input on all the relevant
-* input elements.
-*
-* Args:
-*     candidate_ind -- the index of the candidate row
-*     $row -- a jQuery object corresponding to the row to update
-*/
-function update_row_values($row, candidate_ind) {
-    update_input($row, 'csrf_token', candidate_ind, null);
-    update_input($row, 'inp', candidate_ind, "I" + (candidate_ind + 1));
-    update_input($row, 'outp', candidate_ind, "O" + (candidate_ind + 1));
-    update_input($row, 'optimal', candidate_ind, "");
-    for (var i = 0; i < $row.children('td').size() - FIRST_CONSTRAINT_IND; ++i) {
-        update_input($row, 'vvector-' + i, candidate_ind, "");
-    }
-}
-
 /*
 * Function: add_input_group
 * =========================
@@ -136,10 +162,12 @@ function add_input_group(e) {
 
     var candidate_ind = $('#tableaux tbody.input-group').size() - 1; // 0-indexed
     var row = to_append.find('tr.candidate:eq(0)');
+    num_rows_added++;
     update_row_values(row, candidate_ind);
 
     row.find('.add_output').click(add_output_row);
     row.find('.delete_output').click(delete_output_row);
+    row.find('input[name$="inp"]').change(update_output_rows);
 }
 
 /*
@@ -156,15 +184,47 @@ function delete_input_group(e) {
 
 
 /****** Output row add/delete ****** Output row add/delete ******/
+/*
+* Function: add_output_row
+* ========================
+* Click handler for the .add_output buttons. Clones an output row, inserts it
+* at the end of the tbody.input-group, and sets the class appropriately.
+*/
+function add_output_row(e) {
+    var input_group = $(this).closest('tbody.input-group');
+    var input_value = input_group.find('tr.input-header input[name$="inp"]').val()
+    var to_append = $(outer_html(input_group.find('tr.input-header')));
+    to_append.removeClass('input-header').addClass('output-only');
+    num_rows_added++;
+    update_row_values(to_append, $('#tableaux tr.candidate').size());
+    input_field = to_append.find('input[name$="inp"]');
+    input_field.attr('value', input_value);
+    input_field.val(input_value);
+    input_group.append(to_append);
+}
+
+/*
+* Function: delete_output_row
+* ===========================
+* Click handler for .delete_output buttons. Deletes the bottom-most candidate
+* row in their input group.
+*/
+function delete_output_row(e) {
+    var input_group = $(this).closest('tbody.input-group');
+    if (input_group.find('tr.candidate').size() > 1) {
+        input_group.find('tr.candidate:last-child').remove();
+    }
+}
 /*****************************************************************************/
 
 
 $(document).ready(function() {
     // Add the click handlers when the DOM is ready.
+    $('#tableaux input[name$="inp"]').change(update_output_rows);
     $('#add_input_group').click(add_input_group);
     $('#delete_input_group').click(delete_input_group);
     $('#add_constraint').click(add_constraint_column);
     $('#delete_constraint').click(delete_constraint_column);
-    $('.add_output_row').click(add_output_row);
-    $('.delete_output_row').click(delete_output_row);
+    $('#tableaux .add_output').click(add_output_row);
+    $('#tableaux .delete_output').click(delete_output_row);
 });

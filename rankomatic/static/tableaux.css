@@ -21,6 +21,11 @@ tr.candidate td input[type="checkbox"] {
     border-top: 2px solid #c0c0c0;
 }
 
+tr.output-only input[name$="inp"],
+tr.output-only button {
+    visibility: hidden;
+}
+
 table#tableaux {
     border-collapse: collapse;
     width: 50%;
