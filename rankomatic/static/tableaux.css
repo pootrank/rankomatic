@@ -17,7 +17,7 @@ tr.candidate td input[type="checkbox"] {
     margin: auto;
 }
 
-.new-input {
+.input-header td {
     border-top: 2px solid #c0c0c0;
 }
 

@@ -46,25 +46,25 @@
               <th class="borderless"></th>
             </tr>
           </thead>
-            <tbody>
-              {%- for candidate in form.candidates %}
-                <tr class="candidate">
-                {{ candidate.csrf_token() }}
-                <td>{{ candidate.inp(value="I1") }}</td>
-                <td>{{ candidate.outp(value="O1") }}</td>
-                <td>{{ candidate.optimal(value="") }}</td>
-                {%- for constraint in candidate.vvector %}
+            {%- for candidate in form.candidates %}
+              <tbody id="" class="input-group">
+                <tr class="candidate input-header">
+                  {{ candidate.csrf_token() }}
+                  <td>{{ candidate.inp(value="I1") }}</td>
+                  <td>{{ candidate.outp(value="O1") }}</td>
+                  <td>{{ candidate.optimal(value="") }}</td>
+                  {%- for constraint in candidate.vvector %}
                   <td>{{ constraint(value="") }}</td>
-                {%- endfor -%}
-                <td class="borderless">
-                  <div class="btn-group">
-                    <button class="btn btn-small add_output" id="turd" data-toggle="tooltip" type=button title="Add an output to this input group">+</button>
-                    <button class="btn btn-small delete_output" id="poop" data-toggle="tooltip" type=button title="Delete an output from this input group">-</button>
-                  </div>
-                </td>
+                  {%- endfor -%}
+                  <td class="borderless">
+                    <div class="btn-group">
+                      <button class="btn btn-small add_output" id="turd" data-toggle="tooltip" type=button title="Add an output to this input group">+</button>
+                      <button class="btn btn-small delete_output" id="poop" data-toggle="tooltip" type=button title="Delete an output from this input group">-</button>
+                    </div>
+                  </td>
                 </tr>
-              {%- endfor %}
-            </tbody>
+              </tbody>
+            {%- endfor %}
           </table>
         </fieldset>
       </div>
