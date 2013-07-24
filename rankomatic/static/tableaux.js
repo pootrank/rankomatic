@@ -102,7 +102,7 @@ function add_constraint_column(e) {
         // update all the violation vectors in the table
         $('#tableaux td:nth-last-child(2)').each(function(){
             to_match = $(this).parent().find('input[name$=outp]').attr('name')
-            candidate_ind = (to_match.match(/candidates-(.*)/)[1]);
+            candidate_ind = (to_match.match(/candidates-(.*)-/)[1]);
             var name_str = 'candidates-' + candidate_ind +
                            '-vvector-' + constraint_ind;
             $(this).find('input').attr({id: name_str,
