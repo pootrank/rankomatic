@@ -13,11 +13,6 @@ var MIN_TABLEAUX_IND = 5;
 var MAX_TABLEAUX_IND = 9;
 var num_rows_added = 0;
 
-// slight extension for jQuery
-$.fn.exists = function() {
-    return this.length !== 0;
-}
-
 /*** Helper functions ****** Helper functions ****** Helper functions ***/
 /*
 * Function: update_input
@@ -52,7 +47,7 @@ function update_input($row, name, val) {
 function update_row_values($row, candidate_ind) {
     update_input($row, 'csrf_token', null);
     update_input($row, 'inp',  "I" + (candidate_ind + 1));
-    update_input($row, 'outp', "O" + ($('#tableaux tr.candidate').size() + 1));
+    update_input($row, 'outp', "O" + (num_rows_added + 1));
     update_input($row, 'optimal', "");
     for (var i = 0; i < $row.children('td').size() - FIRST_CONSTRAINT_IND; ++i) {
         update_input($row, 'vvector-' + i, "");

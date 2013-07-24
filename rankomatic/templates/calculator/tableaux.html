@@ -39,7 +39,7 @@
               <th>Optimal?</th>
               {%- set i = 1 %}
               {%- for constraint in form.constraints %}
-                <th>{{ constraint(value="C" ~ i) }}</th>
+              <th>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="C" ~ i) }}{% endif %}</th>
                 {%- set i = i + 1 %}
               {%- endfor %}
               <th class="borderless"></th>
@@ -49,11 +49,11 @@
               <tbody id="" class="input-group">
                 <tr class="candidate input-header">
                   {{ candidate.csrf_token() }}
-                  <td>{{ candidate.inp(value="I1") }}</td>
-                  <td>{{ candidate.outp(value="O1") }}</td>
-                  <td>{{ candidate.optimal(value="") }}</td>
+                  <td>{% if candidate.inp.raw_data %}{{ candidate.inp() }}{% else %}{{ candidate.inp(value="I1") }}{% endif %}</td>
+                  <td>{% if candidate.outp.raw_data %}{{ candidate.outp() }}{% else %}{{ candidate.outp(value="O1") }}{% endif %}</td>
+                  <td>{% if candidate.optimal.data %}{{ candidate.optimal(value="true") }}{% else %}{{ candidate.optimal(value="false") }}{% endif %}</td>
                   {%- for constraint in candidate.vvector %}
-                  <td>{{ constraint(value="") }}</td>
+                    <td>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="") }}{% endif %}</td>
                   {%- endfor -%}
                   <td class="borderless">
                     <div class="btn-group">

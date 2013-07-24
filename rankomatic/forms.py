@@ -9,6 +9,7 @@ the Optimality Theory ranking application.
 from flask.ext.wtf import Form
 from wtforms import (TextField, PasswordField, FieldList, FormField,
                      BooleanField, IntegerField, validators)
+from wtforms.validators import ValidationError
 
 
 class LoginForm(Form):
@@ -74,6 +75,40 @@ class CandidateForm(Form):
     )
 
 
+class MembersUnique(object):
+    """
+    A custom validator for use with WTForm FieldLists, that checks to make sure
+    its members are unique.
+    """
+
+    def __init__(self, message=None):
+        if not message:
+            message = "Each element of the list must be unique"
+        self.message = message
+
+    def __call__(self, form, field):
+        if len(field.data) > len(set(field.data)):
+            raise ValidationError(self.message)
+
+
+class InputOutputPairsUnique(object):
+    """
+    A custom validator for use with candidates list, tests wether each
+    input/output pair is unique.
+    """
+
+    def __init__(self, message=None):
+        if not message:
+            message = "Each input/output pair must be unique"
+        self.message = message
+
+    def __call__(self, form, field):
+        pairs = [(c['inp'], c['outp']) for c in field.data]
+        if len(pairs) > len(set(pairs)):
+            raise ValidationError(self.message)
+
+
+
 class TableauxForm(Form):
     """
     This form creats the Tableaux, displayed as the main calculator.
@@ -85,8 +120,43 @@ class TableauxForm(Form):
         TextField(validators=[len_validator]),
         default=[TextField(default="",
                            validators=[len_validator]) for x in range(3)],
+        validators=[MembersUnique("Each constraint must be unique")]
     )
     candidates = FieldList(FormField(CandidateForm),
-        default=[CandidateForm(csrf_enabled=False)],
+                           default=[CandidateForm(csrf_enabled=False)],
+                           validators=[InputOutputPairsUnique()]
     )
+
+    def _flatten(self, d):
+        """
+        Flattens a dict into a single list, throwing away keys.
+        if d looks like this:
+            {'a': [{'1': 'bad', '2': 'worse' }]
+             'b': ['oh no!', [['that didn't work'], ['that didn't work']]]}
+        the return value is (although not necessarily sorted):
+            ['bad', 'worse', 'oh no!', 'that didn't work', 'that didn't work']
+        Code based on intuited's SO response: http://stackoverflow.com/a/3835478
+        """
+
+        try:
+            for v in d.itervalues():
+                for nested_v in self._flatten(v):
+                    yield nested_v
+        except AttributeError:
+            if type(d) is list:
+                for list_v in d:
+                    for nested_in_list in self._flatten(list_v):
+                        yield nested_in_list
+            elif type(d) is str:
+                yield d
+            else:
+                for list_v in d:
+                    yield list_v
+
+    def get_errors(self):
+        """
+        return the errors in a uniq'd list
+        """
+
+        return list(set([e for e in self._flatten(self.errors)]))
 

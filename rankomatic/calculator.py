@@ -6,7 +6,7 @@ Email: cwjeffers18@gmail.com
 Defines a calculator Blueprint. Displays the calculator, reads the form,
 returns the results, etc.
 """
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, flash
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 
@@ -19,8 +19,7 @@ class CalculatorView(MethodView):
     """
 
     def get(self):
-        return render_template('tableaux.html', form=TableauxForm(),
-                               active='calculator')
+        return render_template('tableaux.html', form=TableauxForm(), active='calculator')
 
     def post(self):
         form = TableauxForm(request.form)
@@ -45,13 +44,13 @@ class CalculatorView(MethodView):
         for c in data['constraints']:
             ret += c + ", "
 
-        # proof-of-concept that validation works
-        #TODO make this pretty (move it to template)
-        if form.validate():
-            return render_template('grammars.html', data = ret)
-        else:
-            return render_template('grammars.html', data = form.errors)
 
+        if form.validate():
+            return render_template('grammars.html', data=ret)
+        else:
+            for e in form.get_errors():
+                flash(e)
+            return render_template('tableaux.html', form=form, active='calculator')
 
 calculator.add_url_rule('/calculator/',
                         view_func=CalculatorView.as_view('calculator'))
