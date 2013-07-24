@@ -49,15 +49,10 @@ function update_input($row, name, val) {
 *     $row -- a jQuery object corresponding to the row to update
 *     output_row -- a boolean that is true if the row is an output only row
 */
-function update_row_values($row, candidate_ind, output_only) {
-    if (output_only) {
-        var input_name = null;
-    } else {
-        var input_name = "I" + (candidate_ind + 1);
-    }
+function update_row_values($row, candidate_ind) {
     update_input($row, 'csrf_token', null);
     update_input($row, 'inp',  "I" + (candidate_ind + 1));
-    update_input($row, 'outp', "O" + (candidate_ind + 1));
+    update_input($row, 'outp', "O" + ($('#tableaux tr.candidate').size() + 1));
     update_input($row, 'optimal', "");
     for (var i = 0; i < $row.children('td').size() - FIRST_CONSTRAINT_IND; ++i) {
         update_input($row, 'vvector-' + i, "");
@@ -106,7 +101,8 @@ function add_constraint_column(e) {
 
         // update all the violation vectors in the table
         $('#tableaux td:nth-last-child(2)').each(function(){
-            candidate_ind = $(this).parent().index();
+            to_match = $(this).parent().find('input[name$=outp]').attr('name')
+            candidate_ind = parseInt(to_match.match(/candidates-(.*)-/)[1]);
             var name_str = 'candidates-' + candidate_ind +
                            '-vvector-' + constraint_ind;
             $(this).find('input').attr({id: name_str,
@@ -158,12 +154,12 @@ function add_input_group(e) {
     var row_str = outer_html($('#tableaux tr.candidate').eq(0));
     var to_append = $(row_str).wrapAll('<tbody>').parent();
     to_append.addClass('input-group');
-    to_append.insertAfter($('#tableaux tbody.input-group:last-child'));
 
     var candidate_ind = $('#tableaux tbody.input-group').size() - 1; // 0-indexed
     var row = to_append.find('tr.candidate:eq(0)');
     num_rows_added++;
     update_row_values(row, candidate_ind);
+    to_append.insertAfter($('#tableaux tbody.input-group:last-child'));
 
     row.find('.add_output').click(add_output_row);
     row.find('.delete_output').click(delete_output_row);

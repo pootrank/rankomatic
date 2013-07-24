@@ -44,7 +44,11 @@ class CalculatorView(MethodView):
         for c in data['constraints']:
             ret += c + ", "
 
-        return render_template('grammars.html', data = ret)
+        # proof-of-concept that validation works
+        if form.validate():
+            return render_template('grammars.html', data = ret)
+        else:
+            return render_template('grammars.html', data = form.errors)
 
 
 calculator.add_url_rule('/calculator/',

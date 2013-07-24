@@ -21,36 +21,34 @@ import hashlib
 import os
 
 
-class Candidate(db.DynamicEmbeddedDocument):
+class Candidate(db.EmbeddedDocument):
     """
     A single row from the Tableaux, in OT terms an input-outuput pair.
     Also contains whether or not the output is optimal for the input
     and the violation vector for the constraint set of the Tableaux.
     """
-    inp = db.StringField(required=True, max_length=255, default="")
-    outp = db.StringField(required=True, max_length=255, default="")
-    optimal = db.BooleanField(required=True)
+    inp = db.StringField(max_length=255, default="")
+    outp = db.StringField(max_length=255, default="")
+    optimal = db.BooleanField()
     vvector = db.ListField(
-        db.IntField(required=True),
-        required=True,
-        default=lambda: [db.IntField() for x in range(3)]
+        db.IntField(),
+        default=lambda: [db.IntField(default=0) for x in range(3)],
     )
 
 
-class Tableaux(db.DynamicEmbeddedDocument):
+
+class Tableaux(db.EmbeddedDocument):
     """
     Represents an user's tableaux or dataset. Consists of a list of constraint
     names and a list of Candidates.
     """
     constraints = db.ListField(
-        db.StringField(required=True, max_length=255, default=""),
-        required=True,
+        db.StringField(max_length=255, required=True),
         default=lambda: [db.StringField(default="") for x in range(3)]
     )
     candidates = db.ListField(
-        db.EmbeddedDocumentField(Candidate, required=True),
-        required=True,
-        default=lambda: [Candidate(csrf_enabled=False)]
+        db.EmbeddedDocumentField(Candidate),
+        default=lambda: [Candidate(csrf_enabled=False)],
     )
 
 

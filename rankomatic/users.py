@@ -34,7 +34,6 @@ class LoginView(MethodView):
             session['username'] = username
             flash('Welcome, %s!' % session['username'])
             return redirect(url_for('calculator.calculator'))
-            #TODO redirect to table
         else:
             flash('Incorrect username/password combination')
             return redirect(url_for('.login'))
