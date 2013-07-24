@@ -8,6 +8,10 @@ th input, tr.candidate td input {
     margin: 6px 3px;
 }
 
+fieldset {
+    display: inline-block;
+}
+
 tr#tableaux_header th.borderless,
 tr.candidate td.borderless {
     border: none;
@@ -33,8 +37,26 @@ table#tableaux {
     margin-right: auto;
 }
 
+table#buttons {
+    margin-top: 50px;
+}
+
+#buttons th {
+    text-align: right;
+}
+
+#buttons button {
+    margin: 3px 0px;
+}
 #tableaux_header th {
     border-bottom: 2px solid black;
+}
+
+#submit-btn-container {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
+    max-width: 150px;
 }
 
 th, td {
@@ -44,9 +66,6 @@ th, td {
     vertical-align: middle;
 }
 
-#buttons td {
-    text-align: right;
-}
 
 
 .form-landing, .signin-options, .form-signin {

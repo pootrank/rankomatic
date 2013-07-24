@@ -25,14 +25,14 @@
             <li class="{%- if active == 'glossary' -%}active{%- endif -%}">
               <a href="{{ url_for('content.glossary') }}">Glossary</a>
             </li>
+            <li class="{%- if active == 'cite' -%}active{%- endif -%}">
+              <a href="{{ url_for('content.cite') }}">Citations</a>
+            </li>
             <li class="{%- if active == 'about' -%}active{%- endif -%}">
               <a href="{{ url_for('content.about') }}">About</a>
             </li>
             <li class="{%- if active == 'contact' -%}active{%- endif -%}">
               <a href="{{ url_for('content.contact') }}">Contact</a>
-            </li>
-            <li class="{%- if active == 'cite' -%}active{%- endif -%}">
-              <a href="{{ url_for('content.cite') }}">Citations</a>
             </li>
           </ul>
           <ul class="nav pull-right">

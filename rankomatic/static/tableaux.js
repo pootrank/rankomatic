@@ -102,7 +102,7 @@ function add_constraint_column(e) {
         // update all the violation vectors in the table
         $('#tableaux td:nth-last-child(2)').each(function(){
             to_match = $(this).parent().find('input[name$=outp]').attr('name')
-            candidate_ind = parseInt(to_match.match(/candidates-(.*)-/)[1]);
+            candidate_ind = (to_match.match(/candidates-(.*)/)[1]);
             var name_str = 'candidates-' + candidate_ind +
                            '-vvector-' + constraint_ind;
             $(this).find('input').attr({id: name_str,
@@ -155,7 +155,7 @@ function add_input_group(e) {
     var to_append = $(row_str).wrapAll('<tbody>').parent();
     to_append.addClass('input-group');
 
-    var candidate_ind = $('#tableaux tbody.input-group').size() - 1; // 0-indexed
+    var candidate_ind = $('#tableaux tbody.input-group').size(); // haven't inserted yet
     var row = to_append.find('tr.candidate:eq(0)');
     num_rows_added++;
     update_row_values(row, candidate_ind);

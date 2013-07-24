@@ -36,6 +36,7 @@ class CalculatorView(MethodView):
             c['vvector'] = vvec_dict
 
         # An ugly way to show we have what we want
+        #TODO make this pretty
         ret = "dataset:<br>"
         for c in data['candidates']:
             ret += str(c) + "<br>"
@@ -45,6 +46,7 @@ class CalculatorView(MethodView):
             ret += c + ", "
 
         # proof-of-concept that validation works
+        #TODO make this pretty (move it to template)
         if form.validate():
             return render_template('grammars.html', data = ret)
         else:

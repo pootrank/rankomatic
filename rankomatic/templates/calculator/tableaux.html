@@ -5,7 +5,7 @@
       <div class="span3">
         <table id="buttons" cellspacing="0">
           <tr>
-            <td>Constraints:</td>
+            <th>Constraints:</th>
             <td>
               <div class="btn-group">
                 <button id="add_constraint" class="btn" type="button">+</button>
@@ -14,7 +14,7 @@
             </td>
           </tr>
           <tr>
-            <td>Input Groups:</td>
+            <th>Input Groups:</th>
             <td>
               <div class="btn-group">
                 <button id="add_input_group" class="btn" type="button">+</button>
@@ -24,7 +24,6 @@
           </tr>
           <tr>
             <td colspan="2">
-              <button type="submit" class="btn btn-primary btn-block">Rank!</button>
             </td>
           </tr>
         </table>
@@ -66,6 +65,9 @@
               </tbody>
             {%- endfor %}
           </table>
+          <div id="submit-btn-container">
+            <button type="submit" class="btn btn-primary btn-block">Rank!</button>
+          </div>
         </fieldset>
       </div>
     </div>
