@@ -24,8 +24,9 @@ var num_rows_added = 0;
 *   ind -- the candidate index of the row
 *   val -- the value to set the input as, if null will remain the same
 */
-function update_input($row, name, val) {
-    var name_str = 'candidates-' + num_rows_added + '-' + name;
+function update_input($row, name, val, ig_ind, cand_ind) {
+    var name_str = 'input_groups-' + ig_ind;
+    name_str += '-candidates-' + cand_ind + '-' + name;
     var input = $row.find('input[name$="' + name + '"]');
     input.attr({id: name_str, name: name_str})
     if (val != null) {
@@ -40,17 +41,17 @@ function update_input($row, name, val) {
 * input elements.
 *
 * Args:
-*     candidate_ind -- the index of the candidate row
 *     $row -- a jQuery object corresponding to the row to update
-*     output_row -- a boolean that is true if the row is an output only row
 */
-function update_row_values($row, candidate_ind) {
-    update_input($row, 'csrf_token', null);
-    update_input($row, 'inp',  "I" + (candidate_ind + 1));
-    update_input($row, 'outp', "O" + (num_rows_added + 1));
-    update_input($row, 'optimal', "");
+function update_row_values($row) {
+    var ig = $row.closest('tbody.input-group');
+    var ig_ind = ig.index('tbody.input-group');
+    var cand_ind = ig.find('tr.candidate').index($row);
+    update_input($row, 'inp',  "I" + (ig_ind + 1), ig_ind, cand_ind);
+    update_input($row, 'outp', "O" + (num_rows_added + 1), ig_ind, cand_ind);
+    update_input($row, 'optimal', "", ig_ind, cand_ind);
     for (var i = 0; i < $row.children('td').size() - FIRST_CONSTRAINT_IND; ++i) {
-        update_input($row, 'vvector-' + i, "");
+        update_input($row, 'vvector-' + i, "", ig_ind, cand_ind);
     }
 }
 
@@ -96,9 +97,11 @@ function add_constraint_column(e) {
 
         // update all the violation vectors in the table
         $('#tableaux td:nth-last-child(2)').each(function(){
-            to_match = $(this).parent().find('input[name$=outp]').attr('name')
-            candidate_ind = (to_match.match(/candidates-(.*)-/)[1]);
-            var name_str = 'candidates-' + candidate_ind +
+            var ig = $(this).closest('tbody.input-group');
+            var ig_ind = ig.index('tbody.input-group');
+            var cand_ind = ig.find('tr.candidate').index($(this).closest('tr.candidate'));
+            var name_str = 'input_groups-' + ig_ind +
+                           '-candidates-' + cand_ind +
                            '-vvector-' + constraint_ind;
             $(this).find('input').attr({id: name_str,
                                         name: name_str,
@@ -140,6 +143,19 @@ function update_output_rows(e) {
     });
 }
 /*
+* Function: add_csrf_field
+*  ========================
+*  Helper function to add a csrf field to the given input group (ig).
+*/
+function add_csrf_field(ig) {
+    var ig_ind = ig.closest('tbody.input-group').index('tbody.input-group');
+    var csrf_name_str = 'input_groups-' + ig_ind + '-csrf_token';
+    var csrf_input_str = outer_html($('tbody.input-group:eq(0) input[name$="csrf_token"]'))
+    var csrf_input = $(csrf_input_str);
+    csrf_input.attr({id: csrf_name_str, name: csrf_name_str});
+    csrf_input.prependTo(ig);
+}
+/*
 * Function: add_input_group
 * =========================
 * Event handler for adding an input group to the table. Clones the first
@@ -150,11 +166,13 @@ function add_input_group(e) {
     var to_append = $(row_str).wrapAll('<tbody>').parent();
     to_append.addClass('input-group');
 
-    var candidate_ind = $('#tableaux tbody.input-group').size(); // haven't inserted yet
-    var row = to_append.find('tr.candidate:eq(0)');
-    num_rows_added++;
-    update_row_values(row, candidate_ind);
+    var row = to_append.find('tr.candidate');
     to_append.insertAfter($('#tableaux tbody.input-group:last-child'));
+    num_rows_added++;
+    update_row_values(row);
+    add_csrf_field(to_append)
+
+
 
     row.find('.add_output').click(add_output_row);
     row.find('.delete_output').click(delete_output_row);
@@ -187,11 +205,11 @@ function add_output_row(e) {
     var to_append = $(outer_html(input_group.find('tr.input-header')));
     to_append.removeClass('input-header').addClass('output-only');
     num_rows_added++;
-    update_row_values(to_append, $('#tableaux tr.candidate').size());
+    input_group.append(to_append);
+    update_row_values(to_append);
     input_field = to_append.find('input[name$="inp"]');
     input_field.attr('value', input_value);
     input_field.val(input_value);
-    input_group.append(to_append);
 }
 
 /*

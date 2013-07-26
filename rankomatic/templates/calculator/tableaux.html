@@ -45,23 +45,27 @@
               <th class="borderless"></th>
             </tr>
           </thead>
-            {%- for candidate in form.candidates %}
+            {%- for ig in form.input_groups %}
               <tbody id="" class="input-group">
-                <tr class="candidate input-header">
-                  {{ candidate.csrf_token() }}
-                  <td>{% if candidate.inp.raw_data %}{{ candidate.inp() }}{% else %}{{ candidate.inp(value="I1") }}{% endif %}</td>
-                  <td>{% if candidate.outp.raw_data %}{{ candidate.outp() }}{% else %}{{ candidate.outp(value="O1") }}{% endif %}</td>
-                  <td>{% if candidate.optimal.data %}{{ candidate.optimal(value="true") }}{% else %}{{ candidate.optimal(value="false") }}{% endif %}</td>
-                  {%- for constraint in candidate.vvector %}
-                    <td>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="") }}{% endif %}</td>
-                  {%- endfor -%}
-                  <td class="borderless">
-                    <div class="btn-group">
-                      <button class="btn btn-small add_output" type=button title="Add an output to this input group">+</button>
-                      <button class="btn btn-small delete_output" type=button title="Delete an output from this input group">-</button>
-                    </div>
-                  </td>
-                </tr>
+                {{ ig.csrf_token() }}
+                {% set first = true %}
+                {% for c in ig.candidates %}
+                  <tr class="candidate {% if first %}input-header{% else %}output-only{% endif %}">
+                    <td>{% if c.inp.raw_data %}{{ c.inp() }}{% else %}{{ c.inp(value="I1") }}{% endif %}</td>
+                    <td>{% if c.outp.raw_data %}{{ c.outp() }}{% else %}{{ c.outp(value="O1") }}{% endif %}</td>
+                    <td>{% if c.optimal.data %}{{ c.optimal(value="true") }}{% else %}{{ c.optimal(value="false") }}{% endif %}</td>
+                    {%- for constraint in c.vvector %}
+                      <td>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="") }}{% endif %}</td>
+                    {%- endfor -%}
+                    <td class="borderless">
+                      <div class="btn-group">
+                        <button class="btn btn-small add_output" type=button title="Add an output to this input group">+</button>
+                        <button class="btn btn-small delete_output" type=button title="Delete an output from this input group">-</button>
+                      </div>
+                    </td>
+                  </tr>
+                  {% set first = false %}
+                {% endfor %}
               </tbody>
             {%- endfor %}
           </table>

@@ -62,7 +62,7 @@ class CandidateForm(Form):
     )
     outp = TextField(default="",
                      validators=[validators.Length(min=1, max=255,
-                                    message="All output names must be between " +
+                                    message="All output names must be between "+
                                             "1 and 255 characters in length")]
     )
     optimal = BooleanField(validators=[validators.AnyOf([True, False],
@@ -109,6 +109,15 @@ class InputOutputPairsUnique(object):
 
 
 
+class InputGroupForm(Form):
+    """
+    This form (a group of candidates) represents a group of identical outputs
+    for one input.
+    """
+    candidates = FieldList(FormField(CandidateForm),
+                           default=[FormField(CandidateForm, csrf_enabled=False)],
+                           validators=[InputOutputPairsUnique()])
+
 class TableauxForm(Form):
     """
     This form creats the Tableaux, displayed as the main calculator.
@@ -116,15 +125,16 @@ class TableauxForm(Form):
 
     msg = "All constraint names must be between 1 and 255 characters in length"
     len_validator = validators.Length(min=1, max=255, message=msg)
+
     constraints = FieldList(
         TextField(validators=[len_validator]),
         default=[TextField(default="",
                            validators=[len_validator]) for x in range(3)],
         validators=[MembersUnique("Each constraint must be unique")]
     )
-    candidates = FieldList(FormField(CandidateForm),
-                           default=[CandidateForm(csrf_enabled=False)],
-                           validators=[InputOutputPairsUnique()]
+
+    input_groups = FieldList(FormField(InputGroupForm),
+                             default=[FormField(InputGroupForm, csrf_enabled=False)]
     )
 
     def _flatten(self, d):
