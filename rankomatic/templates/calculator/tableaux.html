@@ -51,6 +51,7 @@
                 {% set first = true %}
                 {% for c in ig.candidates %}
                   <tr class="candidate {% if first %}input-header{% else %}output-only{% endif %}">
+                    {{ c.csrf_token() }}
                     <td>{% if c.inp.raw_data %}{{ c.inp() }}{% else %}{{ c.inp(value="I1") }}{% endif %}</td>
                     <td>{% if c.outp.raw_data %}{{ c.outp() }}{% else %}{{ c.outp(value="O1") }}{% endif %}</td>
                     <td>{% if c.optimal.data %}{{ c.optimal(value="true") }}{% else %}{{ c.optimal(value="false") }}{% endif %}</td>

@@ -26,19 +26,21 @@ class CalculatorView(MethodView):
         data = form.data
 
         # convert the data into what is used by the ranking library
-        for c in data['candidates']:
-            c['output'] = c.pop('outp')
-            c['input'] = c.pop('inp')
-            vvec_dict = {}
-            for i in range(len(c['vvector'])):
-                vvec_dict[i + 1] = c['vvector'][i]
-            c['vvector'] = vvec_dict
+        for ig in data['input_groups']:
+            for c in ig['candidates']:
+                c['output'] = c.pop('outp')
+                c['input'] = c.pop('inp')
+                vvec_dict = {}
+                for i in range(len(c['vvector'])):
+                    vvec_dict[i + 1] = c['vvector'][i]
+                c['vvector'] = vvec_dict
 
         # An ugly way to show we have what we want
         #TODO make this pretty
         ret = "dataset:<br>"
-        for c in data['candidates']:
-            ret += str(c) + "<br>"
+        for ig in data['input_groups']:
+            for c in ig['candidates']:
+                ret += str(c) + "<br>"
 
         ret += "<br>constraints:<br>"
         for c in data['constraints']:

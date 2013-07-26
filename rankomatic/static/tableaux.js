@@ -47,6 +47,7 @@ function update_row_values($row) {
     var ig = $row.closest('tbody.input-group');
     var ig_ind = ig.index('tbody.input-group');
     var cand_ind = ig.find('tr.candidate').index($row);
+    update_input($row, 'csrf_token', null, ig_ind, cand_ind)
     update_input($row, 'inp',  "I" + (ig_ind + 1), ig_ind, cand_ind);
     update_input($row, 'outp', "O" + (num_rows_added + 1), ig_ind, cand_ind);
     update_input($row, 'optimal', "", ig_ind, cand_ind);
@@ -62,8 +63,8 @@ function update_row_values($row) {
 * represents, including the tags that make up the element itself.
 */
 function outer_html($elem) {
-    // the call to .wrapAll() allows the outer html to be accessed
-    var ret = $elem.wrapAll('<div>').parent().html();
+    // the call to .wrap() allows the outer html to be accessed
+    var ret = $elem.wrap('<div>').parent().html();
     $elem.unwrap();
     return ret
 }
@@ -148,13 +149,13 @@ function update_output_rows(e) {
 *  Helper function to add a csrf field to the given input group (ig).
 */
 function add_csrf_field(ig) {
-    var ig_ind = ig.closest('tbody.input-group').index('tbody.input-group');
+    var ig_ind = ig.index('tbody.input-group');
     var csrf_name_str = 'input_groups-' + ig_ind + '-csrf_token';
-    var csrf_input_str = outer_html($('tbody.input-group:eq(0) input[name$="csrf_token"]'))
-    var csrf_input = $(csrf_input_str);
+    var csrf_input = $(outer_html($('#input_groups-0-csrf_token')));
     csrf_input.attr({id: csrf_name_str, name: csrf_name_str});
     csrf_input.prependTo(ig);
 }
+
 /*
 * Function: add_input_group
 * =========================
@@ -163,16 +164,14 @@ function add_csrf_field(ig) {
 */
 function add_input_group(e) {
     var row_str = outer_html($('#tableaux tr.candidate').eq(0));
-    var to_append = $(row_str).wrapAll('<tbody>').parent();
+    var to_append = $(row_str).wrap('<tbody>').parent();
     to_append.addClass('input-group');
 
     var row = to_append.find('tr.candidate');
     to_append.insertAfter($('#tableaux tbody.input-group:last-child'));
     num_rows_added++;
     update_row_values(row);
-    add_csrf_field(to_append)
-
-
+    add_csrf_field(to_append);
 
     row.find('.add_output').click(add_output_row);
     row.find('.delete_output').click(delete_output_row);

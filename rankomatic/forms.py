@@ -57,17 +57,17 @@ class CandidateForm(Form):
 
     inp = TextField(default="",
                     validators=[validators.Length(min=1, max=255,
-                                    message="All input names must be between " +
+                                    message="Input names must be between " +
                                             "1 and 255 characters in length")]
     )
     outp = TextField(default="",
                      validators=[validators.Length(min=1, max=255,
-                                    message="All output names must be between "+
+                                    message="Output names must be between "+
                                             "1 and 255 characters in length")]
     )
     optimal = BooleanField(validators=[validators.AnyOf([True, False],
-                    message="The checkboxes must be either checked or " +
-                            "unchecked, no other values will be accepted")]
+                    message="Checkboxes must be either checked (true) or " +
+                            "unchecked (false)")]
     )
     vvector = FieldList(
         ZeroIntegerField(),
@@ -91,22 +91,37 @@ class MembersUnique(object):
             raise ValidationError(self.message)
 
 
-class InputOutputPairsUnique(object):
+class InputsSame(object):
     """
-    A custom validator for use with candidates list, tests wether each
-    input/output pair is unique.
+    A custom validator for use with input group's candidates list. Raises an
+    error if the inputs differ in the input group.
     """
 
     def __init__(self, message=None):
         if not message:
-            message = "Each input/output pair must be unique"
+            message = "The inputs in an input group must be identical to one another"
         self.message = message
 
     def __call__(self, form, field):
-        pairs = [(c['inp'], c['outp']) for c in field.data]
-        if len(pairs) > len(set(pairs)):
+        inps = [c['inp'] for c in field.data]
+        if len(set(inps)) > 1:
             raise ValidationError(self.message)
 
+class OutputsUnique(object):
+    """
+    A custom validator for use with input group's candidates list. Raises an
+    error if the outputs are not unique.
+    """
+
+    def __init__(self, message=None):
+        if not message:
+            message = "Each output in an input group must be unique"
+        self.message = message
+
+    def __call__(self, form, field):
+        outps = [c['outp'] for c in field.data]
+        if len(outps) > len(set(outps)):
+            raise ValidationError(self.message)
 
 
 class InputGroupForm(Form):
@@ -116,21 +131,21 @@ class InputGroupForm(Form):
     """
     candidates = FieldList(FormField(CandidateForm),
                            default=[FormField(CandidateForm, csrf_enabled=False)],
-                           validators=[InputOutputPairsUnique()])
+                           validators=[InputsSame(), OutputsUnique()])
 
 class TableauxForm(Form):
     """
     This form creats the Tableaux, displayed as the main calculator.
     """
 
-    msg = "All constraint names must be between 1 and 255 characters in length"
+    msg = "Constraint names must be between 1 and 255 characters in length"
     len_validator = validators.Length(min=1, max=255, message=msg)
 
     constraints = FieldList(
         TextField(validators=[len_validator]),
         default=[TextField(default="",
                            validators=[len_validator]) for x in range(3)],
-        validators=[MembersUnique("Each constraint must be unique")]
+        validators=[MembersUnique("Constraints must be unique")]
     )
 
     input_groups = FieldList(FormField(InputGroupForm),
@@ -157,7 +172,7 @@ class TableauxForm(Form):
                 for list_v in d:
                     for nested_in_list in self._flatten(list_v):
                         yield nested_in_list
-            elif type(d) is str:
+            elif type(d) is str or type(d) is unicode:
                 yield d
             else:
                 for list_v in d:
