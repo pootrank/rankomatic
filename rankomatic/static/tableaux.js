@@ -9,6 +9,8 @@
 */
 
 var FIRST_CONSTRAINT_IND = 3;
+var MAX_NUM_CONSTRAINTS = 6;
+var MIN_NUM_CONSTRAINTS = 2;
 var MIN_TABLEAUX_IND = 5;
 var MAX_TABLEAUX_IND = 9;
 var num_rows_added = 0;

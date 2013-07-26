@@ -1,6 +1,11 @@
 {%- extends 'layout.html' -%}
 {%- block content %}
-  <form action="{{ url_for('calculator.calculator') }}" method="POST">
+<form action="
+  {%- if t_order -%}
+    {{ url_for('tools.t_order') }}
+  {%- else -%}
+    {{ url_for('tools.calculator') }}
+  {%- endif -%}" method="POST">
     <div class="row">
       <div class="span3">
         <table id="buttons" cellspacing="0">
@@ -36,7 +41,9 @@
             <tr id="tableaux_header">
               <th>Input</th>
               <th>Output</th>
-              <th>Optimal?</th>
+              <th class="{%- if t_order -%}t-order{%- endif -%}">
+                {%- if not t_order -%}Optimal?{%- endif -%}
+              </th>
               {%- set i = 1 %}
               {%- for constraint in form.constraints %}
               <th>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="C" ~ i) }}{% endif %}</th>
@@ -54,7 +61,13 @@
                     {{ c.csrf_token() }}
                     <td>{% if c.inp.raw_data %}{{ c.inp() }}{% else %}{{ c.inp(value="I1") }}{% endif %}</td>
                     <td>{% if c.outp.raw_data %}{{ c.outp() }}{% else %}{{ c.outp(value="O1") }}{% endif %}</td>
-                    <td>{% if c.optimal.data %}{{ c.optimal(value="true") }}{% else %}{{ c.optimal(value="false") }}{% endif %}</td>
+                    <td class="{%- if t_order -%}t-order{%- endif -%}">
+                    {%- if not t_order -%}
+                      {% if c.optimal.data %}{{ c.optimal(value="true") }}{% else %}{{ c.optimal(value="false") }}{% endif %}
+                    {%- else -%}
+                      {{ c.optimal(value="true", type="hidden") }}
+                    {%- endif -%}
+                    </td>
                     {%- for constraint in c.vvector %}
                       <td>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="") }}{% endif %}</td>
                     {%- endfor -%}

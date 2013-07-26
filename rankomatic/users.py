@@ -33,7 +33,7 @@ class LoginView(MethodView):
         if user and user.is_password_valid(password):
             session['username'] = username
             flash('Welcome, %s!' % session['username'])
-            return redirect(url_for('calculator.calculator'))
+            return redirect(url_for('content.landing'))
         else:
             flash('Incorrect username/password combination')
             return redirect(url_for('.login'))

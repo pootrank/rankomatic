@@ -22,10 +22,10 @@ db = MongoEngine(app)
 def register_blueprints(app):
     # prevent circular imports
     from rankomatic.users import users
-    from rankomatic.calculator import calculator
+    from rankomatic.tools import tools
     from rankomatic.content import content
     app.register_blueprint(users)
-    app.register_blueprint(calculator)
+    app.register_blueprint(tools)
     app.register_blueprint(content)
 
 register_blueprints(app)
