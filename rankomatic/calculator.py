@@ -25,7 +25,7 @@ class CalculatorView(MethodView):
         form = TableauxForm(request.form)
         data = form.data
 
-        # convert the data into what is used by the ranking library
+        # convert the data into (almost) what is used by the ranking library
         for ig in data['input_groups']:
             for c in ig['candidates']:
                 c['output'] = c.pop('outp')
