@@ -45,8 +45,8 @@ class ZeroIntegerField(IntegerField):
                     self.data = int(valuelist[0])
                 except ValueError:
                     self.data = None
-                    raise ValueError("Violation vectors " +
-                                     "must consist only of integers")
+                    raise ValueError("Violation vectors must consist of non-negative integers")
+                    #TODO refactor this so the error can be handled someplace else
 
 
 class CandidateForm(Form):
@@ -70,7 +70,8 @@ class CandidateForm(Form):
                             "unchecked (false)")]
     )
     vvector = FieldList(
-        ZeroIntegerField(),
+        ZeroIntegerField(validators=[
+            validators.NumberRange(min=0, message="Violation vectors must consist of non-negative integers")]),
         default=[ZeroIntegerField(default=0) for x in range(3)]
     )
 

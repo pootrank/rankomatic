@@ -7,8 +7,9 @@
     {{ form.username(class="input-block-level", placeholder='Choose a username') }}
     {{ form.password(class="input-block-level", placeholder='Password -- at least six characters long') }}
     {{ form.password_conf(class="input-block-level", placeholder='Re-type your password')}}
-    <button class="btn btn-large btn-primary" type="submit">Create user account</button>
+    <button class="btn btn-large btn-primary" type="submit">Create new account</button>
   </form>
+  <p class="info">Already have an account? Go ahead and <a href="{{ url_for('users.login') }}">log in</a></p>
   <div class="info">
     <p>An account entitles you to privileges XYZ and we'll do ABC with your info</p>
   </div>

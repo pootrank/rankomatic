@@ -2,17 +2,12 @@
 {%- block content %}
     <div class="container">
       <form class="form-signin" action="." method="POST">
-        <h2 class="form-signin-heading">Log in!</h2>
+        <h2 class="form-signin-heading">Log in</h2>
         {{ form.csrf_token }}
         {{ form.username(class="input-block-level", placeholder='Username') }}
         {{ form.password(class="input-block-level", placeholder='Password') }}
         <button class="btn btn-large btn-primary" type="submit">Log in</button>
       </form>
     </div>
-    <div class="container">
-      <div class="signin-options">
-        <h3 class="form-signin-heading">Don't have an account yet?</h3>
-        <a class="btn btn-block btn-primary" href="{{ url_for('users.signup')}}">Create an account</a>
-      </div>
-    </div>
+    <p class="info">Don't have an account yet? <a href="{{ url_for('users.signup')}}">Create one.</a></p>
 {%- endblock -%}
