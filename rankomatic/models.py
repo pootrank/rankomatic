@@ -83,5 +83,3 @@ class User(db.DynamicDocument):
         guess += self.salt
         h.update(guess)
         return h.hexdigest() == self.password_digest
-
-

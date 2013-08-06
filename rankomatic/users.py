@@ -89,14 +89,8 @@ class AccountView(MethodView):
             return redirect(url_for('users.login'))
 
 
-class AboutAccountView(MethodView):
-
-    def get(self):
-        return render_template('about_account.html')
-
 
 users.add_url_rule('/login/', view_func=LoginView.as_view('login'))
 users.add_url_rule('/signup/', view_func=SignupView.as_view('signup'))
 users.add_url_rule('/logout/', view_func=LogoutView.as_view('logout'))
 users.add_url_rule('/account/<username>/', view_func=AccountView.as_view('account'))
-users.add_url_rule('/account/about/', view_func=AboutAccountView.as_view('about_account'))

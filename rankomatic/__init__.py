@@ -10,6 +10,7 @@ for import from the rankomatic module.
 """
 #TODO make sure documentation is up to date
 from flask import Flask
+from flask_debugtoolbar import DebugToolbarExtension
 from flask.ext.mongoengine import MongoEngine
 
 app = Flask(__name__)
@@ -17,6 +18,8 @@ app.config.from_object('rankomatic.config.default-config')
 app.config.from_envvar('APP_CONFIG', silent=True)
 
 db = MongoEngine(app)
+toolbar = DebugToolbarExtension(app)
+
 
 
 def register_blueprints(app):
