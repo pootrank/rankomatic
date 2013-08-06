@@ -9,6 +9,8 @@ calculator, t-order, reads the forms, returns the results, etc.
 from flask import Blueprint, render_template, request, flash
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
+from rankomatic import db
+from ot.poot import PoOT
 
 tools = Blueprint('tools', __name__,
                        template_folder='templates/calculator')
@@ -51,6 +53,19 @@ class CalculatorView(MethodView):
 
 
         if form.validate():
+            mongo_db = getattr(db.connection, db.app.config['MONGODB_SETTINGS']['DB'])
+            poot = PoOT(lat_dir=None, mongo_db=mongo_db)
+            poot.dset = data['candidates']
+            grammars = poot.get_grammars(classical=False)
+
+            # An ugly way to show we have what we want
+            #TODO make this pretty
+            ret = "grammars:<br>"
+            for s in grammars:
+                ret += str(list(s)) + "<br>"
+            ret += "<br>constraints:<br>"
+            for c in data['constraints']:
+                ret += c + ", "
             return render_template('grammars.html', data=ret)
         else:
             for e in form.get_errors():
