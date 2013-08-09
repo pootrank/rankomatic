@@ -6,6 +6,7 @@ Email: cwjeffers18@gmail.com
 This file defines several WTForms for use with Flask applications, specifically
 the Optimality Theory ranking application.
 """
+import itertools
 from flask.ext.wtf import Form
 from wtforms import (TextField, PasswordField, FieldList, FormField,
                      BooleanField, IntegerField, validators)
@@ -72,15 +73,13 @@ class CandidateForm(Form):
     vvector = FieldList(
         ZeroIntegerField(validators=[
             validators.NumberRange(min=0, message="Violation vectors must consist of non-negative integers")]),
-        default=[ZeroIntegerField(default=0) for x in range(3)]
+        default=[ZeroIntegerField(default=0) for x in range(3)],
+        validators=[validators.Length(min=2, max=5, message="There must be between 2 and 5 constraints")]
     )
 
 
 class MembersUnique(object):
-    """
-    A custom validator for use with WTForm FieldLists, that checks to make sure
-    its members are unique.
-    """
+    """Checks to make sure its members are unique."""
 
     def __init__(self, message=None):
         if not message:
@@ -93,10 +92,7 @@ class MembersUnique(object):
 
 
 class InputsSame(object):
-    """
-    A custom validator for use with input group's candidates list. Raises an
-    error if the inputs differ in the input group.
-    """
+    """Raise an error if the inputs differ in the input group."""
 
     def __init__(self, message=None):
         if not message:
@@ -108,11 +104,9 @@ class InputsSame(object):
         if len(set(inps)) > 1:
             raise ValidationError(self.message)
 
+
 class OutputsUnique(object):
-    """
-    A custom validator for use with input group's candidates list. Raises an
-    error if the outputs are not unique.
-    """
+    """Raise an error if the outputs are not unique."""
 
     def __init__(self, message=None):
         if not message:
@@ -126,19 +120,30 @@ class OutputsUnique(object):
 
 
 class InputGroupForm(Form):
-    """
-    This form (a group of candidates) represents a group of identical outputs
-    for one input.
-    """
+    """Represents a group of outputs for one input."""
     candidates = FieldList(FormField(CandidateForm),
                            default=[FormField(CandidateForm, csrf_enabled=False)],
                            validators=[InputsSame(), OutputsUnique()])
 
-class TableauxForm(Form):
-    """
-    This form creats the Tableaux, displayed as the main calculator.
-    """
 
+class AtLeastOneOptimal(object):
+    """Make sure there is at least one optimal candidate."""
+
+    def __init__(self, message=None):
+        if not message:
+            message = "There must be at least one optimal candidate."
+        self.message = message
+
+    def __call__(self, form, field):
+        cands = [c['candidates'] for c in field.data]
+        cands = list(itertools.chain(*cands))
+        opts = [c['optimal'] for c in cands]
+        if not any(opts):
+            raise ValidationError(self.message)
+
+
+class TableauxForm(Form):
+    """Creates the Tableaux, displayed as the main calculator."""
     msg = "Constraint names must be between 1 and 255 characters in length"
     len_validator = validators.Length(min=1, max=255, message=msg)
 
@@ -146,24 +151,25 @@ class TableauxForm(Form):
         TextField(validators=[len_validator]),
         default=[TextField(default="",
                            validators=[len_validator]) for x in range(3)],
-        validators=[MembersUnique("Constraints must be unique")]
+        validators=[MembersUnique("Constraints must be unique"),
+                    validators.Length(min=2, max=5, message="There must be between 2 and 5 constraints")]
     )
 
     input_groups = FieldList(FormField(InputGroupForm),
-                             default=[FormField(InputGroupForm, csrf_enabled=False)]
+                             default=[FormField(InputGroupForm, csrf_enabled=False)],
+                             validators=[AtLeastOneOptimal()]
     )
 
     def _flatten(self, d):
-        """
-        Flattens a dict into a single list, throwing away keys.
+        """Flattens a dict into a single list, throwing away keys.
         if d looks like this:
             {'a': [{'1': 'bad', '2': 'worse' }]
              'b': ['oh no!', [['that didn't work'], ['that didn't work']]]}
         the return value is (although not necessarily sorted):
             ['bad', 'worse', 'oh no!', 'that didn't work', 'that didn't work']
         Code based on intuited's SO response: http://stackoverflow.com/a/3835478
-        """
 
+        """
         try:
             for v in d.itervalues():
                 for nested_v in self._flatten(v):
@@ -180,9 +186,6 @@ class TableauxForm(Form):
                     yield list_v
 
     def get_errors(self):
-        """
-        return the errors in a uniq'd list
-        """
-
+        """return the errors in a uniq'd list."""
         return list(set([e for e in self._flatten(self.errors)]))
 
