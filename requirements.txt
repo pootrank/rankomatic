@@ -11,5 +11,6 @@ flask-mongoengine==0.7.0
 gunicorn==17.5
 itsdangerous==0.21
 mongoengine==0.8.2
+pygraphviz==1.2
 pymongo==2.5.2
 wsgiref==0.1.2
