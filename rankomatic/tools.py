@@ -52,6 +52,7 @@ class CalculatorView(MethodView):
             dirname = "".join(dirlist)
             #self.visualize_and_store_grammars(grammars, data['constraints'],
                                               #mongo_db, dirname)
+            # poop poop poop
 
             return redirect(url_for('.grammars', dirname=dirname))
 
