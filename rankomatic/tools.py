@@ -77,6 +77,7 @@ class CalculatorView(MethodView):
         for i, gram in enumerate(grammars):
             graph = self.make_graph(gram, cons)
             with tempfile.TemporaryFile() as tf:
+                poop
                 pass
                 #graph.draw(tf, format='png')
                 #tf.seek(0)
