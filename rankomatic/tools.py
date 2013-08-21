@@ -50,8 +50,8 @@ class CalculatorView(MethodView):
             chars = string.digits + string.letters
             dirlist = [random.choice(chars) for i in xrange(10)]
             dirname = "".join(dirlist)
-            self.visualize_and_store_grammars(grammars, data['constraints'],
-                                              mongo_db, dirname)
+            #self.visualize_and_store_grammars(grammars, data['constraints'],
+                                              #mongo_db, dirname)
 
             return redirect(url_for('.grammars', dirname=dirname))
 
