@@ -74,8 +74,8 @@ class CalculatorView(MethodView):
         """Generate visualization images and store them in GridFS"""
         fs = gridfs.GridFS(mongo_db, collection='tmp')
         cons = dict((i+1, v) for i, v in enumerate(constraints))
-        #for i, gram in enumerate(grammars):
-            #graph = self.make_graph(gram, cons)
+        for i, gram in enumerate(grammars):
+            graph = self.make_graph(gram, cons)
             #with tempfile.TemporaryFile() as tf:
                 #graph.draw(tf, format='png')
                 #tf.seek(0)
