@@ -77,9 +77,7 @@ class CalculatorView(MethodView):
         for i, gram in enumerate(grammars):
             graph = self.make_graph(gram, cons)
             with tempfile.TemporaryFile() as tf:
-                poop
-                pass
-                #graph.draw(tf, format='png')
+                graph.draw(tf, format='png')
                 #tf.seek(0)
                 #filename = 'grammar%d.png' % i
                 #path = "".join([dirname, '/', filename])
