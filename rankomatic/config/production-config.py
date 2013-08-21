@@ -2,6 +2,7 @@ import os
 
 DEBUG = False
 TESTING = False
+PROPOGATE_EXCEPTIONS = True
 mongohq_url = os.environ.get('MONGOHQ_URL')
 if mongohq_url:
     MONGODB_SETTINGS = {'HOST': mongohq_url,
