@@ -12,5 +12,5 @@ gunicorn==17.5
 itsdangerous==0.21
 mongoengine==0.8.2
 pygraphviz==1.2
-pymongo==2.5.2
+pymongo==2.6
 wsgiref==0.1.2

@@ -16,7 +16,15 @@ app = Flask(__name__)
 app.config.from_object('rankomatic.config.default-config')
 app.config.from_envvar('APP_CONFIG', silent=True)
 
+def get_db(self):
+    return getattr(self.connection,
+                   self.app.config['MONGODB_SETTINGS']['DB'])
+
+MongoEngine.get_pymongo_db = get_db
+
 db = MongoEngine(app)
+
+
 
 def register_blueprints(app):
     # prevent circular imports
