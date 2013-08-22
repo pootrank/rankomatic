@@ -12,6 +12,7 @@ import pygraphviz as pgv
 import random
 import string
 import tempfile
+from wand.image import Image
 from flask import (Blueprint, render_template, request, flash, redirect,
                    url_for, abort, make_response)
 from flask.views import MethodView
@@ -76,12 +77,19 @@ class CalculatorView(MethodView):
         cons = dict((i+1, v) for i, v in enumerate(constraints))
         for i, gram in enumerate(grammars):
             graph = self.make_graph(gram, cons)
-            with tempfile.TemporaryFile() as tf:
-                graph.draw(tf, format='png')
-                #tf.seek(0)
-                #filename = 'grammar%d.png' % i
-                #path = "".join([dirname, '/', filename])
-                #fs.put(tf, filename=path)
+
+            with tempfile.TemporaryFile() as tf1:
+                graph.draw(tf1, format='eps')
+                tf1.seek(0)
+                img = Image(file=tf1, format='eps')
+                with img.convert('png') as converted:
+                    with tempfile.TemporaryFile() as tf2:
+                        #TODO breaks here
+                        converted.save(file=tf2)
+                        tf2.seek(0)
+                        filename = 'grammar%d.png' % i
+                        path = "".join([dirname, '/', filename])
+                        fs.put(tf2, filename=path)
 
     def make_graph(self, grammar, constraints):
         """Create an AGraph version of the given grammar."""
