@@ -90,6 +90,7 @@ class CalculatorView(MethodView):
                         filename = 'grammar%d.png' % i
                         path = "".join([dirname, '/', filename])
                         fs.put(tf2, filename=path)
+                        # a comment
 
     def make_graph(self, grammar, constraints):
         """Create an AGraph version of the given grammar."""
