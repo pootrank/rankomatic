@@ -162,7 +162,7 @@ class GraphView(MethodView):
             fname = '%s/grammar%s.svg' % (dirname, n)
             f = fs.get_last_version(filename=fname)
             response = make_response(f.read())
-            response.mimetype = 'image/svg'
+            response.mimetype = 'image/svg+xml'
             return response
         except gridfs.errors.NoFile:
             abort(404)
