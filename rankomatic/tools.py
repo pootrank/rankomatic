@@ -77,19 +77,19 @@ class CalculatorView(MethodView):
         for i, gram in enumerate(grammars):
             graph = self.make_graph(gram, cons)
             with tempfile.TemporaryFile() as tf:
-                graph.draw(tf, format='png')
+                graph.draw(tf, format='svg')
                 tf.seek(0)
-                filename = 'grammar%d.png' % i
+                filename = 'grammar%d.svg' % i
                 path = "".join([dirname, '/', filename])
                 fs.put(tf, filename=path)
 
     def make_graph(self, grammar, constraints):
         """Create an AGraph version of the given grammar."""
-        graph = pgv.AGraph(directed=True, dpi=300)
+        graph = pgv.AGraph(directed=True)
         for k in constraints:
-            graph.add_node(constraints[k], weight=7)
+            graph.add_node(constraints[k])
         for e in grammar:
-            graph.add_edge(constraints[e[1]], constraints[e[0]], weight=7)
+            graph.add_edge(constraints[e[1]], constraints[e[0]])
         graph.tred()
         graph.layout('dot')
         return graph
@@ -159,17 +159,17 @@ class GraphView(MethodView):
     def get(self, dirname, n):
         fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
         try:
-            fname = '%s/grammar%s.png' % (dirname, n)
+            fname = '%s/grammar%s.svg' % (dirname, n)
             f = fs.get_last_version(filename=fname)
             response = make_response(f.read())
-            response.mimetype = 'image/png'
+            response.mimetype = 'image/svg'
             return response
         except gridfs.errors.NoFile:
             abort(404)
 
 
 
-tools.add_url_rule('/graphs/<dirname>/grammar<n>.png',
+tools.add_url_rule('/graphs/<dirname>/grammar<n>.svg',
                    view_func=GraphView.as_view('graph'))
 tools.add_url_rule('/grammars/<dirname>/',
                    view_func=GrammarView.as_view('grammars'))
