@@ -76,12 +76,12 @@ class CalculatorView(MethodView):
         cons = dict((i+1, v) for i, v in enumerate(constraints))
         for i, gram in enumerate(grammars):
             graph = self.make_graph(gram, cons)
-            #with tempfile.TemporaryFile() as tf:
-                #graph.draw(tf, format='png')
-                #tf.seek(0)
-                #filename = 'grammar%d.png' % i
-                #path = "".join([dirname, '/', filename])
-                #fs.put(tf, filename=path)
+            with tempfile.TemporaryFile() as tf:
+                graph.draw(tf, format='png')
+                tf.seek(0)
+                filename = 'grammar%d.png' % i
+                path = "".join([dirname, '/', filename])
+                fs.put(tf, filename=path)
 
     def make_graph(self, grammar, constraints):
         """Create an AGraph version of the given grammar."""
