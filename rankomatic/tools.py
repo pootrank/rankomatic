@@ -89,7 +89,7 @@ class CalculatorView(MethodView):
         for k in constraints:
             graph.add_node(constraints[k])
         for e in grammar:
-            graph.add_edge(constraints[e[0]], constraints[e[1]])
+            graph.add_edge(constraints[e[1]], constraints[e[0]])
         graph.tred()
         graph.layout('dot')
         return graph
