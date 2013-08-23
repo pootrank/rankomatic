@@ -85,11 +85,11 @@ class CalculatorView(MethodView):
 
     def make_graph(self, grammar, constraints):
         """Create an AGraph version of the given grammar."""
-        graph = pgv.AGraph(directed=True)
+        graph = pgv.AGraph(directed=True, dpi=300)
         for k in constraints:
-            graph.add_node(constraints[k])
+            graph.add_node(constraints[k], weight=7)
         for e in grammar:
-            graph.add_edge(constraints[e[1]], constraints[e[0]])
+            graph.add_edge(constraints[e[1]], constraints[e[0]], weight=7)
         graph.tred()
         graph.layout('dot')
         return graph
