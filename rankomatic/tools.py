@@ -76,7 +76,6 @@ class CalculatorView(MethodView):
         cons = dict((i+1, v) for i, v in enumerate(constraints))
         for i, gram in enumerate(grammars):
             graph = self.make_graph(gram, cons)
-
             with tempfile.TemporaryFile() as tf:
                 graph.draw(tf, format='png')
                 tf.seek(0)
