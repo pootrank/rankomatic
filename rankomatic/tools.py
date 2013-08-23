@@ -50,8 +50,8 @@ class CalculatorView(MethodView):
             chars = string.digits + string.letters
             dirlist = [random.choice(chars) for i in xrange(10)]
             dirname = "".join(dirlist)
-            #self.visualize_and_store_grammars(grammars, data['constraints'],
-                                              #mongo_db, dirname)
+            self.visualize_and_store_grammars(grammars, data['constraints'],
+                                              mongo_db, dirname)
 
             return redirect(url_for('.grammars', dirname=dirname))
 
@@ -76,12 +76,12 @@ class CalculatorView(MethodView):
         cons = dict((i+1, v) for i, v in enumerate(constraints))
         for i, gram in enumerate(grammars):
             graph = self.make_graph(gram, cons)
-            with tempfile.TemporaryFile() as tf:
-                graph.draw(tf, format='png')
-                tf.seek(0)
-                filename = 'grammar%d.png' % i
-                path = "".join([dirname, '/', filename])
-                fs.put(tf, filename=path)
+            #with tempfile.TemporaryFile() as tf:
+                #graph.draw(tf, format='png')
+                #tf.seek(0)
+                #filename = 'grammar%d.png' % i
+                #path = "".join([dirname, '/', filename])
+                #fs.put(tf, filename=path)
 
     def make_graph(self, grammar, constraints):
         """Create an AGraph version of the given grammar."""
