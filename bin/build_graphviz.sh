@@ -1,19 +1,26 @@
 #! /bin/bash
 
+# Ugly script to vuild graphviz and some dependencies. Use this to get
+# a custom-built set of graphviz binaries in ~/gvbuild/usr/bin. If you
+# read this thing, be careful you don't go blind from how bad it is.
+
+
+
 EXPAT=expat-2.1.0
+EXPAT_URL=https://s3-us-west-1.amazonaws.com/cjeffers-graphviz/$EXPAT.tar.gz
 EXPAT_CONF_OPTS='--prefix=/app/exbuild/usr'
 
 cd
 mkdir exbuild
 cd exbuild
 mkdir usr
-scp cjeffers@corn.stanford.edu:$EXPAT.tar.gz .
+curl -O $EXPAT_URL
 tar xzf $EXPAT.tar.gz
 cd $EXPAT
 ./configure $EXPAT_CONF_OPTS
 make
 make install
-export PKG_CONFIG_PATH=/app/exbuild/$EXPAT
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/app/exbuild/$EXPAT
 
 
 
