@@ -56,7 +56,7 @@ class CalculatorView(MethodView):
             self.visualize_and_store_grammars(grammars, data['constraints'],
                                               mongo_db, dirname)
             session['num_constraints'] = len(data['constraints'])
-            return redirect(url_for('grammars.stats', dirname=dirname))
+            return redirect(url_for('grammars.grammars', dirname=dirname))
 
     def process_form(self, data):
         """Convert raw form data into a useful form"""
