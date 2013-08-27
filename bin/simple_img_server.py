@@ -1,3 +1,7 @@
+#! /usr/bin/env python
+
+"""Throwaway script that makes simple image server from GridFS"""
+
 from flask import Flask, make_response, abort
 import pymongo
 import gridfs
@@ -11,6 +15,7 @@ app.debug = True
 @app.route('/<num>')
 def serve_png_files(num):
     try:
+        # the filename is fragile, but you get the idea
         fname = 'SPo8Os8gxT/grammar%s.png' % num
         f = fs.get_last_version(filename=fname)
         response = make_response(f.read())

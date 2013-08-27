@@ -1,6 +1,8 @@
 #! /usr/bin/env python
+
 """A script to get and start up mongodb from the heroku config variable.
 Make sure you call it from the root directory of the app."""
+
 import subprocess
 import os
 import re

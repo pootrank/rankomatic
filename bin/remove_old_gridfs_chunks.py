@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-"""Remove orphaned GridFS chunks from MongoDB"""
+
+"""Remove orphaned GridFS chunks from MongoDB hosted on MongoHQ"""
 
 import pymongo
 import os

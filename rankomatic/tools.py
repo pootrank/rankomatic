@@ -13,7 +13,7 @@ import random
 import string
 import tempfile
 from flask import (Blueprint, render_template, request, flash, redirect,
-                   url_for, abort, make_response)
+                   url_for, session)
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 from rankomatic import db
@@ -47,13 +47,16 @@ class CalculatorView(MethodView):
             grammars = poot.get_grammars(classical=False)
 
             # visualize grammars
-            chars = string.digits + string.letters
-            dirlist = [random.choice(chars) for i in xrange(10)]
-            dirname = "".join(dirlist)
+            if grammars:
+                chars = string.digits + string.letters
+                dirlist = [random.choice(chars) for i in xrange(10)]
+                dirname = "".join(dirlist)
+            else:
+                dirname = 'emptyset'
             self.visualize_and_store_grammars(grammars, data['constraints'],
                                               mongo_db, dirname)
-
-            return redirect(url_for('.grammars', dirname=dirname))
+            session['num_constraints'] = len(data['constraints'])
+            return redirect(url_for('grammars.stats', dirname=dirname))
 
     def process_form(self, data):
         """Convert raw form data into a useful form"""
@@ -142,37 +145,7 @@ class TOrderView(MethodView):
             return render_template('tableaux.html', form=form, active='t-order')
 
 
-class GrammarView(MethodView):
 
-    def get(self, dirname):
-        files = db.get_pymongo_db().tmp.files
-        num_img = files.find({'filename': {'$regex': ('^'+dirname)}}).count()
-        if num_img == 0:
-            abort(404)
-        else:
-            return render_template('grammars.html', dirname=dirname,
-                                num_img=num_img)
-
-
-class GraphView(MethodView):
-
-    def get(self, dirname, n):
-        fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-        try:
-            fname = '%s/grammar%s.svg' % (dirname, n)
-            f = fs.get_last_version(filename=fname)
-            response = make_response(f.read())
-            response.mimetype = 'image/svg+xml'
-            return response
-        except gridfs.errors.NoFile:
-            abort(404)
-
-
-
-tools.add_url_rule('/graphs/<dirname>/grammar<n>.svg',
-                   view_func=GraphView.as_view('graph'))
-tools.add_url_rule('/grammars/<dirname>/',
-                   view_func=GrammarView.as_view('grammars'))
 tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
 tools.add_url_rule('/t-order/', view_func=TOrderView.as_view('t_order'))

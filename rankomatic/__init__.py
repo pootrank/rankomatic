@@ -31,9 +31,11 @@ def register_blueprints(app):
     from rankomatic.users import users
     from rankomatic.tools import tools
     from rankomatic.content import content
+    from rankomatic.grammars import grammars
     app.register_blueprint(users)
     app.register_blueprint(tools)
     app.register_blueprint(content)
+    app.register_blueprint(grammars)
 
 register_blueprints(app)
 
