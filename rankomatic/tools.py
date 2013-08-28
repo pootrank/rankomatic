@@ -43,8 +43,12 @@ class CalculatorView(MethodView):
             namelist = [random.choice(chars) for i in xrange(10)]
             dset.name = "".join(namelist)
             dset.visualize_and_store_grammars()
+            if dset.grammars:
+                dirname = dset.name
+            else:
+                dirname = 'emptyset'
 
-            return redirect(url_for('grammars.grammars', dirname=dset.name))
+            return redirect(url_for('grammars.grammars', dirname=dirname))
 
 
 
