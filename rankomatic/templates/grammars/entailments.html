@@ -1,0 +1,5 @@
+{%- extends 'layout.html' -%}
+{%- block content -%}
+  <h2>Global Entailments</h2> 
+  <object data="{{ url_for('grammars.graph', dset_name=dset_name, filename='entailments.svg') }}" type="image/svg+xml" class="graph"></object>
+{%- endblock -%}

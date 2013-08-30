@@ -52,26 +52,28 @@ class GrammarView(MethodView):
 
 class GraphView(MethodView):
 
-    def get(self, dset_name, n):
+    def get(self, dset_name, filename):
+        filename = "".join([dset_name, '/', filename])
         fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
         try:
-            fname = '%s/grammar%s.svg' % (dset_name, n)
-            f = fs.get_last_version(filename=fname)
+            f = fs.get_last_version(filename=filename)
             response = make_response(f.read())
             response.mimetype = 'image/svg+xml'
             return response
-        except gridfs.errors.NoFile:
+        except:
             abort(404)
-
 
 class EntailmentView(MethodView):
 
     def get(self, dset_name):
-        return render_template('under_construction.html')
+        dset = Dataset.objects.get_or_404(name=dset_name)
+        dset.calculate_global_entailments()
+        dset.visualize_and_store_entailments()
+        return render_template('entailments.html', dset_name=dset_name)
 
 
 
-grammars.add_url_rule('/graphs/<dset_name>/grammar<n>.svg',
+grammars.add_url_rule('/graphs/<dset_name>/<filename>.svg',
                    view_func=GraphView.as_view('graph'))
 grammars.add_url_rule('/<dset_name>/grammars/',
                    view_func=GrammarView.as_view('grammars'))

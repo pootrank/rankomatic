@@ -7,7 +7,8 @@
     <p>In the near future, if you have an account you will be able to save datasets and images without having to re-enter stuff.</p>
     {%- for n in range(num_img) -%}
     <div>
-      <object data="{{ url_for('grammars.graph', dset_name=dset_name, n=n) }}" type="image/svg+xml" class="graph"></object>
+      {%- set fname = 'grammar%d.svg' % n -%}
+      <object data="{{ url_for('grammars.graph', dset_name=dset_name, filename=fname) }}" type="image/svg+xml" class="graph"></object>
     </div>
     {%- endfor -%}
   {%- else -%}

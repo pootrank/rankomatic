@@ -19,6 +19,7 @@ User: Self-explanatory. A user of the website.
 import hashlib
 import os
 import gridfs
+import datetime
 import tempfile
 import pygraphviz as pgv
 from rankomatic import db
@@ -49,12 +50,14 @@ class Dataset(db.Document):
     from the ot library.
 
     """
+    upload_date = db.DateTimeField(default=datetime.datetime.utcnow())
     name = db.StringField(max_length=255, required=True)
     constraints = db.ListField(
         db.StringField(max_length=255, required=True),
         default=lambda: ["" for x in range(3)]
     )
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
+    entailments = db.DictField()
     grammars = db.ListField(  # list of grammars
         db.ListField(  # list of ordered pairs
             db.ListField(db.StringField())  # ordered pairs
@@ -72,7 +75,6 @@ class Dataset(db.Document):
         if self.candidates and self._candidates is None:
             self._candidates = self.create_raw_candidates()
         self.build_poot()
-
 
     def process_form_data(self, data):
         """Convert raw form data into the stuff used by the ot library."""
@@ -121,6 +123,44 @@ class Dataset(db.Document):
         if self._candidates is not None:
             self.poot.dset = self._candidates
 
+    def double_to_string(self, d):
+        l = [d[0], ', ', d[1]]
+        return "".join(l)
+
+    def calculate_global_entailments(self):
+        ents = self.poot.get_entailments(atomic=True)
+        if ents:
+            con = {}
+            for k in ents:
+                new_key = self.double_to_string(tuple(k)[0])
+                ent = ents[k]['up']
+                con[new_key] = [self.double_to_string(tuple(e)[0]) for e in ent]
+            self.entailments = con
+        else:
+            self.entailments = {}
+
+    def visualize_and_store_entailments(self):
+        if self.entailments:
+            fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
+            filename = "".join([self.name, "/", 'entailments.svg'])
+            try:
+                fs.get_last_version(filename=filename)
+            except gridfs.NoFile:
+                graph = self.make_entailment_graph()
+                with tempfile.TemporaryFile() as tf:
+                    graph.draw(tf, format='svg')
+                    tf.seek(0)
+                    fs.put(tf, filename=filename)
+
+    def make_entailment_graph(self):
+        graph = pgv.AGraph(directed=True)
+        for k, v in self.entailments.iteritems():
+            for entailed in v:
+                graph.add_edge(k, entailed)
+        graph.tred()
+        graph.layout('dot')
+        return graph
+
     def calculate_compatible_grammars(self, classical=True):
         """Calculate the compatible grammars for the dataset.
 
@@ -148,7 +188,7 @@ class Dataset(db.Document):
                 fs.get_last_version(filename=(self.name+'grammar0.svg'))
             except gridfs.NoFile:
                 for i, gram in enumerate(sorted(self.grammars, key=len, reverse=True)):
-                    graph = self.make_graph(gram)
+                    graph = self.make_grammar_graph(gram)
                     with tempfile.TemporaryFile() as tf:
                         graph.draw(tf, format='svg')
                         tf.seek(0)
@@ -156,7 +196,7 @@ class Dataset(db.Document):
                         path = "".join([self.name, '/', filename])
                         fs.put(tf, filename=path)
 
-    def make_graph(self, grammar):
+    def make_grammar_graph(self, grammar):
         """Create an AGraph version of the given grammar."""
         graph = pgv.AGraph(directed=True)
         for c in self.constraints:
