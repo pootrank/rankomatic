@@ -1,11 +1,14 @@
 {%- extends 'layout.html' -%}
 {%- block content -%}
-  {%- if dirname != 'emptyset' -%}
+  {%- if n != 0 -%}
     <h1>Possible Grammars</h1>
+    <h2>Sorted most informative to least informative</h2>
     <p>Note: These images are temporary. If you navigate or refresh after 10 minutes, you will have to re-enter the dataset.</p>
     <p>In the near future, if you have an account you will be able to save datasets and images without having to re-enter stuff.</p>
     {%- for n in range(num_img) -%}
-      <object data="{{ url_for('grammars.graph', dirname=dirname, n=n) }}" type="image/svg+xml" class="graph"></object>
+    <div>
+      <object data="{{ url_for('grammars.graph', dset_name=dset_name, n=n) }}" type="image/svg+xml" class="graph"></object>
+    </div>
     {%- endfor -%}
   {%- else -%}
     <h3>There are no grammars compatible with that dataset.</h3>

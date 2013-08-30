@@ -34,6 +34,22 @@ fieldset {
     display: inline-block;
 }
 
+table.table tbody:nth-child(even) {
+    background-color: white;
+}
+
+table.table tbody:nth-child(odd) {
+    /*background-color: gray;*/
+}
+
+table.table td {
+    /*border-color: white;*/
+}
+
+#breakdown-by-candidate {
+    margin-top: 50px;
+}
+
 tr#tableaux_header th.borderless,
 tr.candidate td.borderless {
     border: none;

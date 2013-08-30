@@ -52,7 +52,7 @@ class SignupView(MethodView):
 
         cancel_create = False  # track errors in creation
         user = User.objects(username=username)
-        if user or username == 'about':
+        if user:
             flash('That username has already been chosen. Try a different one.')
             cancel_create = True
         if password != form.password_conf.data:

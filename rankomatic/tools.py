@@ -34,21 +34,12 @@ class CalculatorView(MethodView):
                                    active='calculator')
         else:
             data = form.data
-            dset = Dataset()
-            dset.process_form_data(data)
-            dset.set_dset(data)
-            dset.calculate_compatible_grammars(classical=False)
-
+            dset = Dataset(data=data, data_is_from_form=True)
             chars = string.digits + string.letters
             namelist = [random.choice(chars) for i in xrange(10)]
             dset.name = "".join(namelist)
-            dset.visualize_and_store_grammars()
-            if dset.grammars:
-                dirname = dset.name
-            else:
-                dirname = 'emptyset'
-
-            return redirect(url_for('grammars.grammars', dirname=dirname))
+            dset.save()
+            return redirect(url_for('grammars.stats', dset_name=dset.name))
 
 
 
