@@ -1,17 +1,55 @@
 {%- extends 'layout.html' -%}
 {%- block content -%}
-  {%- if n != 0 -%}
-    <h1>Possible Grammars</h1>
-    <h2>Sorted most informative to least informative</h2>
-    <p>Note: These images are temporary. If you navigate or refresh after 10 minutes, you will have to re-enter the dataset.</p>
-    <p>In the near future, if you have an account you will be able to save datasets and images without having to re-enter stuff.</p>
-    {%- for n in range(num_img) -%}
-    <div>
-      {%- set fname = 'grammar%d.svg' % n -%}
-      <object data="{{ url_for('grammars.graph', dset_name=dset_name, filename=fname) }}" type="image/svg+xml" class="graph"></object>
+<div class="hero-unit">
+  <h2>Global statistics</h2>
+  <table class="table">
+    <thead>
+      <tr><th>Grammar Type</th><th># Compatible</th><th># Possible</th><th>% Compatible</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Partial</td><td>{{ num_poots }}</td><td>{{ num_total_poots }}</td><td>{{ '%0.2f' % percent_poots }}</td></tr>
+      <tr><td>Classical</td><td>{{ num_cots }}</td><td>{{ num_total_cots }}</td><td>{{ '%0.2f' % percent_cots }}</td></tr>
+    </tbody>
+  </table>
+  <a class="btn btn-primary" href="{{ url_for('grammars.entailments', dset_name=dset_name) }}">Global entailments</a>
+</div>
+<div class="container">
+  <h2>View grammars and statistics by number of rankings</h2>
+  <div class="btn-toolbar">
+    <div class="btn-group">
+      {%- for l in lengths -%}
+      <a class="btn{%- if l == num_rankings %} active{%- endif -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=l) }}">{{ l }}</a>
+      {%- endfor -%}
     </div>
-    {%- endfor -%}
-  {%- else -%}
-    <h3>There are no grammars compatible with that dataset.</h3>
-  {%- endif -%}
+  </div>
+  {%- for g in grammar_info -%}
+    {%- set cots_by_cand = g['cots_by_cand'] -%}
+    {%- set input_totals = g['input_totals'] -%}
+    <div class="row breakdown-by-candidate">
+      <h3>{{ g['grammar']|safe }}</h3>
+      <div class="span5">
+        <span class="helper"></span>
+        <object class="graph" data="{{ url_for('grammars.graph', dset_name=dset_name, filename=g['filename']) }}" type="image/svg+xml"></object>
+      </div>
+      <div class="span2">
+      </div>
+      <div class="span5">
+        <table class="table table-condensed table-hover">
+          <thead>
+            <tr><th>Input</th><th>Output</th><th># COT grammars</th><th>% COT grammars</th></tr>
+          </thead>
+          {%- for i in cots_by_cand.keys() -%}
+          <tbody>
+          <tr><td>{{ i }}</td><td></td><td>{{ input_totals[i]['raw_sum'] }}</td><td>{{ '%0.2f' % input_totals[i]['per_sum'] }}</td></tr>
+              {%- for c in cots_by_cand[i] -%}
+                <tr><td></td><td>{{ c['output'] }}</td><td>{{ c['num_cot'] }}</td><td>{{ '%0.2f' % c['per_cot'] }}</td></tr>
+              {%- endfor -%}
+          </tbody>
+          {%- endfor -%}
+        </table>
+      </div>
+    </div>
+
+  {%- endfor -%}
+</div>
 {%- endblock -%}

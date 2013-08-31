@@ -42,7 +42,6 @@ class Candidate(db.EmbeddedDocument):
     )
 
 
-
 class Dataset(db.Document):
     """Represents a user's tableaux or dataset. Consists of a list of
     constraint names and a list of Candidates. Also exports methods for
@@ -56,6 +55,7 @@ class Dataset(db.Document):
         db.StringField(max_length=255, required=True),
         default=lambda: ["" for x in range(3)]
     )
+    _grammars = db.StringField()
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
     entailments = db.DictField()
     grammars = db.ListField(  # list of grammars
@@ -64,6 +64,12 @@ class Dataset(db.Document):
         ),
         default=lambda: []
     )
+
+    @property
+    def raw_grammars(self):
+        if self._grammars is None:
+            self.calculate_compatible_grammars(False)
+        return eval(self._grammars)
 
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
         super(Dataset, self).__init__(*args, **kwargs)
@@ -123,6 +129,17 @@ class Dataset(db.Document):
         if self._candidates is not None:
             self.poot.dset = self._candidates
 
+    def grammar_to_string(self, g):
+        """Convert an ugly grammar into a pretty set-like string"""
+        if g:
+            l = ['{']
+            for rel in g[:-1]:
+                l.extend(['(', self.double_to_string(rel), '), '])
+            l.extend(['(', self.double_to_string(g[-1]), ')}'])
+        else:
+            l = ['{', ' }']
+        return "".join(l)
+
     def double_to_string(self, d):
         l = [d[0], ', ', d[1]]
         return "".join(l)
@@ -168,13 +185,14 @@ class Dataset(db.Document):
 
         """
         grammars = self.poot.get_grammars(classical=classical)
+        self._grammars = str(sorted(list(grammars), key=len))
         if grammars:
             converted = []
             for g in grammars:
                 new_gram = []
                 for rel in g:
-                    new_gram.append([self.constraints[rel[0]-1],
-                                     self.constraints[rel[1]-1]])
+                    new_gram.append([self.constraints[rel[1]-1],
+                                     self.constraints[rel[0]-1]])
                 converted.append(new_gram)
             self.grammars = converted
         else:
@@ -185,9 +203,10 @@ class Dataset(db.Document):
         if self.grammars:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
             try:
-                fs.get_last_version(filename=(self.name+'grammar0.svg'))
+                fname = "".join([self.name, '/', 'grammar0.svg'])
+                fs.get_last_version(filename=fname)
             except gridfs.NoFile:
-                for i, gram in enumerate(sorted(self.grammars, key=len, reverse=True)):
+                for i, gram in enumerate(sorted(self.grammars, key=len)):
                     graph = self.make_grammar_graph(gram)
                     with tempfile.TemporaryFile() as tf:
                         graph.draw(tf, format='svg')
@@ -198,18 +217,18 @@ class Dataset(db.Document):
 
     def make_grammar_graph(self, grammar):
         """Create an AGraph version of the given grammar."""
-        graph = pgv.AGraph(directed=True)
+        graph = pgv.AGraph(directed=True, rankdir="LR")
         for c in self.constraints:
             graph.add_node(c)
         for rel in grammar:
-            graph.add_edge(rel[1], rel[0])
+            graph.add_edge(rel[0], rel[1])
         graph.tred()
         graph.layout('dot')
         return graph
 
-    def get_cots_by_cand(self):
-        cots_by_cand = self.poot.num_cots_by_cand()
-        total_cots = self.poot.num_total_cots()
+    def get_cots_by_cand(self, grammar):
+        cots_by_cand = self.poot.num_cots_by_cand(grammar=grammar)
+        total_cots = self.poot.num_total_cots(grammar=grammar)
         ret = {}
         cands = sorted(cots_by_cand.keys())
         inputs = list(set([cand[0] for cand in cands]))

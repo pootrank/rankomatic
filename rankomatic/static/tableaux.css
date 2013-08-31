@@ -17,6 +17,7 @@ object.graph {
     margin: 20px;
     border: solid black 1px;
     padding: 10px;
+    vertical-align: middle;
 }
 
 
@@ -39,15 +40,22 @@ table.table tbody:nth-child(even) {
 }
 
 table.table tbody:nth-child(odd) {
-    /*background-color: gray;*/
+    background-color: rgb(238, 238, 238);
 }
 
 table.table td {
     /*border-color: white;*/
 }
 
-#breakdown-by-candidate {
+.helper {
+    display: inline-block;
+    vertical-align: middle:
+    height: 100%;
+}
+
+.breakdown-by-candidate {
     margin-top: 50px;
+    text-align: center;
 }
 
 tr#tableaux_header th.borderless,

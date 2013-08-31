@@ -2,4 +2,5 @@
 {%- block content -%}
   <h2>Global Entailments</h2> 
   <object data="{{ url_for('grammars.graph', dset_name=dset_name, filename='entailments.svg') }}" type="image/svg+xml" class="graph"></object>
+  <a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=0) }}">View grammars</a>
 {%- endblock -%}
