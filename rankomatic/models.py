@@ -184,8 +184,8 @@ class Dataset(db.Document):
         If any are found, put them in the grammars list.
 
         """
-        grammars = self.poot.get_grammars(classical=classical)
-        self._grammars = str(sorted(list(grammars), key=len))
+        grammars = sorted(list(self.poot.get_grammars(classical=classical)), key=len)
+        self._grammars = str(grammars)
         if grammars:
             converted = []
             for g in grammars:
@@ -198,16 +198,16 @@ class Dataset(db.Document):
         else:
             self.grammars = []
 
-    def visualize_and_store_grammars(self):
+    def visualize_and_store_grammars(self, inds):
         """Generate visualization images and store them in GridFS"""
-        if self.grammars:
+        if inds:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
+            fname = "".join([self.name, '/', ('grammar%d.svg' % inds[0])])
             try:
-                fname = "".join([self.name, '/', 'grammar0.svg'])
                 fs.get_last_version(filename=fname)
             except gridfs.NoFile:
-                for i, gram in enumerate(sorted(self.grammars, key=len)):
-                    graph = self.make_grammar_graph(gram)
+                for i in inds:
+                    graph = self.make_grammar_graph(self.grammars[i])
                     with tempfile.TemporaryFile() as tf:
                         graph.draw(tf, format='svg')
                         tf.seek(0)

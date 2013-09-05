@@ -39,7 +39,7 @@ class CalculatorView(MethodView):
             namelist = [random.choice(chars) for i in xrange(10)]
             dset.name = "".join(namelist)
             dset.save()
-            return redirect(url_for('grammars.grammars', dset_name=dset.name, num_rankings=0))
+            return redirect(url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0))
 
 
 
