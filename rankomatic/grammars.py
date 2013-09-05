@@ -36,12 +36,16 @@ class GrammarView(MethodView):
         if num_rank_grams > GRAMS_PER_PAGE:
             min_ind = page * GRAMS_PER_PAGE
             max_ind = min_ind + GRAMS_PER_PAGE
-            if max_ind >= num_rank_grams:
-                max_ind = num_rank_grams - 1
+            if max_ind > num_rank_grams:
+                max_ind = num_rank_grams
             grams = grams[min_ind:max_ind]
         else:
             min_ind = 0
             max_ind = num_rank_grams - 1
+
+        if min_ind < 0 or min_ind+1 > num_rank_grams:
+            pass
+            #abort(404)
 
         dset.visualize_and_store_grammars([x[0] for x in grams])
         grammar_info = []
