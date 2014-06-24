@@ -12,7 +12,7 @@ Candidate: A single row from the Dataset, in OT terms an input-outuput pair.
            and the violation vector for the constraint set of the Dataset.
 Dataset: Represents a user's tableaux or dataset. Consists of a list of
           constraint names and a list of Candidates.
-User: Self-explanatory. A user of the website.
+User: A user of the website.
 """
 #TODO make sure documentation is up to date.
 
