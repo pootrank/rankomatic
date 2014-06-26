@@ -4,18 +4,22 @@
 
 import pymongo
 import os
+import sys
 
-uri = os.environ.get('MONGOHQ_URL')
-info = pymongo.uri_parser.parse_uri(uri)
-cli = pymongo.MongoClient(uri)
-db = cli[info['database']]
+if len(sys.argv) > 1:
+    uri = sys.argv[1]
+else:
+    uri = os.environ.get('MONGOHQ_URL')
 
-files = db.tmp.files
-chunks = db.tmp.chunks
+if uri:
+    info = pymongo.uri_parser.parse_uri(uri)
+    cli = pymongo.MongoClient(uri)
+    db = cli[info['database']]
 
-for doc in chunks.find():
-    files_id = doc['files_id']
-    if not files.find_one(files_id):
-        chunks.remove(doc['_id'])
+    files = db.tmp.files
+    chunks = db.tmp.chunks
 
-
+    for doc in chunks.find():
+        files_id = doc['files_id']
+        if not files.find_one(files_id):
+            chunks.remove(doc['_id'])
