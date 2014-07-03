@@ -1,5 +1,4 @@
 DEBUG = False
 TESTING = True
-MONGODB_SETTINGS = { 'DB': 'rankomatic' }
+MONGODB_SETTINGS = {'DB': 'otorder_test'}
 SECRET_KEY = 'KeepThisSecret'
-

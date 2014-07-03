@@ -94,6 +94,3 @@ class TOrderView(MethodView):
 tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
 tools.add_url_rule('/t-order/', view_func=TOrderView.as_view('t_order'))
-
-
-

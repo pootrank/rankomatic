@@ -23,10 +23,10 @@
     </div>
   </div>
   <div>
-    <p>Currently viewing {{ min_ind + 1 }}-{{ max_ind }} out of {{ num_rank_grams }} grammars with {{ num_rankings }} rankings.</p>
+    <p>Currently viewing {{ min_ind + 1 }}-{{ max_ind + 1 }} out of {{ num_rank_grams }} grammars with {{ num_rankings }} rankings.</p>
     <div class="btn-group">
       <a class="btn{%- if page <= 0 %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page-1)) }}"{%- endif -%}>Prev</a>
-      <a class="btn{%- if max_ind >= num_rank_grams %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page+1)) }}"{%- endif -%}>Next</a>
+      <a class="btn{%- if max_ind + 1 >= num_rank_grams %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page+1)) }}"{%- endif -%}>Next</a>
     </div>
   </div>
   {%- for g in grammar_info -%}

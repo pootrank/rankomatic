@@ -14,17 +14,19 @@ Dataset: Represents a user's tableaux or dataset. Consists of a list of
           constraint names and a list of Candidates.
 User: A user of the website.
 """
-#TODO make sure documentation is up to date.
+# TODO make sure documentation is up to date.
 
 import hashlib
 import os
 import gridfs
 import datetime
 import tempfile
-import pygraphviz as pgv
+from collections import OrderedDict
+
+import pygraphviz
+
 from rankomatic import db
 from ot.poot import OTStats
-
 
 
 class Candidate(db.EmbeddedDocument):
@@ -40,6 +42,15 @@ class Candidate(db.EmbeddedDocument):
         db.IntField(),
         default=lambda: [0 for i in xrange(3)],
     )
+
+    def __init__(self, data=None, *args, **kwargs):
+        super(Candidate, self).__init__(*args, **kwargs)
+        if data:
+            self.input = data['input']
+            self.output = data['output']
+            self.optimal = data['optimal']
+            vvec = data['vvector']
+            self.vvector = [vvec[k] for k in sorted(vvec.keys())]
 
 
 class Dataset(db.Document):
@@ -73,61 +84,102 @@ class Dataset(db.Document):
 
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
         super(Dataset, self).__init__(*args, **kwargs)
-        self._candidates = None
+
+        # stores candidates in ot-compatible form
+        self._ot_candidates = None
+
         if data is not None:
             if data_is_from_form:
-                self.process_form_data(data)
+                data = self.process_form_data(data)
             self.set_dset(data)
-        if self.candidates and self._candidates is None:
-            self._candidates = self.create_raw_candidates()
-        self.build_poot()
 
-    def process_form_data(self, data):
+        # self.candidates is non-empty if retrieved from DB
+        if self.candidates and self._ot_candidates is None:
+            self._ot_candidates = self.create_ot_compatible_candidates()
+        self.poot = self.build_poot()
+
+    def process_form_data(self, form_data):
         """Convert raw form data into the stuff used by the ot library."""
-        self.constraints = data['constraints']
-        data['candidates'] = []
-        for ig in data['input_groups']:
-            for c in ig['candidates']:
-                c['output'] = c.pop('outp')
-                c['input'] = c.pop('inp')
-                vvec_dict = {}
-                for i in range(len(c['vvector'])):
-                    vvec_dict[i + 1] = c['vvector'][i]
-                c['vvector'] = vvec_dict
-                data['candidates'].append(c)
-        data.pop('input_groups')
+        processed = self._initialize_ot_data_from(form_data)
+        for ig in form_data['input_groups']:
+            for cand in ig['candidates']:
+                processed['candidates'].append(self._process_candidate(cand))
+        return processed
+
+    def _initialize_ot_data_from(self, form_data):
+        return {
+            'constraints': form_data['constraints'],
+            'candidates': []}
+
+    def _process_candidate(self, form_cand):
+        return {
+            'output': form_cand['outp'],
+            'input': form_cand['inp'],
+            'optimal': form_cand['opt'],
+            'vvector': self._make_violation_vector_dict(form_cand['vvector'])}
+
+    def _make_violation_vector_dict(self, list_vvect):
+        return dict((i+1, v) for i, v in enumerate(list_vvect))
+
+    def create_form_data(self):
+        """Create a dict which contains the dataset as used by the forms."""
+        form_data = self._initialize_form_data()
+        inputs = self._get_all_inputs_from_candidates()
+
+        for inp in inputs:
+            input_group = self._create_input_group_for(inp)
+            form_data['input_groups'].append(input_group)
+
+        return form_data
+
+    def _initialize_form_data(self):
+        return {
+            'constraints': self.constraints,
+            'input_groups': []}
+
+    def _get_all_inputs_from_candidates(self):
+        inputs = [cand.input for cand in self.candidates]
+        unique_inputs = list(OrderedDict.fromkeys(inputs))
+        return unique_inputs
+
+    def _create_input_group_for(self, inp):
+        input_group = {'candidates': []}
+        for cand in self.candidates:
+            if cand.input == inp:
+                input_group['candidates'].append(self._make_cand_dict(cand))
+        return input_group
+
+    def _make_cand_dict(self, old_cand):
+        return {'inp': old_cand.input,
+                'outp': old_cand.output,
+                'opt': old_cand.optimal,
+                'vvector': old_cand.vvector}
 
     def set_dset(self, data):
         """From ot library form, set the corresponding fields"""
-        self._candidates = data['candidates']
+        self._ot_candidates = data['candidates']
         self.constraints = data['constraints']
-        self.candidates = []
-        for cand_dict in data['candidates']:
-            cand = Candidate()
-            cand.input = cand_dict['input']
-            cand.output = cand_dict['output']
-            cand.optimal = cand_dict['optimal']
-            vvec = cand_dict['vvector']
-            cand.vvector = [vvec[k] for k in sorted(vvec.keys())]
-            self.candidates.append(cand)
+        self.candidates = [Candidate(cand) for cand in data['candidates']]
 
-    def create_raw_candidates(self):
-        """Get raw candidates from mongo form, store on object"""
-        ret = []
-        for c in self.candidates:
-            vvec_dict = dict((i+1, v) for i, v in enumerate(c.vvector))
-            c_dict = {'input': c.input,
-                      'output': c.output,
-                      'optimal': c.optimal,
-                      'vvector': vvec_dict}
-            ret.append(c_dict)
-        return ret
+    def create_ot_compatible_candidates(self):
+        return [{
+                'input': c.input,
+                'output': c.output,
+                'optimal': c.optimal,
+                'vvector': self._make_violation_vector_dict(c.vvector)
+                } for c in self.candidates]
 
     def build_poot(self):
+        """Builds the PoOT object and attaches it to self.poot.
+
+        Relies on self._ot_candidates for the ot-compatible candidates
+
+        """
         mongo_db = db.get_pymongo_db()
-        self.poot = OTStats(lat_dir=None, mongo_db=mongo_db)
-        if self._candidates is not None:
-            self.poot.dset = self._candidates
+        poot = OTStats(lat_dir=None, mongo_db=mongo_db)
+        if self._ot_candidates is not None:
+            poot.dset = self._ot_candidates
+        return poot
 
     def grammar_to_string(self, g):
         """Convert an ugly grammar into a pretty set-like string"""
@@ -145,16 +197,23 @@ class Dataset(db.Document):
         return "".join(l)
 
     def calculate_global_entailments(self):
-        ents = self.poot.get_entailments(atomic=True)
-        if ents:
-            con = {}
-            for k in ents:
-                new_key = self.double_to_string(tuple(k)[0])
-                ent = ents[k]['up']
-                con[new_key] = [self.double_to_string(tuple(e)[0]) for e in ent]
-            self.entailments = con
+        entailments = self.poot.get_entailments(atomic=True)
+        if entailments:
+            self.entailments = self._process_entailments(entailments)
         else:
             self.entailments = {}
+
+    def _process_entailments(self, entailments):
+        processed = {}
+        for old in entailments:
+            new = self._frozenset_to_string(old)
+            entailed = entailments[old]['up']
+            processed[new] = sorted(
+                [self._frozenset_to_string(e) for e in entailed])
+        return processed
+
+    def _frozenset_to_string(self, fset):
+        return self.double_to_string(tuple(fset)[0])
 
     def visualize_and_store_entailments(self):
         if self.entailments:
@@ -164,13 +223,16 @@ class Dataset(db.Document):
                 fs.get_last_version(filename=filename)
             except gridfs.NoFile:
                 graph = self.make_entailment_graph()
-                with tempfile.TemporaryFile() as tf:
-                    graph.draw(tf, format='svg')
-                    tf.seek(0)
-                    fs.put(tf, filename=filename)
+                self._write_graph_to_gridfs(graph, fs, filename)
+
+    def _write_graph_to_gridfs(self, graph, fs, filename):
+        with tempfile.TemporaryFile() as tf:
+            graph.draw(tf, format='svg')
+            tf.seek(0)
+            fs.put(tf, filename=filename)
 
     def make_entailment_graph(self):
-        graph = pgv.AGraph(directed=True)
+        graph = pygraphviz.AGraph(directed=True)
         for k, v in self.entailments.iteritems():
             for entailed in v:
                 graph.add_edge(k, entailed)
@@ -184,7 +246,8 @@ class Dataset(db.Document):
         If any are found, put them in the grammars list.
 
         """
-        grammars = sorted(list(self.poot.get_grammars(classical=classical)), key=len)
+        grammars = sorted(list(self.poot.get_grammars(classical=classical)),
+                          key=len)
         self._grammars = str(grammars)
         if grammars:
             converted = []
@@ -217,7 +280,7 @@ class Dataset(db.Document):
 
     def make_grammar_graph(self, grammar):
         """Create an AGraph version of the given grammar."""
-        graph = pgv.AGraph(directed=True, rankdir="LR")
+        graph = pygraphviz.AGraph(directed=True, rankdir="LR")
         for c in self.constraints:
             graph.add_node(c)
         for rel in grammar:
@@ -264,7 +327,6 @@ class User(db.DynamicDocument):
         password += self.salt
         h.update(password)
         self.password_digest = h.hexdigest()
-
 
     def is_password_valid(self, guess):
         """Appends the user's salt to the guess before hashing it, then compares

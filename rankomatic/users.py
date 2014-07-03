@@ -28,7 +28,6 @@ class LoginView(MethodView):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            flash("User didn't exist")
             user = None
         if user and user.is_password_valid(password):
             session['username'] = username

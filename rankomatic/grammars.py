@@ -94,6 +94,7 @@ class GraphView(MethodView):
         except:
             abort(404)
 
+
 class EntailmentView(MethodView):
 
     def get(self, dset_name):

@@ -34,7 +34,7 @@ class ZeroIntegerField(IntegerField):
     Based on the IntegerField in wtforms, this field type converts a blank
     form entry into the integer 0, and allows for the value to be 0.
     """
-    #TODO for reuse, put this in wtforms and replace the error message with
+    # TODO for reuse, put this in wtforms and replace the error message with
     #     something more generic
 
     def process_formdata(self, valuelist):
@@ -46,8 +46,9 @@ class ZeroIntegerField(IntegerField):
                     self.data = int(valuelist[0])
                 except ValueError:
                     self.data = None
-                    raise ValueError("Violation vectors must consist of non-negative integers")
-                    #TODO refactor this so the error can be handled someplace else
+                    raise ValueError("Violation vectors must consist of"
+                                     " non-negative integers")
+                # TODO refactor this so the error can be handled someplace else
 
 
 class CandidateForm(Form):
@@ -58,23 +59,30 @@ class CandidateForm(Form):
 
     inp = TextField(default="",
                     validators=[validators.Length(min=1, max=255,
-                                    message="Input names must be between " +
-                                            "1 and 255 characters in length")]
-    )
+                                                  message="Input names must be"
+                                                  " between 1 and 255 "
+                                                  "characters in length")]
+                    )
     outp = TextField(default="",
                      validators=[validators.Length(min=1, max=255,
-                                    message="Output names must be between "+
-                                            "1 and 255 characters in length")]
-    )
-    optimal = BooleanField(validators=[validators.AnyOf([True, False],
-                    message="Checkboxes must be either checked (true) or " +
-                            "unchecked (false)")]
-    )
+                                                   message="Output names must "
+                                                   "be between1 and 255 "
+                                                   "characters in length")]
+                     )
+    optimal = BooleanField(validators=[
+        validators.AnyOf([True, False],
+                         message="Checkboxes must be either checked (true) or "
+                                 "unchecked (false)")]
+        )
     vvector = FieldList(
         ZeroIntegerField(validators=[
-            validators.NumberRange(min=0, message="Violation vectors must consist of non-negative integers")]),
+            validators.NumberRange(min=0,
+                                   message="Violation vectors must consist of "
+                                   "non-negative integers")]),
         default=[ZeroIntegerField(default=0) for x in range(3)],
-        validators=[validators.Length(min=2, max=5, message="There must be between 2 and 5 constraints")]
+        validators=[validators.Length(min=2, max=5,
+                                      message="There must be between 2 and 5 "
+                                      "constraints")]
     )
 
 
@@ -96,7 +104,8 @@ class InputsSame(object):
 
     def __init__(self, message=None):
         if not message:
-            message = "The inputs in an input group must be identical to one another"
+            message = ("The inputs in an input group must be identical to one "
+                       "another")
         self.message = message
 
     def __call__(self, form, field):
@@ -122,7 +131,8 @@ class OutputsUnique(object):
 class InputGroupForm(Form):
     """Represents a group of outputs for one input."""
     candidates = FieldList(FormField(CandidateForm),
-                           default=[FormField(CandidateForm, csrf_enabled=False)],
+                           default=[FormField(CandidateForm,
+                                              csrf_enabled=False)],
                            validators=[InputsSame(), OutputsUnique()])
 
 
@@ -144,21 +154,24 @@ class AtLeastOneOptimal(object):
 
 class TableauxForm(Form):
     """Creates the Tableaux, displayed as the main calculator."""
-    msg = "Constraint names must be between 1 and 255 characters in length"
-    len_validator = validators.Length(min=1, max=255, message=msg)
+    len_validator = validators.Length(min=1, max=255,
+                                      message="Constraint names must be "
+                                      "between 1 and 255 characters in length")
 
     constraints = FieldList(
         TextField(validators=[len_validator]),
         default=[TextField(default="",
                            validators=[len_validator]) for x in range(3)],
         validators=[MembersUnique("Constraints must be unique"),
-                    validators.Length(min=2, max=5, message="There must be between 2 and 5 constraints")]
+                    validators.Length(min=2, max=5,
+                                      message="There must be between 2 and 5 "
+                                      "constraints")]
     )
 
     input_groups = FieldList(FormField(InputGroupForm),
-                             default=[FormField(InputGroupForm, csrf_enabled=False)],
-                             validators=[AtLeastOneOptimal()]
-    )
+                             default=[FormField(InputGroupForm,
+                                                csrf_enabled=False)],
+                             validators=[AtLeastOneOptimal()])
 
     def _flatten(self, d):
         """Flattens a dict into a single list, throwing away keys.
@@ -167,7 +180,7 @@ class TableauxForm(Form):
              'b': ['oh no!', [['that didn't work'], ['that didn't work']]]}
         the return value is (although not necessarily sorted):
             ['bad', 'worse', 'oh no!', 'that didn't work', 'that didn't work']
-        Code based on intuited's SO response: http://stackoverflow.com/a/3835478
+        Code based on intuited's: http://stackoverflow.com/a/3835478
 
         """
         try:
@@ -188,4 +201,3 @@ class TableauxForm(Form):
     def get_errors(self):
         """return the errors in a uniq'd list."""
         return list(set([e for e in self._flatten(self.errors)]))
-
