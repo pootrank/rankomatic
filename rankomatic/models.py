@@ -289,22 +289,41 @@ class Dataset(db.Document):
         graph.layout('dot')
         return graph
 
-    def get_cots_by_cand(self, grammar):
-        cots_by_cand = self.poot.num_cots_by_cand(grammar=grammar)
-        total_cots = self.poot.num_total_cots(grammar=grammar)
-        ret = {}
-        cands = sorted(cots_by_cand.keys())
-        inputs = list(set([cand[0] for cand in cands]))
-        for inp in inputs:
-            ret[inp] = []
-            for cand in cands:
-                if cand[0] == inp:
-                    num_cots = cots_by_cand[cand]
-                    d = {'output': cand[1],
-                         'num_cot': num_cots,
-                         'per_cot': ((float(num_cots) / total_cots) * 100)}
-                    ret[inp].append(d)
-        return ret
+    def get_cot_stats_by_cand(self, grammar):
+        """For each input, return a list of dicts with output and COT stats.
+        Given a grammar, return a dict from each input to a list. In the list
+        is a dict for each output for that input, which contains the numbers
+        and percentages of COT grammars that make that candidate optimal.
+
+        """
+        self._initialize_stats_for_grammar(grammar)
+        inputs = self._get_inputs_for_grammar()
+        return {inp: self._make_input_cot_stats(inp) for inp in inputs}
+
+    def _initialize_stats_for_grammar(self, grammar):
+        self._cots_by_cand_for_grammar = self.poot.num_cots_by_cand(grammar)
+        self._total_cots_for_grammar = self.poot.num_total_cots(grammar)
+        self._cands_for_grammar = sorted(self._cots_by_cand_for_grammar.keys())
+
+    def _get_inputs_for_grammar(self):
+        unique_inputs = set([cand[0] for cand in self._cands_for_grammar])
+        return sorted(list(unique_inputs))
+
+    def _make_input_cot_stats(self, inp):
+        input_cot_stats = []
+        for cand in (c for c in self._cands_for_grammar if c[0] == inp):
+            input_cot_stats.append(self._make_input_cot_stats_for_cand(cand))
+        return input_cot_stats
+
+    def _make_input_cot_stats_for_cand(self, cand):
+        num_cots = self._cots_by_cand_for_grammar[cand]
+        return {
+            'output': cand[1],
+            'num_cot': num_cots,
+            'per_cot': self._get_percent_cots_for_grammar(num_cots)}
+
+    def _get_percent_cots_for_grammar(self, num_cots):
+        return ((float(num_cots) / self._total_cots_for_grammar) * 100)
 
 
 class User(db.DynamicDocument):

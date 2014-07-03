@@ -1,8 +1,9 @@
 import gridfs
-from nose.tools import raises, with_setup
+from nose.tools import raises
 import ot.data
 from .. import models
 from .. import db
+import structures
 
 
 class TestDataset(object):
@@ -14,6 +15,7 @@ class TestDataset(object):
         self.d = models.Dataset(data=self.data, data_is_from_form=False)
         self.d.name = "test_dset"
         self.entailments_fname = "".join([self.d.name, "/", 'entailments.svg'])
+        self.grammar_format_str = self.d.name + "/grammar%d.svg"
         self.fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
 
     def tearDown(self):
@@ -177,7 +179,7 @@ class TestDataset(object):
 
     def test_calculate_compatible_poot_grammars(self):
         self.d.calculate_compatible_grammars(classical=False)
-        assert self.d.grammars == [[['c1', 'c3'], ['c1', 'c2']], [['c1', 'c3'], ['c4', 'c2']], [['c2', 'c3'], ['c1', 'c3'], ['c1', 'c2']], [['c1', 'c3'], ['c4', 'c2'], ['c1', 'c2']], [['c1', 'c3'], ['c1', 'c4'], ['c1', 'c2']], [['c1', 'c3'], ['c3', 'c2'], ['c1', 'c2']], [['c1', 'c3'], ['c3', 'c2'], ['c4', 'c2'], ['c1', 'c2']], [['c1', 'c4'], ['c1', 'c3'], ['c3', 'c2'], ['c1', 'c2']], [['c1', 'c3'], ['c1', 'c4'], ['c4', 'c2'], ['c1', 'c2']], [['c2', 'c3'], ['c1', 'c3'], ['c1', 'c4'], ['c1', 'c2']], [['c1', 'c4'], ['c1', 'c3'], ['c3', 'c2'], ['c4', 'c2'], ['c1', 'c2']]]
+        assert self.d.grammars == structures.compatible_poot_grammars
 
     def test_calculate_compatible_grammars_no_grammars(self):
         self.data['candidates'] = ot.data.no_rankings
@@ -193,7 +195,7 @@ class TestDataset(object):
 
     def test_calculate_global_entailments(self):
         self.d.calculate_global_entailments()
-        assert self.d.entailments == {'ovea, o.vee': ['ovea, o.vee'], 'rasia, ra.sii': ['idea, i.dee', 'lasi-a, la.sii', 'ovea, o.vee', 'rasia, ra.sii'], 'idea, i.dee': ['idea, i.dee', 'ovea, o.vee'], 'ovea, o.ve.a': ['idea, i.de.a', 'lasi-a, la.si.a', 'ovea, o.ve.a', 'rasia, ra.si.a'], 'lasi-a, la.si.a': ['lasi-a, la.si.a', 'rasia, ra.si.a'], 'rasia, ra.si.a': ['rasia, ra.si.a'], 'lasi-a, la.sii': ['lasi-a, la.sii', 'ovea, o.vee'], 'idea, i.de.a': ['idea, i.de.a', 'rasia, ra.si.a']}
+        assert self.d.entailments == structures.global_entailments
         d = models.Dataset()
         d.calculate_global_entailments()
         assert d.entailments == {}
@@ -209,3 +211,37 @@ class TestDataset(object):
         self.d.calculate_global_entailments()
         self.d.visualize_and_store_entailments()
         assert self.fs.get_last_version(filename=self.entailments_fname)
+
+    @raises(gridfs.NoFile)
+    def test_visuaalize_and_store_grammars_no_indices_cot(self):
+        self.d.calculate_compatible_grammars()
+        self.d.visualize_and_store_grammars([])
+        self.fs.get_last_version(filename=(self.grammar_format_str % 0))
+
+    @raises(gridfs.NoFile)
+    def test_visuaalize_and_store_grammars_no_indices_poot(self):
+        self.d.calculate_compatible_grammars(classical=False)
+        self.d.visualize_and_store_grammars([])
+        self.fs.get_last_version(filename=(self.grammar_format_str % 0))
+
+    def test_visuaalize_and_store_grammars_cot(self):
+        self.data['candidates'] = ot.data.hbounded
+        self.d.set_dset(self.data)
+        self.d.poot = self.d.build_poot()
+        self.d.calculate_compatible_grammars()
+        self.d.visualize_and_store_grammars(range(5))
+        for i in range(5):
+            assert self.fs.get_last_version(filename=(
+                self.grammar_format_str % i))
+
+    def test_visualize_and_store_grammars_poot(self):
+        self.d.calculate_compatible_grammars(classical=False)
+        self.d.visualize_and_store_grammars(range(5))
+        for i in range(5):
+            assert self.fs.get_last_version(filename=(
+                self.grammar_format_str % i))
+
+    def test_get_cot_stats_by_cand(self):
+        self.d.calculate_compatible_grammars(classical=False)
+        stats = self.d.get_cot_stats_by_cand(self.d.raw_grammars[0])
+        assert stats == structures.cot_stats_by_cand

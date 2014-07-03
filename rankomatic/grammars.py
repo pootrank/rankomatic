@@ -50,7 +50,7 @@ class GrammarView(MethodView):
         dset.visualize_and_store_grammars([x[0] for x in grams])
         grammar_info = []
         for gram in grams:
-            cots_by_cand = dset.get_cots_by_cand(gram[1])
+            cots_by_cand = dset.get_cot_stats_by_cand(gram[1])
             input_totals = {}
             for k in cots_by_cand:
                 raw_sum = 0
