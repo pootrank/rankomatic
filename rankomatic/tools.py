@@ -15,7 +15,8 @@ from rankomatic.forms import TableauxForm
 from rankomatic.models import Dataset
 
 tools = Blueprint('tools', __name__,
-                       template_folder='templates/calculator')
+                  template_folder='templates/calculator')
+
 
 class CalculatorView(MethodView):
     """Displays the calculator form and its POST logic"""
@@ -39,8 +40,8 @@ class CalculatorView(MethodView):
             namelist = [random.choice(chars) for i in xrange(10)]
             dset.name = "".join(namelist)
             dset.save()
-            return redirect(url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0))
-
+            return redirect(url_for('grammars.grammars', dset_name=dset.name,
+                                    num_rankings=0, page=0))
 
 
 class TOrderView(MethodView):
@@ -51,7 +52,7 @@ class TOrderView(MethodView):
 
     def get(self):
         return render_template('tableaux.html', form=TableauxForm(),
-                              active='t-order', t_order=True)
+                               active='t-order', t_order=True)
 
     def post(self):
         form = TableauxForm(request.form)
@@ -72,7 +73,7 @@ class TOrderView(MethodView):
         data.pop('input_groups')
 
         # An ugly way to show we have what we want
-        #TODO make this pretty
+        # TODO make this pretty
         ret = "dataset:<br>"
         for c in data['candidates']:
             ret += str(c) + "<br>"
@@ -81,14 +82,13 @@ class TOrderView(MethodView):
         for c in data['constraints']:
             ret += c + ", "
 
-
         if form.validate():
             return render_template('grammars.html', data=ret)
         else:
             for e in form.get_errors():
                 flash(e)
-            return render_template('tableaux.html', form=form, active='t-order')
-
+            return render_template('tableaux.html', form=form,
+                                   active='t-order')
 
 
 tools.add_url_rule('/calculator/',

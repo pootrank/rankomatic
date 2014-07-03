@@ -7,13 +7,14 @@ Defines a users Blueprint for use with a Flask app. This was developed for use
 with an Optimality Theory constraint-ranking app
 (github.com/pootrank/rankomatic), but is intended to be somewhat general.
 """
-from flask import ( Blueprint, render_template, request, session, flash,
-                    url_for, redirect )
+from flask import (Blueprint, render_template, request,
+                   session, flash, url_for, redirect)
 from flask.views import MethodView
 from rankomatic.forms import LoginForm, SignupForm
 from rankomatic.models import User
 
 users = Blueprint('users', __name__, template_folder='templates/users')
+
 
 class LoginView(MethodView):
 
@@ -52,7 +53,8 @@ class SignupView(MethodView):
         cancel_create = False  # track errors in creation
         user = User.objects(username=username)
         if user:
-            flash('That username has already been chosen. Try a different one.')
+            flash('That username has already been chosen.'
+                  'Try a different one.')
             cancel_create = True
         if password != form.password_conf.data:
             flash("The password confirmation doesn't match.")
@@ -81,15 +83,15 @@ class AccountView(MethodView):
 
     def get(self, username):
         if session['username'] == username:
-            return render_template('account.html',
-                                user=User.objects.get_or_404(username=username))
+            user = User.objects.get_or_404(username=username)
+            return render_template('account.html', user=user)
         else:
             flash('Only a user who is logged in can view their account')
             return redirect(url_for('users.login'))
 
 
-
 users.add_url_rule('/login/', view_func=LoginView.as_view('login'))
 users.add_url_rule('/signup/', view_func=SignupView.as_view('signup'))
 users.add_url_rule('/logout/', view_func=LogoutView.as_view('logout'))
-users.add_url_rule('/account/<username>/', view_func=AccountView.as_view('account'))
+users.add_url_rule('/account/<username>/',
+                   view_func=AccountView.as_view('account'))

@@ -14,7 +14,10 @@ GRAMS_PER_PAGE = 20
 class GrammarView(MethodView):
 
     def get(self, dset_name, num_rankings):
-        self._initialize_data_for_get(self, request, dset_name, num_rankings)
+        if not self._check_params():
+            return redirect(url_for('.grammars', dset_name=dset_name,
+                                    num_rankings=num_rankings, page=0))
+        self._initialize_data_for_get(dset_name, num_rankings)
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
         self._truncate_grams_for_pagination()
@@ -27,18 +30,27 @@ class GrammarView(MethodView):
                                dset_name=dset_name,
                                **self.template_args))
 
-    def _initialize_data_for_get(self, request, dset_name, num_rankings):
+    def _check_params(self):
         page = request.args.get('page')
-        if page is None:
-            return redirect(url_for('.grammars', dset_name=dset_name,
-                                    num_rankings=num_rankings, page=0))
-        self.page = int(page)
+        if page is not None and self._is_int(page) and int(page) >= 0:
+            return True
+        return False
+
+    def _is_int(self, string):
+        try:
+            int(string)
+        except ValueError:
+            return False
+        return True
+
+    def _initialize_data_for_get(self, dset_name, num_rankings):
+        self.page = int(request.args.get('page'))
         self.dset = Dataset.objects.get_or_404(name=dset_name)
         self.grams = self._get_correct_size_grammars(num_rankings)
         self.template_args = {}
 
-    def _get_correct_size_grammars(self, dset, num_rankings):
-        raw_grammars = enumerate(dset.raw_grammars)
+    def _get_correct_size_grammars(self, num_rankings):
+        raw_grammars = enumerate(self.dset.raw_grammars)
         return [(i, g) for i, g in raw_grammars if len(g) == num_rankings]
 
     def _calculate_global_stats(self):
@@ -46,17 +58,19 @@ class GrammarView(MethodView):
             'num_poots': self.dset.poot.num_compatible_poots(),
             'num_poots': self.dset.poot.num_compatible_poots(),
             'num_total_poots': self.dset.poot.num_total_poots(),
-            'per_poots': self._make_percent_poots(self.dset.poot),
+            'percent_poots': self._make_percent_poots(self.dset.poot),
             'num_cots': self.dset.poot.num_compatible_cots(),
             'num_total_cots': self.dset.poot.num_total_cots(),
-            'per_cots': self._make_percent_cots(self.dset.poot)
+            'percent_cots': self._make_percent_cots(self.dset.poot)
         })
 
     def _make_percent_poots(self, poot):
-        return (float(poot.num_compatible_poots) / poot.num_total_poots) * 100
+        return (float(poot.num_compatible_poots()) /
+                poot.num_total_poots()) * 100
 
     def _make_percent_cots(self, poot):
-        return (float(poot.num_compatible_cots) / poot.num_total_cots) * 100
+        return (float(poot.num_compatible_cots()) /
+                poot.num_total_cots()) * 100
 
     def _calculate_navbar_info(self, num_rankings):
         grammar_lengths = self._get_grammar_lengths(self.dset)
@@ -73,8 +87,8 @@ class GrammarView(MethodView):
     def _get_grammar_lengths(self, dset):
         return sorted(set(map(len, dset.raw_grammars)), reverse=True)
 
-    def _get_min_max_indices(self, num_rank_grams, page):
-        min_ind = page * GRAMS_PER_PAGE
+    def _get_min_max_indices(self, num_rank_grams):
+        min_ind = self.page * GRAMS_PER_PAGE
         max_ind = min_ind + GRAMS_PER_PAGE - 1
         if max_ind > num_rank_grams:
             max_ind = num_rank_grams
@@ -92,7 +106,7 @@ class GrammarView(MethodView):
             cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
             input_totals = self._sum_all_cot_stats(cot_stats_by_cand)
             grammar_info.append({
-                'grammar': self._make_grammar_string(self.dset, gram[0]),
+                'grammar': self._make_grammar_string(gram[0]),
                 'filename': self._make_grammar_filename(gram[0]),
                 'cots_by_cand': cot_stats_by_cand,
                 'input_totals': input_totals})
@@ -109,8 +123,8 @@ class GrammarView(MethodView):
         raw_sum = 0
         percent_sum = 0.0
         for cot_stat in cot_stats:
-            raw_sum += cot_stats['num_cot']
-            percent_sum += cot_stats['per_cot']
+            raw_sum += cot_stat['num_cot']
+            percent_sum += cot_stat['per_cot']
         return {
             'raw_sum': raw_sum,
             'per_sum': percent_sum}
@@ -133,10 +147,10 @@ class GraphView(MethodView):
         except:
             abort(404)
 
-    def _make_graph_filename(dset_name, filename):
+    def _make_graph_filename(self, dset_name, filename):
         return "".join([dset_name, '/', filename])
 
-    def _build_image_response(fs, filename):
+    def _build_image_response(self, fs, filename):
         f = fs.get_last_version(filename=filename)
         response = make_response(f.read())
         response.mimetype = 'image/svg+xml'

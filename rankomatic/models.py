@@ -115,7 +115,7 @@ class Dataset(db.Document):
         return {
             'output': form_cand['outp'],
             'input': form_cand['inp'],
-            'optimal': form_cand['opt'],
+            'optimal': form_cand['optimal'],
             'vvector': self._make_violation_vector_dict(form_cand['vvector'])}
 
     def _make_violation_vector_dict(self, list_vvect):
