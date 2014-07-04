@@ -91,7 +91,7 @@ class GrammarView(MethodView):
         min_ind = self.page * GRAMS_PER_PAGE
         max_ind = min_ind + GRAMS_PER_PAGE - 1
         if max_ind > num_rank_grams:
-            max_ind = num_rank_grams
+            max_ind = num_rank_grams - 1
         return {'min_ind': min_ind,
                 'max_ind': max_ind}
 

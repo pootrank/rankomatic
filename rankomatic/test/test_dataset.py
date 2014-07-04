@@ -74,13 +74,13 @@ class TestDataset(object):
                         'inp': 'ovea',
                         'outp': 'o.ve.a',
                         'vvector': [0, 1, 1, 0],
-                        'opt': True
+                        'optimal': True
                     },
                     {
                         'inp': 'ovea',
                         'outp': 'o.vee',
                         'vvector': [0, 0, 0, 1],
-                        'opt': True
+                        'optimal': True
                     }
                 ]},
 
@@ -89,13 +89,13 @@ class TestDataset(object):
                         'inp': 'idea',
                         'outp': 'i.de.a',
                         'vvector': [0, 1, 1, 0],
-                        'opt': True
+                        'optimal': True
                     },
                     {
                         'inp': 'idea',
                         'outp': 'i.dee',
                         'vvector': [1, 0, 0, 1],
-                        'opt': False
+                        'optimal': False
                     }
                 ]},
 
@@ -104,13 +104,13 @@ class TestDataset(object):
                         'inp': 'lasi-a',
                         'outp': 'la.si.a',
                         'vvector': [0, 0, 1, 0],
-                        'opt': True
+                        'optimal': True
                     },
                     {
                         'inp': 'lasi-a',
                         'outp': 'la.sii',
                         'vvector': [0, 0, 0, 1],
-                        'opt': True
+                        'optimal': True
                     }
                 ]},
 
@@ -119,13 +119,13 @@ class TestDataset(object):
                         'inp': 'rasia',
                         'outp': 'ra.si.a',
                         'vvector': [0, 0, 1, 0],
-                        'opt': True
+                        'optimal': True
                     },
                     {
                         'inp': 'rasia',
                         'outp': 'ra.sii',
                         'vvector': [1, 0, 0, 1],
-                        'opt': False
+                        'optimal': False
                     }
                 ]}
             ]
@@ -213,18 +213,18 @@ class TestDataset(object):
         assert self.fs.get_last_version(filename=self.entailments_fname)
 
     @raises(gridfs.NoFile)
-    def test_visuaalize_and_store_grammars_no_indices_cot(self):
+    def test_visualize_and_store_grammars_no_indices_cot(self):
         self.d.calculate_compatible_grammars()
         self.d.visualize_and_store_grammars([])
         self.fs.get_last_version(filename=(self.grammar_format_str % 0))
 
     @raises(gridfs.NoFile)
-    def test_visuaalize_and_store_grammars_no_indices_poot(self):
+    def test_visualize_and_store_grammars_no_indices_poot(self):
         self.d.calculate_compatible_grammars(classical=False)
         self.d.visualize_and_store_grammars([])
         self.fs.get_last_version(filename=(self.grammar_format_str % 0))
 
-    def test_visuaalize_and_store_grammars_cot(self):
+    def test_visualize_and_store_grammars_cot(self):
         self.data['candidates'] = ot.data.hbounded
         self.d.set_dset(self.data)
         self.d.poot = self.d.build_poot()

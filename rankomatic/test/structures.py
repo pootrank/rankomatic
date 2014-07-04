@@ -34,3 +34,11 @@ global_entailments = {
     'rasia, ra.sii': ['idea, i.dee', 'lasi-a, la.sii',
                       'ovea, o.vee', 'rasia, ra.sii']
 }
+
+to_flatten = {
+    'a': [{'1': 'bad', '2': 'worse'}],
+    'b': ['oh no!', [["that didn't work"], ["that also didn't work"]]]
+}
+
+flattened = ["bad", "worse", "oh no!",
+             "that didn't work", "that also didn't work"]

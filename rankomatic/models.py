@@ -152,7 +152,7 @@ class Dataset(db.Document):
     def _make_cand_dict(self, old_cand):
         return {'inp': old_cand.input,
                 'outp': old_cand.output,
-                'opt': old_cand.optimal,
+                'optimal': old_cand.optimal,
                 'vvector': old_cand.vvector}
 
     def set_dset(self, data):

@@ -63,7 +63,7 @@
                     <td>{% if c.outp.raw_data %}{{ c.outp() }}{% else %}{{ c.outp(value="O1") }}{% endif %}</td>
                     <td class="{%- if t_order -%}t-order{%- endif -%}">
                     {%- if not t_order -%}
-                      {% if c.optimal.data %}{{ c.optimal(value="true") }}{% else %}{{ c.optimal(value="false") }}{% endif %}
+                      {% if c.optimal.raw_data %}{{ c.optimal(value="true") }}{% else %}{{ c.optimal(value="false") }}{% endif %}
                     {%- else -%}
                       {{ c.optimal(value="true", type="hidden") }}
                     {%- endif -%}

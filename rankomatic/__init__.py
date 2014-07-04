@@ -5,16 +5,18 @@ Email: cwjeffers18@gmail.com
 
 This file initiates the app and database connection, defines the configuration,
 and imports and attaches the desired blueprints which contain the views.
-Instantiates the app as a Python module; everything defined in here is available
-for import from the rankomatic module.
+Instantiates the app as a Python module; everything defined in here is
+available for import from the rankomatic module.
+
 """
-#TODO make sure documentation is up to date
+# TODO make sure documentation is up to date
 from flask import Flask
 from flask.ext.mongoengine import MongoEngine
 
 app = Flask(__name__)
 app.config.from_object('rankomatic.config.default-config')
 app.config.from_envvar('APP_CONFIG', silent=True)
+
 
 def get_db(self):
     return getattr(self.connection,
@@ -23,7 +25,6 @@ def get_db(self):
 MongoEngine.get_pymongo_db = get_db
 
 db = MongoEngine(app)
-
 
 
 def register_blueprints(app):
@@ -38,7 +39,6 @@ def register_blueprints(app):
     app.register_blueprint(grammars)
 
 register_blueprints(app)
-
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ calculator, t-order, reads the forms, returns the results, etc.
 
 import random
 import string
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 from rankomatic.models import Dataset
@@ -21,9 +21,15 @@ tools = Blueprint('tools', __name__,
 class CalculatorView(MethodView):
     """Displays the calculator form and its POST logic"""
 
-    def get(self):
-        return render_template('tableaux.html', form=TableauxForm(),
-                               active='calculator', t_order=False)
+    def get(self, dset_name=None):
+        if dset_name is None:
+            return render_template('tableaux.html', form=TableauxForm(),
+                                   active='calculator', t_order=False)
+        else:
+            dset = Dataset.objects.get_or_404(name=dset_name)
+            form = TableauxForm(from_db=True, **dset.create_form_data())
+            return render_template('tableaux.html', form=form,
+                                   active='calculator', t_order=False)
 
     def post(self):
         form = TableauxForm(request.form)
@@ -93,4 +99,6 @@ class TOrderView(MethodView):
 
 tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
+tools.add_url_rule('/<dset_name>/calculator/',
+                   view_func=CalculatorView.as_view('dset.calculator'))
 tools.add_url_rule('/t-order/', view_func=TOrderView.as_view('t_order'))

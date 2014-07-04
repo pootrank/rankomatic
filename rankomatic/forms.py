@@ -5,6 +5,7 @@ Email: cwjeffers18@gmail.com
 
 This file defines several WTForms for use with Flask applications, specifically
 the Optimality Theory ranking application.
+
 """
 import itertools
 from flask.ext.wtf import Form
@@ -61,19 +62,18 @@ class CandidateForm(Form):
                     validators=[validators.Length(min=1, max=255,
                                                   message="Input names must be"
                                                   " between 1 and 255 "
-                                                  "characters in length")]
+                                                  "characters in length")],
                     )
     outp = TextField(default="",
                      validators=[validators.Length(min=1, max=255,
                                                    message="Output names must "
                                                    "be between1 and 255 "
-                                                   "characters in length")]
-                     )
+                                                   "characters in length")])
     optimal = BooleanField(validators=[
-        validators.AnyOf([True, False],
-                         message="Checkboxes must be either checked (true) or "
-                                 "unchecked (false)")]
-        )
+        validators.AnyOf([True, False], message="Checkboxes must be either"
+                                                " checked (true) or unchecked "
+                                                "(false)")],
+    )
     vvector = FieldList(
         ZeroIntegerField(validators=[
             validators.NumberRange(min=0,
@@ -82,8 +82,12 @@ class CandidateForm(Form):
         default=[ZeroIntegerField(default=0) for x in range(3)],
         validators=[validators.Length(min=2, max=5,
                                       message="There must be between 2 and 5 "
-                                      "constraints")]
+                                      "constraints")],
     )
+
+    def __init__(self, *args, **kwargs):
+        self.csrf_enabled = False
+        super(CandidateForm, self).__init__(*args, **kwargs)
 
 
 class MembersUnique(object):
@@ -133,7 +137,8 @@ class InputGroupForm(Form):
     candidates = FieldList(FormField(CandidateForm),
                            default=[FormField(CandidateForm,
                                               csrf_enabled=False)],
-                           validators=[InputsSame(), OutputsUnique()])
+                           validators=[InputsSame(), OutputsUnique()],
+                           )
 
 
 class AtLeastOneOptimal(object):
@@ -165,7 +170,7 @@ class TableauxForm(Form):
         validators=[MembersUnique("Constraints must be unique"),
                     validators.Length(min=2, max=5,
                                       message="There must be between 2 and 5 "
-                                      "constraints")]
+                                      "constraints")],
     )
 
     input_groups = FieldList(FormField(InputGroupForm),
@@ -173,7 +178,39 @@ class TableauxForm(Form):
                                                 csrf_enabled=False)],
                              validators=[AtLeastOneOptimal()])
 
-    def _flatten(self, d):
+    def __init__(self, from_db=False, *args, **kwargs):
+        super(TableauxForm, self).__init__(*args, **kwargs)
+        if from_db:
+            self._set_raw_data()
+
+    def _set_raw_data(self):
+        self.raw_data = self.data
+        self._set_constraints_raw_data()
+        self._set_input_groups_raw_data()
+
+    def _set_constraints_raw_data(self):
+        self.constraints.raw_data = self.constraints.data
+        for constraint in self.constraints:
+            constraint.raw_data = constraint.data
+
+    def _set_input_groups_raw_data(self):
+        self.input_groups.raw_data = self.input_groups.data
+        for ig in self.input_groups:
+            ig.raw_data = ig.data
+            ig.candidates.raw_data = ig.candidates.data
+            for cand in ig.candidates:
+                self._set_candidate_raw_data(cand)
+
+    def _set_candidate_raw_data(self, cand):
+        cand.raw_data = cand.data
+        cand.inp.raw_data = cand.inp.data
+        cand.outp.raw_data = cand.outp.data
+        cand.optimal.raw_data = cand.optimal.data
+        cand.vvector.raw_data = cand.vvector.data
+        for constraint in cand.vvector:
+            constraint.raw_data = [constraint.data]
+
+    def _flatten(self, unflat):
         """Flattens a dict into a single list, throwing away keys.
         if d looks like this:
             {'a': [{'1': 'bad', '2': 'worse' }]
@@ -182,22 +219,32 @@ class TableauxForm(Form):
             ['bad', 'worse', 'oh no!', 'that didn't work', 'that didn't work']
         Code based on intuited's: http://stackoverflow.com/a/3835478
 
+        The base members need to be either strings, unicode strings, or
+        iterable. This won't work if lowest of the nested values are anything
+        else (e.g. objects, ints, floats, etc.)
+
         """
-        try:
-            for v in d.itervalues():
-                for nested_v in self._flatten(v):
-                    yield nested_v
-        except AttributeError:
-            if type(d) is list:
-                for list_v in d:
-                    for nested_in_list in self._flatten(list_v):
-                        yield nested_in_list
-            elif type(d) is str or type(d) is unicode:
-                yield d
-            else:
-                for list_v in d:
-                    yield list_v
+        flat = []
+        if type(unflat) is dict:
+            flat.extend(self._treat_as_dict(unflat))
+        elif type(unflat) is list:
+            flat.extend(self._treat_as_list(unflat))
+        elif type(unflat) is str or type(unflat) is unicode:
+            flat.append(unflat)
+        else:  # unflat is iterable
+            flat.extend(unflat)
+        return flat
+
+    def _treat_as_dict(self, unflat):
+        for value in unflat.itervalues():
+            for nested_value in self._flatten(value):
+                yield nested_value
+
+    def _treat_as_list(self, unflat):
+        for list_value in unflat:
+            for nested_in_list in self._flatten(list_value):
+                yield nested_in_list
 
     def get_errors(self):
         """return the errors in a uniq'd list."""
-        return list(set([e for e in self._flatten(self.errors)]))
+        return sorted(list(set(self._flatten(self.errors))))
