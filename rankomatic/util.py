@@ -1,0 +1,22 @@
+import urllib
+from rankomatic.models import Dataset
+from flask import session
+
+
+def get_username():
+    if not session['username']:
+        set_username(session)
+    return session['username']
+
+
+def set_username(session, username="guest"):
+    session['username'] = username
+
+
+def get_dset(name_to_find):
+    name_to_find = urllib.unquote_plus(name_to_find)
+    try:
+        dset = Dataset.objects.get(name=name_to_find, user=get_username())
+    except Dataset.DoesNotExist:
+        dset = Dataset.objects.get_or_404(name=name_to_find, user="guest")
+    return dset
