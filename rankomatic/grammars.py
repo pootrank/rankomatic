@@ -18,8 +18,7 @@ class GrammarView(MethodView):
         if not self._check_params():
             return redirect(url_for('.grammars', dset_name=dset_name,
                                     num_rankings=num_rankings, page=0))
-        unquoted_name = urllib.unquote_plus(dset_name)
-        self._initialize_data_for_get(unquoted_name, num_rankings)
+        self._initialize_data_for_get(dset_name, num_rankings)
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
         self._truncate_grams_for_pagination()
@@ -29,7 +28,7 @@ class GrammarView(MethodView):
                                page=self.page,
                                num_rankings=num_rankings,
                                grammar_info=self._make_grammar_info(),
-                               dset_name=unquoted_name,
+                               dset_name=dset_name,
                                **self.template_args))
 
     def _check_params(self):
