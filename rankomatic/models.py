@@ -21,6 +21,7 @@ import os
 import gridfs
 import datetime
 import tempfile
+import urllib
 from collections import OrderedDict
 
 import pygraphviz
@@ -269,7 +270,8 @@ class Dataset(db.Document):
         """Generate visualization images and store them in GridFS"""
         if inds:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-            fname = "".join([self.name, '/', ('grammar%d.svg' % inds[0])])
+            encode_name = urllib.quote_plus(self.name)
+            fname = "".join([encode_name, '/', ('grammar%d.svg' % inds[0])])
             try:
                 fs.get_last_version(filename=fname)
             except gridfs.NoFile:
@@ -279,7 +281,7 @@ class Dataset(db.Document):
                         graph.draw(tf, format='svg')
                         tf.seek(0)
                         filename = 'grammar%d.svg' % i
-                        path = "".join([self.name, '/', filename])
+                        path = "".join([encode_name, '/', filename])
                         fs.put(tf, filename=path)
 
     def make_grammar_graph(self, grammar):

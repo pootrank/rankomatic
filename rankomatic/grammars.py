@@ -1,4 +1,3 @@
-import urllib
 from flask import (render_template, abort, Blueprint, session,
                    make_response, request, redirect, url_for)
 from flask.views import MethodView
@@ -74,7 +73,7 @@ class GrammarView(MethodView):
                 poot.num_total_cots()) * 100
 
     def _calculate_navbar_info(self, num_rankings):
-        grammar_lengths = self._get_grammar_lengths(self.dset)
+        grammar_lengths = self._get_grammar_lengths()
         if num_rankings not in grammar_lengths and num_rankings != 0:
             abort(404)
         num_rank_grams = len(self.grams)
@@ -85,8 +84,8 @@ class GrammarView(MethodView):
         })
         self.template_args.update(navbar_info)
 
-    def _get_grammar_lengths(self, dset):
-        return sorted(set(map(len, dset.raw_grammars)), reverse=True)
+    def _get_grammar_lengths(self):
+        return sorted(set(map(len, self.dset.raw_grammars)), reverse=True)
 
     def _get_min_max_indices(self, num_rank_grams):
         min_ind = self.page * GRAMS_PER_PAGE
