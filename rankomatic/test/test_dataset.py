@@ -10,10 +10,10 @@ class TestDataset(object):
     def setUp(self):
         self.data = {
             'constraints': ['c1', 'c2', 'c3', 'c4'],
-            'candidates': ot.data.voweldset
+            'candidates': ot.data.voweldset,
+            'name': 'voweldset'
         }
         self.d = models.Dataset(data=self.data, data_is_from_form=False)
-        self.d.name = "test_dset"
         self.entailments_fname = "".join([self.d.name, "/", 'entailments.svg'])
         self.grammar_format_str = self.d.name + "/grammar%d.svg"
         self.fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
@@ -63,10 +63,12 @@ class TestDataset(object):
         form_data = self.d.create_form_data()
         form_dset = models.Dataset(data=form_data)
         assert self.candidates_are_set_correctly(form_dset, self.data)
+        assert self.data['name'] == form_dset.name
 
     def test_create_form_data(self):
         form_data = self.d.create_form_data()
         assert form_data == {
+            'name': 'voweldset',
             'constraints': ['c1', 'c2', 'c3', 'c4'],
             'input_groups': [
                 {'candidates': [
@@ -162,6 +164,7 @@ class TestDataset(object):
 
     def test_process_form_data(self):
         data = {
+            'name': 'voweldset',
             'candidates': ot.data.voweldset,
             'constraints': ['c1', 'c2', 'c3', 'c4']
         }

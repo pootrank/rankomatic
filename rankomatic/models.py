@@ -108,6 +108,7 @@ class Dataset(db.Document):
 
     def _initialize_ot_data_from(self, form_data):
         return {
+            'name': form_data['name'],
             'constraints': form_data['constraints'],
             'candidates': []}
 
@@ -134,6 +135,7 @@ class Dataset(db.Document):
 
     def _initialize_form_data(self):
         return {
+            'name': self.name,
             'constraints': self.constraints,
             'input_groups': []}
 
@@ -157,6 +159,7 @@ class Dataset(db.Document):
 
     def set_dset(self, data):
         """From ot library form, set the corresponding fields"""
+        self.name = data['name']
         self._ot_candidates = data['candidates']
         self.constraints = data['constraints']
         self.candidates = [Candidate(cand) for cand in data['candidates']]

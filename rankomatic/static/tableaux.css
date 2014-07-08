@@ -20,8 +20,17 @@ object.graph {
     vertical-align: middle;
 }
 
+input#name {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 50px;
+    height: 60px;
+    width: 400px;
+    font-size: 250%;
+}
 
-th input {
+th input, #name {
     font-weight: bold;
     text-align: center;
 }

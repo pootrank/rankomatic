@@ -9,7 +9,9 @@ calculator, t-order, reads the forms, returns the results, etc.
 
 import random
 import string
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+import urllib
+from flask import (Blueprint, render_template, request,
+                   flash, redirect, url_for)
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 from rankomatic.models import Dataset
@@ -26,7 +28,9 @@ class CalculatorView(MethodView):
             return render_template('tableaux.html', form=TableauxForm(),
                                    active='calculator', t_order=False)
         else:
-            dset = Dataset.objects.get_or_404(name=dset_name)
+            name_to_find = urllib.unquote_plus(dset_name)
+            print name_to_find
+            dset = Dataset.objects.get_or_404(name=name_to_find)
             form = TableauxForm(from_db=True, **dset.create_form_data())
             return render_template('tableaux.html', form=form,
                                    active='calculator', t_order=False)
@@ -43,10 +47,12 @@ class CalculatorView(MethodView):
             data = form.data
             dset = Dataset(data=data, data_is_from_form=True)
             chars = string.digits + string.letters
-            namelist = [random.choice(chars) for i in xrange(10)]
-            dset.name = "".join(namelist)
+            if not dset.name:
+                namelist = [random.choice(chars) for i in xrange(10)]
+                dset.name = "".join(namelist)
             dset.save()
-            return redirect(url_for('grammars.grammars', dset_name=dset.name,
+            url_name = urllib.quote_plus(dset.name)
+            return redirect(url_for('grammars.grammars', dset_name=url_name,
                                     num_rankings=0, page=0))
 
 

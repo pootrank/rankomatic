@@ -6,6 +6,7 @@
   {%- else -%}
     {{ url_for('tools.calculator') }}
   {%- endif -%}" method="POST">
+  {{ form.name(placeholder="Dataset Title") }}
     <div class="row">
       <div class="span3">
         <table id="buttons" cellspacing="0">

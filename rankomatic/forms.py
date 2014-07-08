@@ -13,6 +13,8 @@ from wtforms import (TextField, PasswordField, FieldList, FormField,
                      BooleanField, IntegerField, validators)
 from wtforms.validators import ValidationError
 
+from rankomatic.models import Dataset
+
 
 class LoginForm(Form):
     """
@@ -157,6 +159,22 @@ class AtLeastOneOptimal(object):
             raise ValidationError(self.message)
 
 
+class UniqueInDB(object):
+
+    def __init__(self, message=None):
+        if not message:
+            message = "That name is already taken"
+        self.message = message
+
+    def __call__(self, form, field):
+        try:
+            Dataset.objects.get(name=field.data)
+        except Dataset.DoesNotExist:
+            pass
+        else:
+            raise ValidationError(self.message)
+
+
 class TableauxForm(Form):
     """Creates the Tableaux, displayed as the main calculator."""
     len_validator = validators.Length(min=1, max=255,
@@ -178,6 +196,8 @@ class TableauxForm(Form):
                                                 csrf_enabled=False)],
                              validators=[AtLeastOneOptimal()])
 
+    name = TextField(validators=[UniqueInDB()])
+
     def __init__(self, from_db=False, *args, **kwargs):
         super(TableauxForm, self).__init__(*args, **kwargs)
         if from_db:
@@ -185,8 +205,12 @@ class TableauxForm(Form):
 
     def _set_raw_data(self):
         self.raw_data = self.data
+        self._set_name_raw_data()
         self._set_constraints_raw_data()
         self._set_input_groups_raw_data()
+
+    def _set_name_raw_data(self):
+        self.name.raw_data = self.name.data
 
     def _set_constraints_raw_data(self):
         self.constraints.raw_data = self.constraints.data
