@@ -3,10 +3,17 @@
 <form action="
   {%- if t_order -%}
     {{ url_for('tools.t_order') }}
+  {%- elif edit -%}
+    {{ url_for('tools.edit', dset_name=dset_name) }}
   {%- else -%}
     {{ url_for('tools.calculator') }}
   {%- endif -%}" method="POST">
-  {{ form.name(placeholder="Dataset Title") }}
+  <div class="row">
+    {%- if edit -%}
+    <h2>Editing...</h2>
+    {%- endif -%}
+    {{ form.name(placeholder="Dataset Title") }}
+  </div>
     <div class="row">
       <div class="span3">
         <table id="buttons" cellspacing="0">
@@ -84,8 +91,11 @@
               </tbody>
             {%- endfor %}
           </table>
-          <div id="submit-btn-container">
-            <button type="submit" class="btn btn-primary btn-block">Rank!</button>
+          <div id="submit-btn-container" class="btn-group">
+              <button type="submit" class="btn btn-primary">{%- if edit -%}Save and recalculate grammars{%- else -%}Calculate grammars{%- endif -%}</button>
+              {%- if edit -%}
+              <a href="{{- url_for('grammars.grammars', dset_name=form.name.data, page=0, num_rankings=0) -}}" class="btn btn-secondary">Cancel editing and view old grammars</a>
+              {%- endif -%}
           </div>
         </fieldset>
       </div>

@@ -8,12 +8,14 @@ the Optimality Theory ranking application.
 
 """
 import itertools
+from flask import session
 from flask.ext.wtf import Form
 from wtforms import (TextField, PasswordField, FieldList, FormField,
                      BooleanField, IntegerField, validators)
 from wtforms.validators import ValidationError
 
 from rankomatic.models import Dataset
+from rankomatic.util import get_username
 
 
 class LoginForm(Form):
@@ -168,7 +170,7 @@ class UniqueInDB(object):
 
     def __call__(self, form, field):
         try:
-            Dataset.objects.get(name=field.data)
+            Dataset.objects.get(name=field.data,)
         except Dataset.DoesNotExist:
             pass
         else:
@@ -196,7 +198,7 @@ class TableauxForm(Form):
                                                 csrf_enabled=False)],
                              validators=[AtLeastOneOptimal()])
 
-    name = TextField(validators=[UniqueInDB()])
+    name = TextField()
 
     def __init__(self, from_db=False, *args, **kwargs):
         super(TableauxForm, self).__init__(*args, **kwargs)
@@ -272,3 +274,17 @@ class TableauxForm(Form):
     def get_errors(self):
         """return the errors in a uniq'd list."""
         return sorted(list(set(self._flatten(self.errors))))
+
+    def validate_for_editing(self, *args, **kwargs):
+        return super(TableauxForm, self).validate(*args, **kwargs)
+
+    def validate(self, *args, **kwargs):
+        valid = super(TableauxForm, self).validate(*args, **kwargs)
+        try:
+            Dataset.objects.get(name=self.name.data,
+                                user=get_username())
+        except Dataset.DoesNotExist:
+            return valid
+        else:
+            self.errors['form'] = "That name is already taken"
+            return False

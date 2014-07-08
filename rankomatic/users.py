@@ -12,6 +12,7 @@ from flask import (Blueprint, render_template, request,
 from flask.views import MethodView
 from rankomatic.forms import LoginForm, SignupForm
 from rankomatic.models import User
+from rankomatic.util import get_username, set_username
 
 users = Blueprint('users', __name__, template_folder='templates/users')
 
@@ -31,8 +32,8 @@ class LoginView(MethodView):
         except User.DoesNotExist:
             user = None
         if user and user.is_password_valid(password):
-            session['username'] = username
-            flash('Welcome, %s!' % session['username'])
+            set_username(session, username=username)
+            flash('Welcome, %s!' % get_username())
             return redirect(url_for('content.landing'))
         else:
             flash('Incorrect username/password combination')
@@ -74,7 +75,7 @@ class SignupView(MethodView):
 class LogoutView(MethodView):
 
     def get(self):
-        session['username'] = None
+        set_username(session)
         flash('You were successfully logged out')
         return redirect(url_for('content.landing'))
 
@@ -82,7 +83,7 @@ class LogoutView(MethodView):
 class AccountView(MethodView):
 
     def get(self, username):
-        if session['username'] == username:
+        if get_username() == username:
             user = User.objects.get_or_404(username=username)
             return render_template('account.html', user=user)
         else:

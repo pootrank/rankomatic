@@ -29,35 +29,32 @@ class TestDataset(object):
         self.check_constructor_no_data_not_from_form()
         self.check_constructor_data_from_form()
 
-    def test_raw_grammars(self):
-        assert self.d.raw_grammars == [
-            frozenset([(3, 1), (2, 1)]),
-            frozenset([(3, 1), (2, 4)]),
-            frozenset([(3, 2), (3, 1), (2, 1)]),
-            frozenset([(3, 1), (2, 4), (2, 1)]),
-            frozenset([(3, 1), (4, 1), (2, 1)]),
-            frozenset([(3, 1), (2, 3), (2, 1)]),
-            frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
-            frozenset([(2, 3), (3, 1), (4, 1), (2, 1)]),
-            frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
-            frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
-            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])]
+    def check_bare_constructor(self):
+        d = models.Dataset()
+        assert d.upload_date
+        assert not d.name
+        assert len(d.constraints) == 3
+        assert not d.candidates
+        assert not d.entailments
+        assert not d.grammars
+        assert d.poot
+        assert d.user == "guest"
 
-        assert self.d.raw_grammars == [
-            frozenset([(3, 1), (2, 1)]),
-            frozenset([(3, 1), (2, 4)]),
-            frozenset([(3, 2), (3, 1), (2, 1)]),
-            frozenset([(3, 1), (2, 4), (2, 1)]),
-            frozenset([(3, 1), (4, 1), (2, 1)]),
-            frozenset([(3, 1), (2, 3), (2, 1)]),
-            frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
-            frozenset([(2, 3), (3, 1), (4, 1), (2, 1)]),
-            frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
-            frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
-            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])]
+    def check_constructor_no_data_not_from_form(self):
+        d = models.Dataset(data_is_from_form=False)
+        assert d.upload_date
+        assert not d.name
+        assert len(d.constraints) == 3
+        assert not d.candidates
+        assert not d.entailments
+        assert not d.grammars
+        assert d.poot
+        assert d.user == "guest"
 
     def check_constructor_data_not_from_form(self):
         assert self.candidates_are_set_correctly(self.d, self.data)
+        assert self.d.user == "guest"
+        assert self.d.name == "voweldset"
 
     def check_constructor_data_from_form(self):
         form_data = self.d.create_form_data()
@@ -133,25 +130,32 @@ class TestDataset(object):
             ]
         }
 
-    def check_bare_constructor(self):
-        d = models.Dataset()
-        assert d.upload_date
-        assert not d.name
-        assert len(d.constraints) == 3
-        assert not d.candidates
-        assert not d.entailments
-        assert not d.grammars
-        assert d.poot
+    def test_raw_grammars(self):
+        assert self.d.raw_grammars == [
+            frozenset([(3, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 4)]),
+            frozenset([(3, 2), (3, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 4), (2, 1)]),
+            frozenset([(3, 1), (4, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 3), (2, 1)]),
+            frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 1)]),
+            frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
+            frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])]
 
-    def check_constructor_no_data_not_from_form(self):
-        d = models.Dataset(data_is_from_form=False)
-        assert d.upload_date
-        assert not d.name
-        assert len(d.constraints) == 3
-        assert not d.candidates
-        assert not d.entailments
-        assert not d.grammars
-        assert d.poot
+        assert self.d.raw_grammars == [
+            frozenset([(3, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 4)]),
+            frozenset([(3, 2), (3, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 4), (2, 1)]),
+            frozenset([(3, 1), (4, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 3), (2, 1)]),
+            frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 1)]),
+            frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
+            frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])]
 
     def candidates_are_set_correctly(self, dataset, ot_dset):
         num_set = 0

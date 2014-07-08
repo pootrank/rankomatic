@@ -75,6 +75,7 @@ class Dataset(db.Document):
         ),
         default=lambda: []
     )
+    user = db.StringField(default="guest")
 
     @property
     def raw_grammars(self):

@@ -15,44 +15,76 @@ from flask import (Blueprint, render_template, request,
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 from rankomatic.models import Dataset
+from rankomatic.util import get_username, get_dset
 
 tools = Blueprint('tools', __name__,
                   template_folder='templates/calculator')
 
 
+def _make_random_dset_name():
+    chars = string.digits + string.letters
+    namelist = [random.choice(chars) for i in xrange(10)]
+    return "".join(namelist)
+
+
+def _get_form_from_dset_name(dset_name):
+    dset = get_dset(dset_name)
+    form = TableauxForm(from_db=True, **dset.create_form_data())
+    return form
+
+
+class EditView(MethodView):
+
+    def get(self, dset_name):
+        return render_template('tableaux.html',
+                               dset_name=dset_name,
+                               form=_get_form_from_dset_name(dset_name),
+                               active='calculator',
+                               t_order=False,
+                               edit=True)
+
+    def post(self, dset_name):
+        form = TableauxForm(request.form)
+        if not form.validate_for_editing():
+            for e in form.get_errors():
+                flash(e)
+            return render_template('tableaux.html', form=form,
+                                   active='calculator', t_order=False,
+                                   dset_name=dset_name, edit=True)
+        else:
+            old_dset = get_dset(dset_name)
+            dset = Dataset(data=form.data, data_is_from_form=True)
+            dset.id = old_dset.id
+            dset.user = old_dset.user
+            dset.save()
+            return redirect(url_for('grammars.grammars',
+                                    dset_name=urllib.quote_plus(dset.name),
+                                    num_rankings=0, page=0))
+
+
 class CalculatorView(MethodView):
     """Displays the calculator form and its POST logic"""
 
-    def get(self, dset_name=None):
-        if dset_name is None:
-            return render_template('tableaux.html', form=TableauxForm(),
-                                   active='calculator', t_order=False)
-        else:
-            name_to_find = urllib.unquote_plus(dset_name)
-            print name_to_find
-            dset = Dataset.objects.get_or_404(name=name_to_find)
-            form = TableauxForm(from_db=True, **dset.create_form_data())
-            return render_template('tableaux.html', form=form,
-                                   active='calculator', t_order=False)
+    def get(self):
+        return render_template('tableaux.html', form=TableauxForm(),
+                               active='calculator', t_order=False)
 
     def post(self):
         form = TableauxForm(request.form)
-
         if not form.validate():
             for e in form.get_errors():
                 flash(e)
             return render_template('tableaux.html', form=form,
                                    active='calculator')
         else:
-            data = form.data
-            dset = Dataset(data=data, data_is_from_form=True)
-            chars = string.digits + string.letters
+            dset = Dataset(data=form.data,
+                           data_is_from_form=True,
+                           user=get_username())
             if not dset.name:
-                namelist = [random.choice(chars) for i in xrange(10)]
-                dset.name = "".join(namelist)
+                dset.name = _make_random_dset_name()
             dset.save()
-            url_name = urllib.quote_plus(dset.name)
-            return redirect(url_for('grammars.grammars', dset_name=url_name,
+            return redirect(url_for('grammars.grammars',
+                                    dset_name=urllib.quote_plus(dset.name),
                                     num_rankings=0, page=0))
 
 
@@ -105,6 +137,5 @@ class TOrderView(MethodView):
 
 tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
-tools.add_url_rule('/<dset_name>/calculator/',
-                   view_func=CalculatorView.as_view('dset.calculator'))
 tools.add_url_rule('/t-order/', view_func=TOrderView.as_view('t_order'))
+tools.add_url_rule('/<dset_name>/edit/', view_func=EditView.as_view('edit'))

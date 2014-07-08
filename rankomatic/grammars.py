@@ -1,9 +1,10 @@
 import urllib
-from flask import (render_template, abort, Blueprint,
+from flask import (render_template, abort, Blueprint, session,
                    make_response, request, redirect, url_for)
 from flask.views import MethodView
 from rankomatic import db
 from rankomatic.models import Dataset
+from rankomatic.util import get_username, get_dset
 import gridfs
 
 grammars = Blueprint('grammars', __name__,
@@ -46,7 +47,7 @@ class GrammarView(MethodView):
 
     def _initialize_data_for_get(self, dset_name, num_rankings):
         self.page = int(request.args.get('page'))
-        self.dset = Dataset.objects.get_or_404(name=dset_name)
+        self.dset = get_dset(dset_name)
         self.grams = self._get_correct_size_grammars(num_rankings)
         self.template_args = {}
 
@@ -161,7 +162,8 @@ class GraphView(MethodView):
 class EntailmentView(MethodView):
 
     def get(self, dset_name):
-        dset = Dataset.objects.get_or_404(name=dset_name)
+        dset = Dataset.objects.get_or_404(name=dset_name,
+                                          user=get_username(session))
         dset.calculate_global_entailments()
         dset.visualize_and_store_entailments()
         return render_template('entailments.html', dset_name=dset_name)
