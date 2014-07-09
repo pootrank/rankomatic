@@ -82,6 +82,8 @@ class Dataset(db.Document):
     def raw_grammars(self):
         if self._grammars is None:
             self.calculate_compatible_grammars(False)
+        elif not self.grammars:
+            self.grammars = self._get_pretty_grammars()
         return eval(self._grammars)
 
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
@@ -254,17 +256,21 @@ class Dataset(db.Document):
         grammars = sorted(list(self.poot.get_grammars(classical=classical)),
                           key=len)
         self._grammars = str(grammars)
-        if grammars:
-            converted = []
-            for g in grammars:
-                new_gram = []
-                for rel in g:
-                    new_gram.append([self.constraints[rel[1]-1],
-                                     self.constraints[rel[0]-1]])
-                converted.append(new_gram)
-            self.grammars = converted
-        else:
-            self.grammars = []
+        self.grammars = self._convert_to_pretty_grammars(grammars)
+
+    def _get_pretty_grammars(self):
+        grams = eval(self._grammars)
+        return self._convert_to_pretty_grammars(grams)
+
+    def _convert_to_pretty_grammars(self, grammars):
+        converted = []
+        for g in grammars:
+            new_gram = []
+            for rel in g:
+                new_gram.append([self.constraints[rel[1]-1],
+                                 self.constraints[rel[0]-1]])
+            converted.append(new_gram)
+        return converted
 
     def visualize_and_store_grammars(self, inds):
         """Generate visualization images and store them in GridFS"""

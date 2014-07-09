@@ -4,9 +4,11 @@ from flask import session
 
 
 def get_username():
-    if not session['username']:
+    try:
+        return session['username']
+    except KeyError:
         set_username(session)
-    return session['username']
+        return session['username']
 
 
 def set_username(session, username="guest"):
