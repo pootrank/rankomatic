@@ -38,6 +38,11 @@ def register_blueprints(app):
     app.register_blueprint(content)
     app.register_blueprint(grammars)
 
+try:
+    app.logger.addHandler(app.config['LOG_FILE_HANDLER'])
+except KeyError:
+    pass
+
 register_blueprints(app)
 
 
