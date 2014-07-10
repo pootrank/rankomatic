@@ -9,13 +9,35 @@
       </thead>
       <tbody>
         {%- for dset in dsets -%}
-        <tr>
+        <tr id="{{ dset.name|urlencode }}">
           <td class="dset_name">{{ dset.name }}</td>
           <td><a href="/{{dset.name}}/edit" class="btn">Edit {{dset.name}}</a></td>
           <td><a href="/{{dset.name}}/grammars/0" class="btn">View grammars</a></td>
-          <td><a href="/{{dset.name}}/grammars/0" class="btn">View entailments</a></td>
+          <td><a href="/{{dset.name}}/entailments/" class="btn">View entailments</a></td>
+          <td><a href="#" class="btn delete">Delete</a>
+              <div class="initially_hidden">
+                  <p>Are you sure?</p>
+                  <div class="btn-group">
+                      <a class="btn yes" href="#">Yes</a>
+                      <a class="btn no btn-primary" href="#">No</a>
+                  </div>
+              </div>
+          </td>
         </tr>
         {%- endfor -%}
       </tbody>
   </table>
+
+{% raw %}
+<script type="text/x-handlebars-template" id="alert_template">
+  <div class="alert">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>{{ message }}</strong>
+  </div>
+</script>
+{% endraw %}
+{%- endblock -%}
+{%- block js_footer -%}
+<script type="text/javascript" src="/static/scripts/handlebars-v1.3.0.js"></script>
+<script type="text/javascript" src="/static/account.js"></script>
 {%- endblock -%}

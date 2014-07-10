@@ -160,8 +160,7 @@ class GraphView(MethodView):
 class EntailmentView(MethodView):
 
     def get(self, dset_name):
-        dset = Dataset.objects.get_or_404(name=dset_name,
-                                          user=get_username(session))
+        dset = get_dset(dset_name)
         dset.calculate_global_entailments()
         dset.visualize_and_store_entailments()
         return render_template('entailments.html', dset_name=dset_name)

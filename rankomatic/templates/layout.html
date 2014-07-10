@@ -69,16 +69,18 @@
     {%- endblock %}
     <div class="container">
       <div class="content">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            {% for message in messages %}
+          <div id="messages">
+              {% with messages = get_flashed_messages() %}
+              {% if messages %}
+              {% for message in messages %}
               <div class="alert">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                <strong>{{ message }}</strong>
+                  <button type="button" class="close" data-dismiss="alert">&times;</button>
+                  <strong>{{ message }}</strong>
               </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+              {% endfor %}
+              {% endif %}
+              {% endwith %}
+          </div>
         {%- block pageheader %}{% endblock -%}
         {% block content -%}{%- endblock %}
       </div>

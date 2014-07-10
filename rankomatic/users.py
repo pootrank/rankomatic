@@ -12,7 +12,7 @@ from flask import (Blueprint, render_template, request,
 from flask.views import MethodView
 from rankomatic.forms import LoginForm, SignupForm
 from rankomatic.models import User, Dataset
-from rankomatic.util import get_username, set_username
+from rankomatic.util import get_username, set_username, get_dset
 
 users = Blueprint('users', __name__, template_folder='templates/users')
 
@@ -96,8 +96,18 @@ class AccountView(MethodView):
             return render_template('account.html', user=user, dsets=dsets)
 
 
+class DeleteDatasetView(MethodView):
+
+    def get(self, dset_name):
+        d = get_dset(dset_name)
+        d.delete()
+        return "successfully deleted %s" % d.name
+
+
 users.add_url_rule('/login/', view_func=LoginView.as_view('login'))
 users.add_url_rule('/signup/', view_func=SignupView.as_view('signup'))
 users.add_url_rule('/logout/', view_func=LogoutView.as_view('logout'))
 users.add_url_rule('/account/<username>/',
                    view_func=AccountView.as_view('account'))
+users.add_url_rule('/delete/<dset_name>/',
+                   view_func=DeleteDatasetView.as_view('delete_dataset'))
