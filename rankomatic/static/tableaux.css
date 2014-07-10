@@ -30,6 +30,10 @@ input#name {
     font-size: 250%;
 }
 
+td.dset_name {
+    font-weight: bold;
+}
+
 th input, #name {
     font-weight: bold;
     text-align: center;

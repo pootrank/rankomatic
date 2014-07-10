@@ -1,4 +1,21 @@
 {%- extends 'layout.html' -%}
 {%- block content -%}
-  <p>This is the account page for {{ user.username }}.</p>
+<h2>Datasets belonging to {{ user.username }}</h2>
+  <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for dset in dsets -%}
+        <tr>
+          <td class="dset_name">{{ dset.name }}</td>
+          <td><a href="/{{dset.name}}/edit" class="btn">Edit {{dset.name}}</a></td>
+          <td><a href="/{{dset.name}}/grammars/0" class="btn">View grammars</a></td>
+          <td><a href="/{{dset.name}}/grammars/0" class="btn">View entailments</a></td>
+        </tr>
+        {%- endfor -%}
+      </tbody>
+  </table>
 {%- endblock -%}

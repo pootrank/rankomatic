@@ -10,8 +10,8 @@ calculator, t-order, reads the forms, returns the results, etc.
 import random
 import string
 import urllib
-from flask import (Blueprint, render_template, request,
-                   flash, redirect, url_for)
+from flask import (Blueprint, render_template, request, Markup,
+                   flash, redirect, url_for, session)
 from flask.views import MethodView
 from rankomatic.forms import TableauxForm
 from rankomatic.models import Dataset
@@ -33,15 +33,48 @@ def _get_form_from_dset_name(dset_name):
     return form
 
 
+def _redirect_to_login(dset_name):
+    flash("Log in to edit datasets")
+    redirect_url = url_for('.edit', dset_name=dset_name)
+    session['redirect_url'] = redirect_url
+    return redirect(url_for('users.login'))
+
+
+def _prepare_to_change_dset_user(dset):
+    redirect_url = url_for(".edit", dset_name=urllib.quote_plus(dset.name))
+    session['redirect_url'] = redirect_url
+    message = '<a href="/login/">Log in</a> to save this dataset'
+    flash(Markup(message))
+    session['save_new_user'] = True
+
+
+def _change_dset_user_if_necessary(dset_name):
+    try:
+        save_new_user = session.pop('save_new_user')
+    except KeyError:
+        pass
+    else:
+        if save_new_user:
+            dset = get_dset(dset_name)
+            dset.user = get_username()
+            dset.save()
+            message = "Saved %s as %s!" % (dset.name, dset.user)
+            flash(message)
+
+
 class EditView(MethodView):
 
     def get(self, dset_name):
-        return render_template('tableaux.html',
-                               dset_name=dset_name,
-                               form=_get_form_from_dset_name(dset_name),
-                               active='calculator',
-                               t_order=False,
-                               edit=True)
+        if get_username() == "guest":
+            return _redirect_to_login(dset_name)
+        else:
+            _change_dset_user_if_necessary(dset_name)
+            return render_template('tableaux.html',
+                                   dset_name=dset_name,
+                                   form=_get_form_from_dset_name(dset_name),
+                                   active='calculator',
+                                   t_order=False,
+                                   edit=True)
 
     def post(self, dset_name):
         form = TableauxForm(request.form)
@@ -83,9 +116,15 @@ class CalculatorView(MethodView):
             if not dset.name:
                 dset.name = _make_random_dset_name()
             dset.save()
-            return redirect(url_for('grammars.grammars',
-                                    dset_name=urllib.quote_plus(dset.name),
-                                    num_rankings=0, page=0))
+
+            redirect_url = url_for('grammars.grammars',
+                                   dset_name=urllib.quote_plus(dset.name),
+                                   num_rankings=0, page=0)
+
+            if get_username() == "guest":
+                _prepare_to_change_dset_user(dset)
+
+            return redirect(redirect_url)
 
 
 class TOrderView(MethodView):

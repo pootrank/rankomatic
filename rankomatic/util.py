@@ -7,11 +7,11 @@ def get_username():
     try:
         return session['username']
     except KeyError:
-        set_username(session)
+        set_username()
         return session['username']
 
 
-def set_username(session, username="guest"):
+def set_username(username="guest"):
     session['username'] = username
 
 
