@@ -33,8 +33,7 @@
     }
 
     function make_delete_url(dset_name) {
-        url_dset_name = dset_name.replace(/%20/g,'+')
-        return "/delete/" + url_dset_name + "/"
+        return "/delete/" + dset_name + "/"
     }
 
     function display_deletion_error(dset_name) {

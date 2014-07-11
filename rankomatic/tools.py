@@ -41,7 +41,7 @@ def _redirect_to_login(dset_name):
 
 
 def _prepare_to_change_dset_user(dset):
-    redirect_url = url_for(".edit", dset_name=urllib.quote_plus(dset.name))
+    redirect_url = url_for(".edit", dset_name=urllib.quote(dset.name))
     session['redirect_url'] = redirect_url
     message = '<a href="/login/">Log in</a> to save this dataset'
     flash(Markup(message))
@@ -91,7 +91,7 @@ class EditView(MethodView):
             dset.user = old_dset.user
             dset.save()
             return redirect(url_for('grammars.grammars',
-                                    dset_name=urllib.quote_plus(dset.name),
+                                    dset_name=urllib.quote(dset.name),
                                     num_rankings=0, page=0))
 
 
@@ -118,7 +118,7 @@ class CalculatorView(MethodView):
             dset.save()
 
             redirect_url = url_for('grammars.grammars',
-                                   dset_name=urllib.quote_plus(dset.name),
+                                   dset_name=urllib.quote(dset.name),
                                    num_rankings=0, page=0)
 
             if get_username() == "guest":

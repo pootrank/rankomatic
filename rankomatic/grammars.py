@@ -1,9 +1,8 @@
-from flask import (render_template, abort, Blueprint, session,
+from flask import (render_template, abort, Blueprint,
                    make_response, request, redirect, url_for)
 from flask.views import MethodView
 from rankomatic import db
-from rankomatic.models import Dataset
-from rankomatic.util import get_username, get_dset
+from rankomatic.util import get_dset
 import gridfs
 
 grammars = Blueprint('grammars', __name__,
