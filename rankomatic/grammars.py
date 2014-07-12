@@ -20,7 +20,7 @@ class GrammarView(MethodView):
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
         self._truncate_grams_for_pagination()
-        self.dset.visualize_and_store_grammars([x[0] for x in self.grams])
+        #self.dset.visualize_and_store_grammars([x[0] for x in self.grams])
         self.dset.save()
         return(render_template('grammars.html',
                                page=self.page,
