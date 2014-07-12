@@ -84,6 +84,7 @@ class Dataset(db.Document):
             self.calculate_compatible_grammars(False)
         elif not self.grammars:
             self.grammars = self._get_pretty_grammars()
+            self.save()
         return eval(self._grammars)
 
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
