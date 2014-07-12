@@ -276,7 +276,7 @@ class Dataset(db.Document):
         """Generate visualization images and store them in GridFS"""
         if inds:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-            encode_name = urllib.quote_plus(self.name)
+            encode_name = urllib.quote(self.name)
             fname = "".join([encode_name, '/', ('grammar%d.svg' % inds[0])])
             try:
                 fs.get_last_version(filename=fname)
@@ -337,7 +337,19 @@ class Dataset(db.Document):
     def _get_percent_cots_for_grammar(self, num_cots):
         return ((float(num_cots) / self._total_cots_for_grammar) * 100)
 
+    def num_compatible_poots(self):
+        return len(self.raw_grammars)
 
+    def num_total_poots(self):
+        return self.poot.num_total_poots()
+
+    def num_compatible_cots(self):
+        length_of_cot = sum(range(len(self.constraints)))
+        cots = [g for g in self.raw_grammars if len(g) == length_of_cot]
+        return len(cots)
+
+    def num_total_cots(self):
+        return self.poot.num_total_cots()
 class User(db.DynamicDocument):
     """A user of the application, has a name, salted password digest, salt, and a
     list of Datasets belonging to the user.

@@ -20,7 +20,7 @@ class GrammarView(MethodView):
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
         self._truncate_grams_for_pagination()
-        #self.dset.visualize_and_store_grammars([x[0] for x in self.grams])
+        self.dset.visualize_and_store_grammars([x[0] for x in self.grams])
         self.dset.save()
         return(render_template('grammars.html',
                                page=self.page,
@@ -54,22 +54,21 @@ class GrammarView(MethodView):
 
     def _calculate_global_stats(self):
         self.template_args.update({
-            'num_poots': self.dset.poot.num_compatible_poots(),
-            'num_poots': self.dset.poot.num_compatible_poots(),
-            'num_total_poots': self.dset.poot.num_total_poots(),
-            'percent_poots': self._make_percent_poots(self.dset.poot),
-            'num_cots': self.dset.poot.num_compatible_cots(),
-            'num_total_cots': self.dset.poot.num_total_cots(),
-            'percent_cots': self._make_percent_cots(self.dset.poot)
+            'num_poots': self.dset.num_compatible_poots(),
+            'num_total_poots': self.dset.num_total_poots(),
+            'percent_poots': self._make_percent_poots(),
+            'num_cots': self.dset.num_compatible_cots(),
+            'num_total_cots': self.dset.num_total_cots(),
+            'percent_cots': self._make_percent_cots()
         })
 
-    def _make_percent_poots(self, poot):
-        return (float(poot.num_compatible_poots()) /
-                poot.num_total_poots()) * 100
+    def _make_percent_poots(self):
+        return (float(self.dset.num_poots()) /
+                self.dset.num_total_poots()) * 100
 
-    def _make_percent_cots(self, poot):
-        return (float(poot.num_compatible_cots()) /
-                poot.num_total_cots()) * 100
+    def _make_percent_cots(self):
+        return (float(self.dset.num_compatible_cots()) /
+                self.dset.num_total_cots()) * 100
 
     def _calculate_navbar_info(self, num_rankings):
         grammar_lengths = self._get_grammar_lengths()
