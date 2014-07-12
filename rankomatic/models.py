@@ -204,11 +204,13 @@ class Dataset(db.Document):
         return "".join(l)
 
     def calculate_global_entailments(self):
-        entailments = self.poot.get_entailments(atomic=True)
-        if entailments:
-            self.entailments = self._process_entailments(entailments)
-        else:
-            self.entailments = {}
+        if not self.entailments:
+            entailments = self.poot.get_entailments(atomic=True)
+            if entailments:
+                self.entailments = self._process_entailments(entailments)
+            else:
+                self.entailments = {}
+            self.save()
 
     def _process_entailments(self, entailments):
         processed = {}
@@ -350,6 +352,8 @@ class Dataset(db.Document):
 
     def num_total_cots(self):
         return self.poot.num_total_cots()
+
+
 class User(db.DynamicDocument):
     """A user of the application, has a name, salted password digest, salt, and a
     list of Datasets belonging to the user.
