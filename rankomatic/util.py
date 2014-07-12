@@ -16,7 +16,7 @@ def set_username(username="guest"):
 
 
 def get_dset(name_to_find):
-    name_to_find = urllib.unquote_plus(name_to_find)
+    name_to_find = urllib.unquote(name_to_find)
     try:
         dset = Dataset.objects.get(name=name_to_find, user=get_username())
     except Dataset.DoesNotExist:

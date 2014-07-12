@@ -63,7 +63,7 @@ class GrammarView(MethodView):
         })
 
     def _make_percent_poots(self):
-        return (float(self.dset.num_poots()) /
+        return (float(self.dset.num_compatible_poots()) /
                 self.dset.num_total_poots()) * 100
 
     def _make_percent_cots(self):
