@@ -1,3 +1,4 @@
+from multiprocessing import Process
 from flask import (render_template, abort, Blueprint,
                    make_response, request, redirect, url_for)
 from flask.views import MethodView
@@ -8,6 +9,16 @@ import gridfs
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
 GRAMS_PER_PAGE = 20
+
+
+def _calculate_entailments(dset):
+    dset.calculate_global_entailments()
+    dset.visualize_and_store_entailments()
+
+
+def _fork_entailment_calculation(dset):
+    p = Process(target=_calculate_entailments, args=(dset,))
+    p.start()
 
 
 class GrammarView(MethodView):
@@ -142,7 +153,7 @@ class GraphView(MethodView):
         filename = self._make_graph_filename(dset_name, filename)
         try:
             return self._build_image_response(fs, filename)
-        except:
+        except gridfs.NoFile:
             abort(404)
 
     def _make_graph_filename(self, dset_name, filename):
@@ -159,14 +170,26 @@ class EntailmentView(MethodView):
 
     def get(self, dset_name):
         dset = get_dset(dset_name)
-        dset.calculate_global_entailments()
-        dset.visualize_and_store_entailments()
+        _fork_entailment_calculation(dset)
         return render_template('entailments.html', dset_name=dset_name)
 
 
+class EntailmentsCalculatedView(MethodView):
+
+    def get(self, dset_name):
+        dset = get_dset(dset_name)
+        if dset.entailments_calculated and dset.entailments_visualized:
+            return "true"
+        else:
+            return "false"
+
 grammars.add_url_rule('/<dset_name>/grammars/<int:num_rankings>',
                       view_func=GrammarView.as_view('grammars'))
-grammars.add_url_rule('/graphs/<dset_name>/<filename>.svg',
+grammars.add_url_rule('/graphs/<dset_name>/<filename>',
                       view_func=GraphView.as_view('graph'))
 grammars.add_url_rule('/<dset_name>/entailments/',
                       view_func=EntailmentView.as_view('entailments'))
+grammars.add_url_rule('/entailments_calculated/<dset_name>/',
+                      view_func=EntailmentsCalculatedView.as_view(
+                          'entailments_calculated'
+                      ))

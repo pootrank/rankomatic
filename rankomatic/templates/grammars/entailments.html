@@ -1,6 +1,18 @@
 {%- extends 'layout.html' -%}
 {%- block content -%}
-  <h2>Global Entailments</h2> 
-  <object data="{{ url_for('grammars.graph', dset_name=dset_name, filename='entailments.svg') }}" type="image/svg+xml" class="graph"></object>
-  <a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=0, page=0) }}">View grammars</a>
+
+<h2>Global Entailments</h2>
+<div class="{{dset_name}}" id="entailments"></div>
+<a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=0, page=0) }}">View grammars</a>
+
+{% raw %}
+<script type="text/x-handlebars-template" id="entailment_graph_template">
+    <object data="{{ url }}" type="image/svg+xml" class="graph"></object>
+</script>
+{% endraw %}
+
+{%- endblock -%}
+{%- block js_footer -%}
+<script type="text/javascript" src="/static/scripts/handlebars-v1.3.0.js"></script>
+<script type="text/javascript" src="/static/entailments.js"></script>
 {%- endblock -%}

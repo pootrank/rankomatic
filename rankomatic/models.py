@@ -70,6 +70,8 @@ class Dataset(db.Document):
     _grammars = db.StringField()
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
     entailments = db.DictField()
+    entailments_calculated = db.BooleanField(default=False)
+    entailments_visualized = db.BooleanField(default=False)
     grammars = db.ListField(  # list of grammars
         db.ListField(  # list of ordered pairs
             db.ListField(db.StringField())  # ordered pairs
@@ -205,12 +207,14 @@ class Dataset(db.Document):
         return "".join(l)
 
     def calculate_global_entailments(self):
-        if not self.entailments:
+        if not self.entailments_calculated:
             entailments = self.poot.get_entailments(atomic=True)
             if entailments:
                 self.entailments = self._process_entailments(entailments)
             else:
                 self.entailments = {}
+
+            self.entailments_calculated = True
             self.save()
 
     def _process_entailments(self, entailments):
@@ -226,7 +230,7 @@ class Dataset(db.Document):
         return self.double_to_string(tuple(fset)[0])
 
     def visualize_and_store_entailments(self):
-        if self.entailments:
+        if not self.entailments_visualized:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
             filename = "".join([self.name, "/", 'entailments.svg'])
             try:
@@ -234,6 +238,8 @@ class Dataset(db.Document):
             except gridfs.NoFile:
                 graph = self.make_entailment_graph()
                 self._write_graph_to_gridfs(graph, fs, filename)
+            self.entailments_visualized = True
+            self.save()
 
     def _write_graph_to_gridfs(self, graph, fs, filename):
         with tempfile.TemporaryFile() as tf:
