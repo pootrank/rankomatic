@@ -6,6 +6,7 @@ from rankomatic import db
 from rankomatic.util import get_dset, get_username
 from rankomatic.models import Dataset
 import gridfs
+import urllib
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -14,6 +15,7 @@ GRAMS_PER_PAGE = 20
 
 @job
 def _calculate_entailments(dset_name, username):
+    dset_name = urllib.unquote(dset_name)
     dset = Dataset.objects.get(name=dset_name, user=username)
     dset.calculate_global_entailments()
     dset.visualize_and_store_entailments()
