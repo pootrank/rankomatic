@@ -12,10 +12,12 @@ available for import from the rankomatic module.
 # TODO make sure documentation is up to date
 from flask import Flask
 from flask.ext.mongoengine import MongoEngine
+from flask.ext.rq import RQ
 
 app = Flask(__name__)
 app.config.from_object('rankomatic.config.default-config')
 app.config.from_envvar('APP_CONFIG', silent=True)
+RQ(app)
 
 
 def get_db(self):

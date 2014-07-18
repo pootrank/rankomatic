@@ -1,9 +1,10 @@
-from multiprocessing import Process
+from flask.ext.rq import job
 from flask import (render_template, abort, Blueprint,
                    make_response, request, redirect, url_for)
 from flask.views import MethodView
 from rankomatic import db
-from rankomatic.util import get_dset
+from rankomatic.util import get_dset, get_username
+from rankomatic.models import Dataset
 import gridfs
 
 grammars = Blueprint('grammars', __name__,
@@ -11,14 +12,15 @@ grammars = Blueprint('grammars', __name__,
 GRAMS_PER_PAGE = 20
 
 
-def _calculate_entailments(dset):
+@job
+def _calculate_entailments(dset_name, username):
+    dset = Dataset.objects.get(name=dset_name, user=username)
     dset.calculate_global_entailments()
     dset.visualize_and_store_entailments()
 
 
-def _fork_entailment_calculation(dset):
-    p = Process(target=_calculate_entailments, args=(dset,))
-    p.start()
+def _fork_entailment_calculation(dset_name):
+    _calculate_entailments.delay(dset_name, get_username())
 
 
 class GrammarView(MethodView):
@@ -169,8 +171,7 @@ class GraphView(MethodView):
 class EntailmentView(MethodView):
 
     def get(self, dset_name):
-        dset = get_dset(dset_name)
-        _fork_entailment_calculation(dset)
+        _fork_entailment_calculation(dset_name)
         return render_template('entailments.html', dset_name=dset_name)
 
 
