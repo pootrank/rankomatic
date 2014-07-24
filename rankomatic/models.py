@@ -70,6 +70,7 @@ class Dataset(db.Document):
     _grammars = db.StringField()
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
     entailments = db.DictField()
+    grammars_stored = db.DictField()
     entailments_calculated = db.BooleanField(default=False)
     entailments_visualized = db.BooleanField(default=False)
     grammars = db.ListField(  # list of grammars
@@ -290,6 +291,7 @@ class Dataset(db.Document):
             try:
                 fs.get_last_version(filename=fname)
             except gridfs.NoFile:
+                print "storing grammars: ", inds
                 for i in inds:
                     graph = self.make_grammar_graph(self.grammars[i])
                     with tempfile.TemporaryFile() as tf:
@@ -298,6 +300,20 @@ class Dataset(db.Document):
                         filename = 'grammar%d.svg' % i
                         path = "".join([encode_name, '/', filename])
                         fs.put(tf, filename=path)
+            else:
+                print "found %s" % fname
+            index_range = str(inds[0]) + '-' + str(inds[-1])
+            self.grammars_stored[index_range] = True
+            self.save()
+
+    def remove_old_files(self):
+        fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
+        encode_name = urllib.quote(self.name)
+        filenames = [f for f in fs.list() if encode_name in f]
+        for filename in filenames:
+            last_version = fs.get_last_version(filename)
+            file_id = last_version._id
+            fs.delete(file_id)
 
     def make_grammar_graph(self, grammar):
         """Create an AGraph version of the given grammar."""

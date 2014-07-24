@@ -4,9 +4,7 @@ from flask import (render_template, abort, Blueprint,
 from flask.views import MethodView
 from rankomatic import db
 from rankomatic.util import get_dset, get_username
-from rankomatic.models import Dataset
 import gridfs
-import urllib
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -15,14 +13,19 @@ GRAMS_PER_PAGE = 20
 
 @job
 def _calculate_entailments(dset_name, username):
-    dset_name = urllib.unquote(dset_name)
-    dset = Dataset.objects.get(name=dset_name, user=username)
+    dset = get_dset(dset_name, username)
     dset.calculate_global_entailments()
     dset.visualize_and_store_entailments()
 
 
 def _fork_entailment_calculation(dset_name):
     _calculate_entailments.delay(dset_name, get_username())
+
+
+@job
+def _visualize_and_store_grammars(dset_name, username, indices):
+    dset = get_dset(dset_name, username)
+    dset.visualize_and_store_grammars(indices)
 
 
 class GrammarView(MethodView):
@@ -34,13 +37,15 @@ class GrammarView(MethodView):
         self._initialize_data_for_get(dset_name, num_rankings)
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
+        if not self.grams:
+            new_num_rankings = self.template_args['lengths'][-1]
+            return(redirect(url_for('.grammars', dset_name=dset_name,
+                                    num_rankings=new_num_rankings, page=0)))
         self._truncate_grams_for_pagination()
-        self.dset.visualize_and_store_grammars([x[0] for x in self.grams])
-        self.dset.save()
+        self._fork_grammar_visualization(dset_name)
         return(render_template('grammars.html',
                                page=self.page,
                                num_rankings=num_rankings,
-                               grammar_info=self._make_grammar_info(),
                                dset_name=dset_name,
                                **self.template_args))
 
@@ -113,18 +118,6 @@ class GrammarView(MethodView):
         max_ind = self.template_args['max_ind']
         self.grams = self.grams[min_ind:max_ind + 1]
 
-    def _make_grammar_info(self):
-        grammar_info = []
-        for gram in self.grams:
-            cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
-            input_totals = self._sum_all_cot_stats(cot_stats_by_cand)
-            grammar_info.append({
-                'grammar': self._make_grammar_string(gram[0]),
-                'filename': self._make_grammar_filename(gram[0]),
-                'cots_by_cand': cot_stats_by_cand,
-                'input_totals': input_totals})
-        return grammar_info
-
     def _sum_all_cot_stats(self, cot_stats_by_cand):
         input_totals = {}
         for cand in cot_stats_by_cand:
@@ -148,6 +141,17 @@ class GrammarView(MethodView):
 
     def _make_grammar_filename(self, index):
         return 'grammar%d.svg' % index
+
+    def _fork_grammar_visualization(self, dset_name):
+        if self.grams:
+            index_range = self._get_index_range_str()
+            self.dset.grammars_stored[index_range] = False
+            self.dset.save()
+            _visualize_and_store_grammars.delay(dset_name, get_username(),
+                                                [x[0] for x in self.grams])
+
+    def _get_index_range_str(self):
+        return str(self.grams[0][0]) + '-' + str(self.grams[-1][0])
 
 
 class GraphView(MethodView):
@@ -186,6 +190,34 @@ class EntailmentsCalculatedView(MethodView):
         else:
             return "false"
 
+
+class GrammarsStoredView(GrammarView):
+
+    def get(self, dset_name, num_rankings):
+        self._initialize_data_for_get(dset_name, num_rankings)
+        self._calculate_global_stats()
+        self._calculate_navbar_info(num_rankings)
+        self._truncate_grams_for_pagination()
+        if self.dset.grammars_stored[self._get_index_range_str()]:
+            return render_template('display_grammars.html',
+                                   dset_name=dset_name,
+                                   grammar_info=self._make_grammar_info())
+        else:
+            return "false"
+
+    def _make_grammar_info(self):
+        grammar_info = []
+        for gram in self.grams:
+            cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
+            input_totals = self._sum_all_cot_stats(cot_stats_by_cand)
+            grammar_info.append({
+                'grammar': self._make_grammar_string(gram[0]),
+                'filename': self._make_grammar_filename(gram[0]),
+                'cots_by_cand': cot_stats_by_cand,
+                'input_totals': input_totals})
+        return grammar_info
+
+
 grammars.add_url_rule('/<dset_name>/grammars/<int:num_rankings>',
                       view_func=GrammarView.as_view('grammars'))
 grammars.add_url_rule('/graphs/<dset_name>/<filename>',
@@ -196,3 +228,5 @@ grammars.add_url_rule('/entailments_calculated/<dset_name>/',
                       view_func=EntailmentsCalculatedView.as_view(
                           'entailments_calculated'
                       ))
+grammars.add_url_rule('/grammars_stored/<dset_name>/<int:num_rankings>',
+                      view_func=GrammarsStoredView.as_view('grammars_stored'))

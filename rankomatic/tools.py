@@ -90,6 +90,7 @@ class EditView(MethodView):
             dset.id = old_dset.id
             dset.user = old_dset.user
             dset.save()
+            dset.remove_old_files()
             return redirect(url_for('grammars.grammars',
                                     dset_name=urllib.quote(dset.name),
                                     num_rankings=0, page=0))

@@ -29,34 +29,11 @@
       <a class="btn{%- if max_ind + 1 >= num_rank_grams %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page+1)) }}"{%- endif -%}>Next</a>
     </div>
   </div>
-  {%- for g in grammar_info -%}
-    {%- set cots_by_cand = g['cots_by_cand'] -%}
-    {%- set input_totals = g['input_totals'] -%}
-    <div class="row breakdown-by-candidate">
-      <h3>{{ g['grammar']|safe }}</h3>
-      <div class="span5">
-        <span class="helper"></span>
-        <object class="graph" data="{{ url_for('grammars.graph', dset_name=dset_name, filename=g['filename']) }}" type="image/svg+xml"></object>
-      </div>
-      <div class="span2">
-      </div>
-      <div class="span5">
-        <table class="table table-condensed table-hover">
-          <thead>
-            <tr><th>Input</th><th>Output</th><th># COT grammars</th><th>% COT grammars</th></tr>
-          </thead>
-          {%- for i in cots_by_cand.keys() -%}
-          <tbody>
-          <tr><td>{{ i }}</td><td></td><td>{{ input_totals[i]['raw_sum'] }}</td><td>{{ '%0.2f' % input_totals[i]['per_sum'] }}</td></tr>
-              {%- for c in cots_by_cand[i] -%}
-                <tr><td></td><td>{{ c['output'] }}</td><td>{{ c['num_cot'] }}</td><td>{{ '%0.2f' % c['per_cot'] }}</td></tr>
-              {%- endfor -%}
-          </tbody>
-          {%- endfor -%}
-        </table>
-      </div>
-    </div>
-
-  {%- endfor -%}
+  <div id="grammars">
+  </div>
 </div>
+<div id="info"  dset_name="{{ dset_name }}" num_rankings="{{ num_rankings }}"></div>
+{%- endblock -%}
+{%- block js_footer -%}
+<script type="text/javascript" src="/static/grammars.js"></script>
 {%- endblock -%}
