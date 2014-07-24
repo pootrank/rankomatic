@@ -19,8 +19,10 @@ DEBUG = False
 TESTING = False
 PROPOGATE_EXCEPTIONS = True
 LOG_FILE_HANDLER = make_file_handler()
-mongohq_url = os.environ.get('MONGOHQ_URL')
-if mongohq_url:
-    MONGODB_SETTINGS = {'HOST': mongohq_url,
-                        'DB': os.path.basename(mongohq_url)}
-    SECRET_KEY = os.environ.get('APP_SECRET_KEY')
+MONGODB_SETTINGS = { 'DB': 'otorder' }
+
+#mongohq_url = os.environ.get('MONGOHQ_URL')
+#if mongohq_url:
+    #MONGODB_SETTINGS = {'HOST': mongohq_url,
+                        #'DB': os.path.basename(mongohq_url)}
+    #SECRET_KEY = os.environ.get('APP_SECRET_KEY')
