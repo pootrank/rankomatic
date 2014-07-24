@@ -13,7 +13,7 @@ GRAMS_PER_PAGE = 20
 
 @job
 def _calculate_entailments(dset_name, username):
-    dset = get_dset(dset_name, username)
+    dset = get_dset(dset_name, username=username)
     dset.calculate_global_entailments()
     dset.visualize_and_store_entailments()
 
@@ -24,7 +24,7 @@ def _fork_entailment_calculation(dset_name):
 
 @job
 def _visualize_and_store_grammars(dset_name, username, indices):
-    dset = get_dset(dset_name, username)
+    dset = get_dset(dset_name, username=username)
     dset.visualize_and_store_grammars(indices)
 
 
