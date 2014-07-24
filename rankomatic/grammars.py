@@ -4,6 +4,8 @@ from flask import (render_template, abort, Blueprint,
 from flask.views import MethodView
 from rankomatic import db
 from rankomatic.util import get_dset, get_username
+from rankomatic.models import Dataset
+import urllib
 import gridfs
 import datetime
 
@@ -26,7 +28,7 @@ def _fork_entailment_calculation(dset_name):
 @job
 def _visualize_and_store_grammars(dset_name, username, indices):
     print "dset: ", dset_name, "user: ", username
-    dset = get_dset(dset_name, username=username)
+    dset = Dataset.objects.get(name=urllib.unquote(dset_name), user=username)
     dset.visualize_and_store_grammars(indices)
 
 
