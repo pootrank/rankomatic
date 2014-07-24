@@ -5,6 +5,7 @@ from flask.views import MethodView
 from rankomatic import db
 from rankomatic.util import get_dset, get_username
 import gridfs
+import datetime
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -24,6 +25,7 @@ def _fork_entailment_calculation(dset_name):
 
 @job
 def _visualize_and_store_grammars(dset_name, username, indices):
+    print "dset: ", dset_name, "user: ", username
     dset = get_dset(dset_name, username=username)
     dset.visualize_and_store_grammars(indices)
 
@@ -206,6 +208,7 @@ class GrammarsStoredView(GrammarView):
             return "false"
 
     def _make_grammar_info(self):
+        print datetime.datetime.utcnow(), ": starting to make grammar info"
         grammar_info = []
         for gram in self.grams:
             cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
@@ -215,6 +218,7 @@ class GrammarsStoredView(GrammarView):
                 'filename': self._make_grammar_filename(gram[0]),
                 'cots_by_cand': cot_stats_by_cand,
                 'input_totals': input_totals})
+        print datetime.datetime.utcnow(), ": finishing grammar info"
         return grammar_info
 
 
