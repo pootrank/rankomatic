@@ -87,8 +87,8 @@ class EditView(MethodView):
         else:
             old_dset = get_dset(dset_name)
             dset = Dataset(data=form.data, data_is_from_form=True)
-            dset.id = old_dset.id
             dset.user = old_dset.user
+            old_dset.delete()
             dset.save()
             dset.remove_old_files()
             return redirect(url_for('grammars.grammars',
