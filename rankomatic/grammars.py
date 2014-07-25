@@ -28,8 +28,7 @@ def _fork_entailment_calculation(dset_name):
 @job
 def _visualize_and_store_grammars(dset_name, username, indices):
     print "dset: ", dset_name, "user: ", username
-    pymongo_db = db.get_pymongo_db()
-    print pymongo_db
+    print db.get_pymongo_db()
     dset = Dataset.objects.get(name=urllib.unquote(dset_name), user=username)
     dset.visualize_and_store_grammars(indices)
 
