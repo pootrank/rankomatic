@@ -42,10 +42,11 @@ class GrammarView(MethodView):
         self._initialize_data_for_get(dset_name, num_rankings)
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
-        if not self.grams:
+        if not self.grams and self.template_args['lengths']:
             new_num_rankings = self.template_args['lengths'][-1]
             return(redirect(url_for('.grammars', dset_name=dset_name,
                                     num_rankings=new_num_rankings, page=0)))
+
         self._truncate_grams_for_pagination()
         self._fork_grammar_visualization(dset_name)
         return(render_template('grammars.html',
