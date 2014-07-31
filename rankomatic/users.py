@@ -101,7 +101,8 @@ class DeleteDatasetView(MethodView):
     def get(self, dset_name):
         d = get_dset(dset_name)
         d.delete()
-        return "successfully deleted %s" % d.name
+        return "deletion of %s successful" % d.name
+
 
 
 users.add_url_rule('/login/', view_func=LoginView.as_view('login'))
@@ -110,4 +111,4 @@ users.add_url_rule('/logout/', view_func=LogoutView.as_view('logout'))
 users.add_url_rule('/account/<username>/',
                    view_func=AccountView.as_view('account'))
 users.add_url_rule('/delete/<dset_name>/',
-                   view_func=DeleteDatasetView.as_view('delete_dataset'))
+                  view_func=DeleteDatasetView.as_view('delete_dataset'))

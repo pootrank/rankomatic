@@ -164,6 +164,7 @@ class GrammarView(MethodView):
 class GraphView(MethodView):
 
     def get(self, dset_name, filename):
+        dset_name = urllib.quote(dset_name)
         fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
         filename = self._make_graph_filename(dset_name, filename)
         try:
@@ -204,13 +205,17 @@ class GrammarsStoredView(GrammarView):
         self._initialize_data_for_get(dset_name, num_rankings)
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
-        self._truncate_grams_for_pagination()
-        if self.dset.grammars_stored[self._get_index_range_str()]:
-            return render_template('display_grammars.html',
-                                   dset_name=dset_name,
-                                   grammar_info=self._make_grammar_info())
+
+        if self.grams and self.template_args['lengths']:
+            self._truncate_grams_for_pagination()
+            if self.dset.grammars_stored[self._get_index_range_str()]:
+                return render_template('display_grammars.html',
+                                    dset_name=dset_name,
+                                    grammar_info=self._make_grammar_info())
+            else:
+                return "false"
         else:
-            return "false"
+            return "no grammars"
 
     def _make_grammar_info(self):
         print datetime.datetime.utcnow(), ": starting to make grammar info"

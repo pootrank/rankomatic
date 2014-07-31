@@ -92,8 +92,28 @@ class EditView(MethodView):
             dset.save()
             dset.remove_old_files()
             return redirect(url_for('grammars.grammars',
-                                    dset_name=urllib.quote(dset.name),
+                                    dset_name=dset.name,
                                     num_rankings=0, page=0))
+
+
+class EditCopyView(MethodView):
+
+    def get(self, dset_name):
+        if get_username() == "guest":
+            return _redirect_to_login(dset_name)
+        else:
+            dset = get_dset(dset_name)
+            dset.name = dset.name + "-copy"
+            dset.id = None
+            dset.save()
+            try:
+                get_dset(dset.name)
+            except Dataset.MultipleObjectsReturned:
+                dset.delete()
+                flash("Change the name to make copies.")
+                return redirect(url_for('users.account', username=get_username()))
+            else:
+                return redirect(url_for('.edit', dset_name=dset.name))
 
 
 class CalculatorView(MethodView):
@@ -179,3 +199,5 @@ tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
 tools.add_url_rule('/t-order/', view_func=TOrderView.as_view('t_order'))
 tools.add_url_rule('/<dset_name>/edit/', view_func=EditView.as_view('edit'))
+tools.add_url_rule('/<dset_name>/edit_copy',
+                   view_func=EditCopyView.as_view('edit_copy'))

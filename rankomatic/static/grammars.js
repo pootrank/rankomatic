@@ -14,6 +14,8 @@
             success: function(data) {
                 if (data === "false") {
                     setTimeout(get_grammars_if_stored, 300);
+                } else if (data === "no grammars") {
+                    spinner.stop()
                 } else {
                     spinner.stop()
                     $("#grammars").html(data);

@@ -18,7 +18,8 @@
         var dset_name = $this.closest("tr").attr("id")
         $.ajax({url: make_delete_url(dset_name),
             success: function(result) {
-                $("tr#" + dset_name).hide(500)
+                var selector = 'tr[id="' + dset_name + '"]'
+                $(selector).hide(500)
             },
             error: function(result, status, error) {
                 display_deletion_error(dset_name)

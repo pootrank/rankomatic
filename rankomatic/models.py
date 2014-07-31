@@ -233,7 +233,7 @@ class Dataset(db.Document):
     def visualize_and_store_entailments(self):
         if not self.entailments_visualized:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-            filename = "".join([self.name, "/", 'entailments.svg'])
+            filename = "".join([urllib.quote(self.name), "/", 'entailments.svg'])
             try:
                 fs.get_last_version(filename=filename)
             except gridfs.NoFile:
