@@ -78,6 +78,10 @@ class EditView(MethodView):
 
     def post(self, dset_name):
         form = TableauxForm(request.form)
+        submit = request.form['submit_button']
+        if submit == "Cancel editing":
+            flash("Canceled editing %s" % urllib.unquote(dset_name))
+            return redirect(url_for("users.account", username=get_username()))
         if not form.validate_for_editing():
             for e in form.get_errors():
                 flash(e)
@@ -85,15 +89,18 @@ class EditView(MethodView):
                                    active='calculator', t_order=False,
                                    dset_name=dset_name, edit=True)
         else:
-            old_dset = get_dset(dset_name)
             dset = Dataset(data=form.data, data_is_from_form=True)
+            old_dset = get_dset(dset_name)
             dset.user = old_dset.user
             old_dset.delete()
             dset.save()
             dset.remove_old_files()
-            return redirect(url_for('grammars.grammars',
-                                    dset_name=dset.name,
-                                    num_rankings=0, page=0))
+            if submit == "All grammars":
+                redirect_url = url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0, classical=False)
+            else:
+                redirect_url = url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0, classical=True)
+            print redirect_url
+            return redirect(redirect_url)
 
 
 class EditCopyView(MethodView):
@@ -125,6 +132,7 @@ class CalculatorView(MethodView):
 
     def post(self):
         form = TableauxForm(request.form)
+        submit = request.form['submit_button']
         if not form.validate():
             for e in form.get_errors():
                 flash(e)
@@ -137,10 +145,14 @@ class CalculatorView(MethodView):
             if not dset.name:
                 dset.name = _make_random_dset_name()
             dset.save()
-
-            redirect_url = url_for('grammars.grammars',
-                                   dset_name=urllib.quote(dset.name),
-                                   num_rankings=0, page=0)
+            if submit == "All grammars":
+                redirect_url = url_for('grammars.grammars',
+                                    dset_name=urllib.quote(dset.name),
+                                    num_rankings=0, page=0)
+            else:
+                redirect_url = url_for('grammars.grammars',
+                                       dset_name=urllib.quote(dset.name),
+                                       num_rankings=0, page=0, classical=True)
 
             if get_username() == "guest":
                 _prepare_to_change_dset_user(dset)

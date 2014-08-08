@@ -123,8 +123,15 @@ th.t-order, td.t-order {
 #submit-btn-container {
     margin-left: auto;
     margin-right: auto;
+    max-width: 300px;
+}
+
+#alert_spacer, #submit-btn-container {
     margin-top: 30px;
-    max-width: 150px;
+}
+
+#submit-btn-container .btn {
+    width: 100%;
 }
 
 th, td {

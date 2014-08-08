@@ -91,14 +91,24 @@
               </tbody>
             {%- endfor %}
           </table>
-          <div id="submit-btn-container" class="btn-group">
-              <button type="submit" class="btn btn-primary">{%- if edit -%}Save and recalculate grammars{%- else -%}Calculate grammars{%- endif -%}</button>
-              {%- if edit -%}
-              <a href="{{- url_for('grammars.grammars', dset_name=form.name.data, page=0, num_rankings=0) -}}" class="btn btn-secondary">Cancel editing and view old grammars</a>
-              {%- endif -%}
-          </div>
+
         </fieldset>
       </div>
+    </div>
+    <div class="row">
+      <div class="span4">
+          <div id="alert_spacer"></div>
+          <div class="alert" id="classical_only_alert">For datasets with more than 5 constraints, only the Classical (total order) grammars can be calculated.</div>
+      </div>
+      <div class="span8">
+          <div id="submit-btn-container" class="btn-group-vertical">
+              <input type="submit" id="calculate_all" class="btn btn-primary" name="submit_button" value="All grammars"></input>
+              <input type="submit" class="btn btn-secondary" name="submit_button" value="Classical grammars"></input>
+              {%- if edit -%}
+              <input type="submit" class="btn btn-danger" name="submit_button" value="Cancel editing"></input>
+              {%- endif -%}
+          </div>
+        </div>
     </div>
   </form>
 {%- endblock -%}

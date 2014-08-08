@@ -84,8 +84,8 @@ class CandidateForm(Form):
                                    message="Violation vectors must consist of "
                                    "non-negative integers")]),
         default=[ZeroIntegerField(default=0) for x in range(3)],
-        validators=[validators.Length(min=2, max=5,
-                                      message="There must be between 2 and 5 "
+        validators=[validators.Length(min=2, max=8,
+                                      message="There must be between 2 and 8 "
                                       "constraints")],
     )
 
@@ -188,8 +188,8 @@ class TableauxForm(Form):
         default=[TextField(default="",
                            validators=[len_validator]) for x in range(3)],
         validators=[MembersUnique("Constraints must be unique"),
-                    validators.Length(min=2, max=5,
-                                      message="There must be between 2 and 5 "
+                    validators.Length(min=2, max=8,
+                                      message="There must be between 2 and 8 "
                                       "constraints")],
     )
 

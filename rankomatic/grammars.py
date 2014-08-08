@@ -36,8 +36,10 @@ def _visualize_and_store_grammars(dset_name, username, indices):
 class GrammarView(MethodView):
 
     def get(self, dset_name, num_rankings):
+        #poop
+        print request.args
         if not self._check_params():
-            return redirect(url_for('.grammars', dset_name=dset_name,
+            return redirect(url_for('.grammars', dset_name=dset_name, classical=False,
                                     num_rankings=num_rankings, page=0))
         self._initialize_data_for_get(dset_name, num_rankings)
         self._calculate_global_stats()
@@ -45,7 +47,7 @@ class GrammarView(MethodView):
 
         if not self.grams and self.template_args['lengths']:
             new_num_rankings = self.template_args['lengths'][-1]
-            return(redirect(url_for('.grammars', dset_name=dset_name,
+            return(redirect(url_for('.grammars', dset_name=dset_name, classical=self.classical,
                                     num_rankings=new_num_rankings, page=0)))
 
         self._truncate_grams_for_pagination()
@@ -57,6 +59,9 @@ class GrammarView(MethodView):
                                **self.template_args))
 
     def _check_params(self):
+        return self._check_page() and self._check_classical()
+
+    def _check_page(self):
         page = request.args.get('page')
         if page is not None and self._is_int(page) and int(page) >= 0:
             return True
@@ -69,21 +74,50 @@ class GrammarView(MethodView):
             return False
         return True
 
+    def _check_classical(self):
+        classical = request.args.get('classical')
+        if classical is None or self._is_bool(classical):
+            return True
+        return False
+
+    def _is_bool(self, string):
+        try:
+            bool(string)
+        except ValueError:
+            return False
+        return True
+
     def _initialize_data_for_get(self, dset_name, num_rankings):
+        self.classical = bool(request.args.get('classical'))
         self.page = int(request.args.get('page'))
         self.dset = get_dset(dset_name)
+        self.dset.classical = self.classical
+        if self.classical:
+            num_rankings = sum(range(len(self.dset.constraints)))
         self.grams = self._get_correct_size_grammars(num_rankings)
         self.template_args = {}
 
     def _get_correct_size_grammars(self, num_rankings):
+        if self.classical:
+            num_rankings = self._classical_grammar_length()
         raw_grammars = enumerate(self.dset.raw_grammars)
         return [(i, g) for i, g in raw_grammars if len(g) == num_rankings]
 
+    def _classical_grammar_length(self):
+        return sum(range(len(self.dset.constraints)))
+
     def _calculate_global_stats(self):
+        if not self.classical:
+            self.template_args.update({
+                'num_poots': self.dset.num_compatible_poots(),
+                'num_total_poots': self.dset.num_total_poots(),
+                'percent_poots': self._make_percent_poots(),
+                'classical': False
+            })
+        else:
+            self.template_args['classical'] = True
+
         self.template_args.update({
-            'num_poots': self.dset.num_compatible_poots(),
-            'num_total_poots': self.dset.num_total_poots(),
-            'percent_poots': self._make_percent_poots(),
             'num_cots': self.dset.num_compatible_cots(),
             'num_total_cots': self.dset.num_total_cots(),
             'percent_cots': self._make_percent_cots()
@@ -99,7 +133,9 @@ class GrammarView(MethodView):
 
     def _calculate_navbar_info(self, num_rankings):
         grammar_lengths = self._get_grammar_lengths()
-        if num_rankings not in grammar_lengths and num_rankings != 0:
+        if self.classical:
+            num_rankings = self._classical_grammar_length()
+        elif num_rankings not in grammar_lengths and num_rankings != 0:
             abort(404)
         num_rank_grams = len(self.grams)
         navbar_info = self._get_min_max_indices(num_rank_grams)

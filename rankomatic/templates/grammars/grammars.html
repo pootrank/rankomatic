@@ -7,7 +7,9 @@
       <tr><th>Grammar Type</th><th># Compatible</th><th># Possible</th><th>% Compatible</th></tr>
     </thead>
     <tbody>
+      {%- if not classical -%}
       <tr><td>Partial</td><td>{{ num_poots }}</td><td>{{ num_total_poots }}</td><td>{{ '%0.2f' % percent_poots }}</td></tr>
+      {%- endif -%}
       <tr><td>Classical</td><td>{{ num_cots }}</td><td>{{ num_total_cots }}</td><td>{{ '%0.2f' % percent_cots }}</td></tr>
     </tbody>
   </table>

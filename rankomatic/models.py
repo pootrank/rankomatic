@@ -70,6 +70,7 @@ class Dataset(db.Document):
     _grammars = db.StringField()
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
     entailments = db.DictField()
+    classical = db.BooleanField(default=False)
     grammars_stored = db.DictField()
     entailments_calculated = db.BooleanField(default=False)
     entailments_visualized = db.BooleanField(default=False)
@@ -84,7 +85,7 @@ class Dataset(db.Document):
     @property
     def raw_grammars(self):
         if self._grammars is None:
-            self.calculate_compatible_grammars(False)
+            self.calculate_compatible_grammars(self.classical)
         elif not self.grammars:
             self.grammars = self._get_pretty_grammars()
             self.save()

@@ -9,10 +9,12 @@
 */
 
 var FIRST_CONSTRAINT_IND = 3;
-var MAX_NUM_CONSTRAINTS = 6;
+var MAX_NUM_CONSTRAINTS = 8;
 var MIN_NUM_CONSTRAINTS = 2;
-var MIN_TABLEAUX_IND = 5;
-var MAX_TABLEAUX_IND = 8;
+var MAX_POOT_CONSTRAINTS = 5
+var MAX_POOT_IND = FIRST_CONSTRAINT_IND + MAX_POOT_CONSTRAINTS
+var MIN_TABLEAUX_IND = MIN_NUM_CONSTRAINTS + FIRST_CONSTRAINT_IND;
+var MAX_TABLEAUX_IND = MAX_NUM_CONSTRAINTS + FIRST_CONSTRAINT_IND;
 var num_rows_added = 0;
 
 /*** Helper functions ****** Helper functions ****** Helper functions ***/
@@ -58,6 +60,25 @@ function update_row_values($row) {
     }
 }
 
+/**
+ * Function set_calculate_all_availability
+ * =======================================
+ * Check the number of constraints, and enable or disable the calculate_all button
+ * appropriately. Also display or hide corresponding alert message.
+ */
+function set_calculate_all_availability() {
+    var last_index = $('#tableaux th:last-child').index();
+    if (last_index > MAX_POOT_IND) {
+        $("#calculate_all").prop('disabled', true);
+        $("#classical_only_alert").show();
+    }
+    if (last_index <= MAX_POOT_IND) {
+        $("#calculate_all").prop('disabled', false);
+        $("#classical_only_alert").hide();
+    }
+
+}
+
 /*
 * Function: outer_html
 * ====================
@@ -82,7 +103,8 @@ function outer_html($elem) {
 */
 function add_constraint_column(e) {
     // check that there are less than the max number of constraints
-    if (($('#tableaux th:last-child').index()) < MAX_TABLEAUX_IND) {
+    var last_index = $('#tableaux th:last-child').index()
+    if (last_index < MAX_TABLEAUX_IND) {
 
         // clone the first constraint cell from each row, insert it
         $('#tableaux').find('tr').each(function() {
@@ -111,6 +133,7 @@ function add_constraint_column(e) {
                                         value: ''});
         });
     }
+    set_calculate_all_availability()
 }
 
 /*
@@ -121,10 +144,12 @@ function add_constraint_column(e) {
 */
 function delete_constraint_column(e) {
     // check that the table isn't too small
-    if ($('#tableaux th:last-child').index() > MIN_TABLEAUX_IND) {
+    var last_index = $('#tableaux th:last-child').index();
+    if ( last_index > MIN_TABLEAUX_IND) {
         $('#tableaux th:nth-last-child(2),' +
           ' #tableaux td:nth-last-child(2)').remove();
     }
+    set_calculate_all_availability()
 }
 /*****************************************************************************/
 
@@ -237,4 +262,5 @@ $(document).ready(function() {
     $('#delete_constraint').click(delete_constraint_column);
     $('#tableaux .add_output').click(add_output_row);
     $('#tableaux .delete_output').click(delete_output_row);
+    set_calculate_all_availability()
 });
