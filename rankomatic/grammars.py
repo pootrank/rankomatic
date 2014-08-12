@@ -8,6 +8,7 @@ from rankomatic.models import Dataset
 import urllib
 import gridfs
 import datetime
+import json
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -36,7 +37,6 @@ def _visualize_and_store_grammars(dset_name, username, indices):
 class GrammarView(MethodView):
 
     def get(self, dset_name, num_rankings):
-        #poop
         print request.args
         if not self._check_params():
             return redirect(url_for('.grammars', dset_name=dset_name, classical=False,
@@ -45,7 +45,8 @@ class GrammarView(MethodView):
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
 
-        if not self.grams and self.template_args['lengths']:
+        need_redirect = (self.classical and num_rankings == 0) or not self.grams
+        if need_redirect and self.template_args['lengths']:
             new_num_rankings = self.template_args['lengths'][-1]
             return(redirect(url_for('.grammars', dset_name=dset_name, classical=self.classical,
                                     num_rankings=new_num_rankings, page=0)))
@@ -88,7 +89,7 @@ class GrammarView(MethodView):
         return True
 
     def _initialize_data_for_get(self, dset_name, num_rankings):
-        self.classical = bool(request.args.get('classical'))
+        self.classical = json.loads(request.args.get('classical').lower())
         self.page = int(request.args.get('page'))
         self.dset = get_dset(dset_name)
         self.dset.classical = self.classical
@@ -246,8 +247,9 @@ class GrammarsStoredView(GrammarView):
             self._truncate_grams_for_pagination()
             if self.dset.grammars_stored[self._get_index_range_str()]:
                 return render_template('display_grammars.html',
-                                    dset_name=dset_name,
-                                    grammar_info=self._make_grammar_info())
+                                       dset_name=dset_name,
+                                       grammar_info=self._make_grammar_info(),
+                                       classical=self.classical)
             else:
                 return "false"
         else:

@@ -93,13 +93,14 @@ class EditView(MethodView):
             old_dset = get_dset(dset_name)
             dset.user = old_dset.user
             old_dset.delete()
-            dset.save()
             dset.remove_old_files()
             if submit == "All grammars":
+                dset.classical = False
                 redirect_url = url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0, classical=False)
             else:
+                dset.classical = True
                 redirect_url = url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0, classical=True)
-            print redirect_url
+            dset.save()
             return redirect(redirect_url)
 
 

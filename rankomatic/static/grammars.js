@@ -6,7 +6,8 @@
     var url = '/grammars_stored/' +
               dset_name + '/' +
               num_rankings +
-              '?page=' + QueryString.page;
+              '?page=' + QueryString.page +
+              '&classical=' + QueryString.classical;
 
     (function get_grammars_if_stored() {
         $.ajax({
