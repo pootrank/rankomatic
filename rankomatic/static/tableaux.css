@@ -96,7 +96,6 @@ tr.output-only button {
 table#tableaux {
     border-collapse: collapse;
     width: 50%;
-    margin-left: 1em;
     margin-right: auto;
 }
 
@@ -116,6 +115,8 @@ th.t-order, td.t-order {
 #buttons button {
     margin: 3px 0px;
 }
+
+
 #tableaux_header th {
     border-bottom: 2px solid black;
 }
@@ -201,4 +202,13 @@ body.simple-form {
 #landing_info_btn {
     margin-left: auto;
     margin-right: auto;
+}
+
+.scrollable {
+    height: 400px;
+    overflow: auto;
+}
+
+#head_table {
+    margin-bottom: 2px;
 }

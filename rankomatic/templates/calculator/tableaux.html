@@ -39,12 +39,24 @@
             <td colspan="2">
             </td>
           </tr>
+          <tr>
+            <td></td>
+            <td>
+              <div id="submit-btn-container" class="btn-group-vertical">
+                  <input type="submit" id="calculate_all" class="btn btn-primary" name="submit_button" value="All grammars"></input>
+                  <input type="submit" class="btn btn-secondary" name="submit_button" value="Classical grammars"></input>
+                  {%- if edit -%}
+                  <input type="submit" class="btn btn-danger" name="submit_button" value="Cancel editing"></input>
+                  {%- endif -%}
+              </div>
+            </td>
+          </tr>
         </table>
       </div>
       <div class="span9">
         <fieldset>
-          <table id="tableaux" class="condensed" cellspacing="0">
           {{ form.csrf_token() }}
+          <table id="head_table" class="table condensed" cellspacing="0">
           <thead>
             <tr id="tableaux_header">
               <th>Input</th>
@@ -60,6 +72,9 @@
               <th class="borderless"></th>
             </tr>
           </thead>
+          </table>
+          <div class="scrollable">
+          <table id="tableaux" class="table condensed" cellspacing="0">
             {%- for ig in form.input_groups %}
               <tbody id="" class="input-group">
                 {{ ig.csrf_token() }}
@@ -91,6 +106,7 @@
               </tbody>
             {%- endfor %}
           </table>
+          </div>
 
         </fieldset>
       </div>
@@ -101,13 +117,6 @@
           <div class="alert" id="classical_only_alert">For datasets with more than 5 constraints, only the Classical (total order) grammars can be calculated.</div>
       </div>
       <div class="span8">
-          <div id="submit-btn-container" class="btn-group-vertical">
-              <input type="submit" id="calculate_all" class="btn btn-primary" name="submit_button" value="All grammars"></input>
-              <input type="submit" class="btn btn-secondary" name="submit_button" value="Classical grammars"></input>
-              {%- if edit -%}
-              <input type="submit" class="btn btn-danger" name="submit_button" value="Cancel editing"></input>
-              {%- endif -%}
-          </div>
         </div>
     </div>
   </form>

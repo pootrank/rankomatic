@@ -96,10 +96,14 @@ class EditView(MethodView):
             dset.remove_old_files()
             if submit == "All grammars":
                 dset.classical = False
-                redirect_url = url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0, classical=False)
+                redirect_url = url_for('grammars.grammars',
+                                       dset_name=dset.name, num_rankings=0,
+                                       page=0, classical=False)
             else:
                 dset.classical = True
-                redirect_url = url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0, classical=True)
+                redirect_url = url_for('grammars.grammars',
+                                       dset_name=dset.name, num_rankings=0,
+                                       page=0, classical=True)
             dset.save()
             return redirect(redirect_url)
 
@@ -119,7 +123,8 @@ class EditCopyView(MethodView):
             except Dataset.MultipleObjectsReturned:
                 dset.delete()
                 flash("Change the name to make copies.")
-                return redirect(url_for('users.account', username=get_username()))
+                return redirect(url_for('users.account',
+                                        username=get_username()))
             else:
                 return redirect(url_for('.edit', dset_name=dset.name))
 
@@ -148,8 +153,8 @@ class CalculatorView(MethodView):
             dset.save()
             if submit == "All grammars":
                 redirect_url = url_for('grammars.grammars',
-                                    dset_name=urllib.quote(dset.name),
-                                    num_rankings=0, page=0)
+                                       dset_name=urllib.quote(dset.name),
+                                       num_rankings=0, page=0)
             else:
                 redirect_url = url_for('grammars.grammars',
                                        dset_name=urllib.quote(dset.name),
