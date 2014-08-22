@@ -234,7 +234,7 @@ class Dataset(db.Document):
     def visualize_and_store_entailments(self):
         if not self.entailments_visualized:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-            filename = "".join([urllib.quote(self.name), "/", 'entailments.svg'])
+            filename = "".join([urllib.quote(self.name), "/", 'entailments.png'])
             try:
                 fs.get_last_version(filename=filename)
             except gridfs.NoFile:
@@ -245,7 +245,7 @@ class Dataset(db.Document):
 
     def _write_graph_to_gridfs(self, graph, fs, filename):
         with tempfile.TemporaryFile() as tf:
-            graph.draw(tf, format='svg')
+            graph.draw(tf, format='png')
             tf.seek(0)
             fs.put(tf, filename=filename)
 
@@ -288,7 +288,7 @@ class Dataset(db.Document):
         if inds:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
             encode_name = urllib.quote(self.name)
-            fname = "".join([encode_name, '/', ('grammar%d.svg' % inds[0])])
+            fname = "".join([encode_name, '/', ('grammar%d.png' % inds[0])])
             try:
                 fs.get_last_version(filename=fname)
             except gridfs.NoFile:
@@ -296,9 +296,9 @@ class Dataset(db.Document):
                 for i in inds:
                     graph = self.make_grammar_graph(self.grammars[i])
                     with tempfile.TemporaryFile() as tf:
-                        graph.draw(tf, format='svg')
+                        graph.draw(tf, format='png')
                         tf.seek(0)
-                        filename = 'grammar%d.svg' % i
+                        filename = 'grammar%d.png' % i
                         path = "".join([encode_name, '/', filename])
                         fs.put(tf, filename=path)
             else:

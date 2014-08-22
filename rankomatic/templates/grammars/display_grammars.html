@@ -5,7 +5,7 @@
     <h3>{{ g['grammar']|safe }}</h3>
     <div class="span5">
       <span class="helper"></span>
-      <object class="graph" data="{{ url_for('grammars.graph', dset_name=dset_name, filename=g['filename']) }}" type="image/svg+xml"></object>
+      <img class="graph" src="{{ url_for('grammars.graph', dset_name=dset_name, filename=g['filename']) }}" alt="{{g['filename']}}"></img>
     </div>
     <div class="span2">
     </div>

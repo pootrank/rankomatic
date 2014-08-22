@@ -184,7 +184,7 @@ class GrammarView(MethodView):
         return self.dset.grammar_to_string(sorted_grammars[index])
 
     def _make_grammar_filename(self, index):
-        return 'grammar%d.svg' % index
+        return 'grammar%d.png' % index
 
     def _fork_grammar_visualization(self, dset_name):
         if self.grams:
@@ -215,7 +215,7 @@ class GraphView(MethodView):
     def _build_image_response(self, fs, filename):
         f = fs.get_last_version(filename=filename)
         response = make_response(f.read())
-        response.mimetype = 'image/svg+xml'
+        response.mimetype = 'image/png'
         return response
 
 

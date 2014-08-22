@@ -14,8 +14,8 @@ class TestDataset(object):
             'name': 'voweldset'
         }
         self.d = models.Dataset(data=self.data, data_is_from_form=False)
-        self.entailments_fname = "".join([self.d.name, "/", 'entailments.svg'])
-        self.grammar_format_str = self.d.name + "/grammar%d.svg"
+        self.entailments_fname = "".join([self.d.name, "/", 'entailments.png'])
+        self.grammar_format_str = self.d.name + "/grammar%d.png"
         self.fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
 
     def tearDown(self):

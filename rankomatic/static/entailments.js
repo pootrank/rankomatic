@@ -1,7 +1,7 @@
 (function (window, document, undefined) {
     graph_template = Handlebars.compile($("#entailment_graph_template").html());
     var dset_name = $("#entailments").attr("class");
-    graph_url = "/graphs/" + dset_name + "/entailments.svg";
+    graph_url = "/graphs/" + dset_name + "/entailments.png";
 
     var target = document.getElementById('entailments');
     var spinner = new Spinner(Util.spinner_opts).spin(target);
