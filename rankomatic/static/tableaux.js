@@ -149,9 +149,11 @@
     function delete_constraint_column(e) {
         // check that the table isn't too small
         var last_index = $('#head_table th:last-child').index();
-        if ( last_index > MIN_TABLEAUX_IND) {
-            $('#head_table th:nth-last-child(2),' +
-              ' #tableaux td:nth-last-child(2)').remove();
+        if (last_index > MIN_TABLEAUX_IND) {
+            var width_of_removed = $('#head_table th:nth-last-child(2)').width();
+            $('#head_table th:nth-last-child(2), #tableaux td:nth-last-child(2)').remove();
+            $("#head_table").width($("#head_table").width() - width_of_removed);
+            resize_tableaux();
         }
         equalize_column_widths();
         set_calculate_all_availability();
@@ -258,15 +260,21 @@
 
     /*****************************************************************************/
 
-    function resize_tableaux(header_width, row_cell_width) {
-        $tableaux = $("#tableaux");
-        $tableaux.width($tableaux.width() + (header_width - row_cell_width));
+    function resize_tableaux() {
+        $("#tableaux, .scrollable").width($("#head_table").width());
     }
 
-    function get_column_width($column) {
+    function get_column(ind) {
+        return $('#tableaux tr').map(function() {
+            return $(this).find("td:eq("+ind+")");
+        });
+    }
+
+    function get_column_width(ind) {
+        var column = get_column(ind);
         var max_input_width = 0;
-        $column.each(function() {
-            var width = $(this).find("input").width();
+        column.each(function() {
+            var width = $(this).find(" :first-child").width();
             max_input_width = Math.max(width, max_input_width);
         });
         return max_input_width + INPUT_HORIZONTAL_PADDING_MARGIN;
@@ -274,20 +282,40 @@
 
     function equalize_column_widths() {
         $('#head_table th').each(function() {
-            $header = $(this);
+            var $header = $(this);
             var ind = $header.index();
-            var $column = $('#tableaux td:eq('+ind+')');
-            col_width = get_column_width($column);
-            header_width = $header.width();
-            alert("h:"+header_width+", c:"+col_width);
+            var col_width = get_column_width(ind);
+            var th_width = $header.width();
+            var header_input_width = $header.find("input").width() + INPUT_HORIZONTAL_PADDING_MARGIN;
+            var header_width = Math.min(th_width, header_input_width);
+            var before_col_width = $("#tableaux td:eq("+ind+")").width()
+            var new_width = Math.max(header_width, col_width);
 
-            if (header_width < col_width) {
-                $header.width(col_width);
-            } else if (col_width < header_width) {
-                resize_tableaux(header_width, col_width);
-                $column.width(header_width);
+
+            if (th_width < new_width) {
+                var diff = new_width - $header.width();
+                $("#head_table").width($("#head_table").width() + diff);
+            }
+
+            $header.width(new_width);
+            resize_tableaux();
+            get_column(ind).each(function() {
+                $(this).width(new_width);
+            });
+
+
+            var after_col_width = $("#tableaux td:eq("+ind+")").width()
+            console.log("ind:"+ind+", col_width:"+col_width+", th_width:"+
+            th_width+", header_input_width:"+header_input_width+
+            ", before_col_width:"+before_col_width+", after_col_width:"+
+            after_col_width+", new_width:"+new_width);
+            if (after_col_width < before_col_width) {
+                var diff = before_col_width - after_col_width;
+                $("#head_table").width($("#head_table").width() - diff);
+                resize_tableaux();
             }
         });
+        resize_tableaux();
     }
 
     function resize_input_to_value(input, c) {
@@ -302,7 +330,7 @@
         $input.width(new_width); // apply width of the span to the input
     }
 
-    $("fieldset").keypress(function(e) {
+    $("fieldset").keydown(function(e) {
         if (e.target.nodeName === "INPUT") {
             //if (e.which !== 0) { // only characters
             var c = String.fromCharCode(e.keyCode|e.charCode);
@@ -326,5 +354,4 @@
         resize_input_to_value(this, "");
     });
     equalize_column_widths();
-    //equalize_column_widths();
 })(this, this.document);
