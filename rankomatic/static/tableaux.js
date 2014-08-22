@@ -16,6 +16,7 @@
     var MAX_POOT_IND = FIRST_CONSTRAINT_IND + MAX_POOT_CONSTRAINTS
     var MIN_TABLEAUX_IND = MIN_NUM_CONSTRAINTS + FIRST_CONSTRAINT_IND;
     var MAX_TABLEAUX_IND = MAX_NUM_CONSTRAINTS + FIRST_CONSTRAINT_IND;
+    var INPUT_HORIZONTAL_PADDING_MARGIN = 20;
     var num_rows_added = 0;
 
     /*** Helper functions ****** Helper functions ****** Helper functions ***/
@@ -254,16 +255,62 @@
             input_group.find('tr.candidate:last-child').remove();
         }
     }
+
     /*****************************************************************************/
+
+    function resize_tableaux(header_width, row_cell_width) {
+        $tableaux = $("#tableaux");
+        $tableaux.width($tableaux.width() + (header_width - row_cell_width));
+    }
+
+    function get_column_width($column) {
+        var max_input_width = 0;
+        $column.each(function() {
+            var width = $(this).find("input").width();
+            max_input_width = Math.max(width, max_input_width);
+        });
+        return max_input_width + INPUT_HORIZONTAL_PADDING_MARGIN;
+    }
 
     function equalize_column_widths() {
         $('#head_table th').each(function() {
-            var ind = $(this).index();
-            var $first_row = $('#tableaux tr:eq(0)');
-            var new_width = $first_row.find('td:eq('+ind+')').width();
-            $(this).width(new_width);
+            $header = $(this);
+            var ind = $header.index();
+            var $column = $('#tableaux td:eq('+ind+')');
+            col_width = get_column_width($column);
+            header_width = $header.width();
+            alert("h:"+header_width+", c:"+col_width);
+
+            if (header_width < col_width) {
+                $header.width(col_width);
+            } else if (col_width < header_width) {
+                resize_tableaux(header_width, col_width);
+                $column.width(header_width);
+            }
         });
     }
+
+    function resize_input_to_value(input, c) {
+        var $input = $(input)
+        $span = $("<span style='display:none'></span>");
+        $span.insertAfter($input);
+        $span.text("l" + $input.val() + c + "O"); // the hidden span takes the value of the input
+        var new_width = $span.width();
+        //if (c === " ") {
+            //new_width += 3;
+        //}
+        $input.width(new_width); // apply width of the span to the input
+    }
+
+    $("fieldset").keypress(function(e) {
+        if (e.target.nodeName === "INPUT") {
+            //if (e.which !== 0) { // only characters
+            var c = String.fromCharCode(e.keyCode|e.charCode);
+            resize_input_to_value(e.target, c);
+            //}
+        }
+        equalize_column_widths();
+    });
 
 
     // Add the click handlers when the DOM is ready.
@@ -275,5 +322,9 @@
     $('#tableaux .add_output').click(add_output_row);
     $('#tableaux .delete_output').click(delete_output_row);
     set_calculate_all_availability();
+    $("fieldset input[type='text']").each(function() {
+        resize_input_to_value(this, "");
+    });
     equalize_column_widths();
+    //equalize_column_widths();
 })(this, this.document);
