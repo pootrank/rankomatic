@@ -305,10 +305,10 @@
 
 
             var after_col_width = $("#tableaux td:eq("+ind+")").width()
-            console.log("ind:"+ind+", col_width:"+col_width+", th_width:"+
-            th_width+", header_input_width:"+header_input_width+
-            ", before_col_width:"+before_col_width+", after_col_width:"+
-            after_col_width+", new_width:"+new_width);
+            //console.log("ind:"+ind+", col_width:"+col_width+", th_width:"+
+            //th_width+", header_input_width:"+header_input_width+
+            //", before_col_width:"+before_col_width+", after_col_width:"+
+            //after_col_width+", new_width:"+new_width);
             if (after_col_width < before_col_width) {
                 var diff = before_col_width - after_col_width;
                 $("#head_table").width($("#head_table").width() - diff);
@@ -324,18 +324,13 @@
         $span.insertAfter($input);
         $span.text("l" + $input.val() + c + "O"); // the hidden span takes the value of the input
         var new_width = $span.width();
-        //if (c === " ") {
-            //new_width += 3;
-        //}
         $input.width(new_width); // apply width of the span to the input
     }
 
     $("fieldset").keydown(function(e) {
         if (e.target.nodeName === "INPUT") {
-            //if (e.which !== 0) { // only characters
             var c = String.fromCharCode(e.keyCode|e.charCode);
             resize_input_to_value(e.target, c);
-            //}
         }
         equalize_column_widths();
     });

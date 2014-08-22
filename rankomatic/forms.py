@@ -8,7 +8,6 @@ the Optimality Theory ranking application.
 
 """
 import itertools
-from flask import session
 from flask.ext.wtf import Form
 from wtforms import (TextField, PasswordField, FieldList, FormField,
                      BooleanField, IntegerField, validators)
@@ -136,13 +135,32 @@ class OutputsUnique(object):
             raise ValidationError(self.message)
 
 
+class NoSpecialChars(object):
+    """Raise an error if inputs or outputs contain special chars"""
+
+    def __init__(self, message=None):
+        if not message:
+            message = ("Inputs and outputs cannot contain the "
+                       "characters '.' or '$'")
+        self.message = message
+
+    def __call__(self, form, field):
+        special_chars = ['.', '$']
+        inps = [c['inp'] for c in field.data]
+        outps = [c['outp'] for c in field.data]
+        for (inp, outp) in zip(inps, outps):
+            for special_char in special_chars:
+                if special_char in inp or special_char in outp:
+                    raise ValidationError(self.message)
+
+
 class InputGroupForm(Form):
     """Represents a group of outputs for one input."""
     candidates = FieldList(FormField(CandidateForm),
                            default=[FormField(CandidateForm,
                                               csrf_enabled=False)],
-                           validators=[InputsSame(), OutputsUnique()],
-                           )
+                           validators=[InputsSame(), OutputsUnique(),
+                                       NoSpecialChars()])
 
 
 class AtLeastOneOptimal(object):
