@@ -22,7 +22,7 @@ import gridfs
 import datetime
 import tempfile
 import urllib
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import pygraphviz
 
@@ -234,7 +234,8 @@ class Dataset(db.Document):
     def visualize_and_store_entailments(self):
         if not self.entailments_visualized:
             fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-            filename = "".join([urllib.quote(self.name), "/", 'entailments.png'])
+            filename = "".join([urllib.quote(self.name),
+                                "/", 'entailments.png'])
             try:
                 fs.get_last_version(filename=filename)
             except gridfs.NoFile:
@@ -254,9 +255,61 @@ class Dataset(db.Document):
         for k, v in self.entailments.iteritems():
             for entailed in v:
                 graph.add_edge(k, entailed)
+        self._collapse_cycles(graph)
         graph.tred()
         graph.layout('dot')
         return graph
+
+    def _collapse_cycles(self, graph):
+        equivalent_nodes = self._get_equivalent_nodes(graph)
+        cycles = self._get_cycles_from_equivalent_nodes(equivalent_nodes)
+        self._remove_cycles_from_graph(cycles, graph)
+
+    def _remove_cycles_from_graph(self, cycles, graph):
+        for cycle in cycles:
+            cycle = list(cycle)
+            node_label = self._make_node_label(cycle)
+            self._add_edges_with_collapsed_cycle(cycle, graph, node_label)
+            graph.get_node(node_label).attr['shape'] = 'rect'
+
+        for cycle in cycles:  # re-iterate in case cycles are connected
+            graph.delete_nodes_from(cycle)
+
+    def _make_node_label(self, cycle):
+        chunks = list(self._chunk_list(cycle))
+        return ''.join([self._pretty_chunk_string(chunk) for chunk in chunks])
+
+    def _pretty_chunk_string(self, chunk):
+        return "(" + "), (".join(chunk) + ")\n"
+
+    def _chunk_list(self, to_chunk, size_of_chunks=5):
+        for i in xrange(0, len(to_chunk), size_of_chunks):
+            yield to_chunk[i:i+size_of_chunks]
+
+    def _add_edges_with_collapsed_cycle(self, cycle, graph, node_label):
+        for edge in graph.edges():
+            if edge[0] in cycle:
+                graph.add_edge(node_label, edge[1])
+            if edge[1] in cycle:
+                graph.add_edge(edge[0], node_label)
+
+    def _get_equivalent_nodes(self, graph):
+        equivalent_nodes = defaultdict(lambda: set([]))
+        edges = set(graph.edges())
+        for edge in edges:
+            endpoints_are_same = edge[0] == edge[1]
+            reverse_edge = (edge[1], edge[0])
+            if reverse_edge in edges and not endpoints_are_same:
+                equivalent_nodes[edge[0]].add(edge[1])
+                equivalent_nodes[edge[1]].add(edge[0])
+        return equivalent_nodes
+
+    def _get_cycles_from_equivalent_nodes(self, equivalent_nodes):
+        cycles = set([])
+        for node, equivalent in equivalent_nodes.iteritems():
+            equivalent.add(node)
+            cycles.add(frozenset(equivalent))
+        return cycles
 
     def calculate_compatible_grammars(self, classical=True):
         """Calculate the compatible grammars for the dataset.
