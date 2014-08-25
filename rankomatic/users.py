@@ -88,7 +88,7 @@ class AccountView(MethodView):
 
     def get(self, username):
         if get_username() != username:
-            flash('Only a user who is logged in can view their account')
+            flash('Log in to view your account')
             return redirect(url_for('users.login'))
         else:
             user = User.objects.get_or_404(username=username)
@@ -104,11 +104,10 @@ class DeleteDatasetView(MethodView):
         return "deletion of %s successful" % d.name
 
 
-
 users.add_url_rule('/login/', view_func=LoginView.as_view('login'))
 users.add_url_rule('/signup/', view_func=SignupView.as_view('signup'))
 users.add_url_rule('/logout/', view_func=LogoutView.as_view('logout'))
 users.add_url_rule('/account/<username>/',
                    view_func=AccountView.as_view('account'))
 users.add_url_rule('/delete/<dset_name>/',
-                  view_func=DeleteDatasetView.as_view('delete_dataset'))
+                   view_func=DeleteDatasetView.as_view('delete_dataset'))

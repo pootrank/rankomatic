@@ -222,8 +222,10 @@ class GraphView(MethodView):
 class EntailmentView(MethodView):
 
     def get(self, dset_name):
+        classical = get_dset(dset_name).classical
         _fork_entailment_calculation(dset_name)
-        return render_template('entailments.html', dset_name=dset_name)
+        return render_template('entailments.html', dset_name=dset_name,
+                               classical=classical)
 
 
 class EntailmentsCalculatedView(MethodView):
