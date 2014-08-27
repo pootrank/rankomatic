@@ -210,6 +210,7 @@ class Dataset(db.Document):
 
     def calculate_global_entailments(self):
         if not self.entailments_calculated:
+            print "recalculating entailments"
             entailments = self.poot.get_entailments(atomic=True)
             if entailments:
                 self.entailments = self._process_entailments(entailments)
@@ -282,7 +283,7 @@ class Dataset(db.Document):
     def _pretty_chunk_string(self, chunk):
         return "(" + "), (".join(chunk) + ")\n"
 
-    def _chunk_list(self, to_chunk, size_of_chunks=5):
+    def _chunk_list(self, to_chunk, size_of_chunks=1):
         for i in xrange(0, len(to_chunk), size_of_chunks):
             yield to_chunk[i:i+size_of_chunks]
 

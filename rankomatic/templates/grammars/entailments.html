@@ -3,7 +3,18 @@
 
 <h2>Global Entailments</h2>
 <div class="{{dset_name}}" id="entailments"></div>
-<a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=0, page=0, classical=classical) }}">View grammars</a>
+<form action="{{url_for('grammars.entailments', dset_name=dset_name)}}" method="POST">
+    <table id="entailment_buttons">
+        <tr>
+            <td>
+                <a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=0, page=0, classical=classical) }}">View grammars</a>
+            </td>
+            <!--<td>-->
+                <!--<input type="submit" class="btn btn-secondary" value="Recalculate entailments"></input>-->
+            <!--</td>-->
+        </tr>
+    </table>
+</form>
 
 {% raw %}
 <script type="text/x-handlebars-template" id="entailment_graph_template">

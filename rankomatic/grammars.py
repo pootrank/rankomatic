@@ -18,7 +18,11 @@ GRAMS_PER_PAGE = 20
 @job
 def _calculate_entailments(dset_name, username):
     dset = get_dset(dset_name, username=username)
+
+    print "calculating entailments for %s" % dset.name
     dset.calculate_global_entailments()
+
+    print "visiualizing entailment for %s" % dset.name
     dset.visualize_and_store_entailments()
 
 
@@ -226,6 +230,14 @@ class EntailmentView(MethodView):
         _fork_entailment_calculation(dset_name)
         return render_template('entailments.html', dset_name=dset_name,
                                classical=classical)
+
+    def post(self, dset_name):
+        dset = get_dset(dset_name)
+        dset.remove_old_files()
+        dset.entailments_calculated = False
+        dset.entailments_visualized = False
+        dset.save()
+        return self.get(dset_name)
 
 
 class EntailmentsCalculatedView(MethodView):
