@@ -19,11 +19,12 @@
         <tbody>
         <tr><td>{{ i }}</td><td></td><td>{{ input_totals[i]['raw_sum'] }}</td><td>{{ '%0.2f' % input_totals[i]['per_sum'] }}</td></tr>
             {%- for c in cots_by_cand[i] -%}
-              <tr><td></td><td>{{ c['output'] }}</td><td>{{ c['num_cot'] }}</td><td>{{ '%0.2f' % c['per_cot'] }}</td></tr>
+              <tr><td></td><td>{{ c['output'] }}</td><td class="num_cot">{{ c['num_cot'] }}</td><td>{{ '%0.2f' % c['per_cot'] }}</td></tr>
             {%- endfor -%}
         </tbody>
         {%- endfor -%}
       </table>
+      <a class="toggle-zero-candidates" href="#">Show all candidates</a>
     {%- endif -%}
     </div>
   </div>

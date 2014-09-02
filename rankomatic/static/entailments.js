@@ -19,5 +19,4 @@
             }
         });
     })();
-
 })(this, this.document);
