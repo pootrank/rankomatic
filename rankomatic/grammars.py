@@ -43,8 +43,9 @@ class GrammarView(MethodView):
     def get(self, dset_name, num_rankings):
         print request.args
         if not self._check_params():
-            return redirect(url_for('.grammars', dset_name=dset_name, classical=False,
-                                    num_rankings=num_rankings, page=0))
+            return redirect(url_for('.grammars', dset_name=dset_name,
+                                    classical=False, num_rankings=num_rankings,
+                                    page=0))
         self._initialize_data_for_get(dset_name, num_rankings)
         self._calculate_global_stats()
         self._calculate_navbar_info(num_rankings)
@@ -52,7 +53,8 @@ class GrammarView(MethodView):
         need_redirect = (self.classical and num_rankings == 0) or not self.grams
         if need_redirect and self.template_args['lengths']:
             new_num_rankings = self.template_args['lengths'][-1]
-            return(redirect(url_for('.grammars', dset_name=dset_name, classical=self.classical,
+            return(redirect(url_for('.grammars', dset_name=dset_name,
+                                    classical=self.classical,
                                     num_rankings=new_num_rankings, page=0)))
 
         self._truncate_grams_for_pagination()
@@ -284,6 +286,12 @@ class GrammarsStoredView(GrammarView):
         return grammar_info
 
 
+class StatProfileView(MethodView):
+
+    def get(self, dset_name):
+        return render_template('under_construction.html')
+
+
 grammars.add_url_rule('/<dset_name>/grammars/<int:num_rankings>',
                       view_func=GrammarView.as_view('grammars'))
 grammars.add_url_rule('/graphs/<dset_name>/<filename>',
@@ -296,3 +304,5 @@ grammars.add_url_rule('/entailments_calculated/<dset_name>/',
                       ))
 grammars.add_url_rule('/grammars_stored/<dset_name>/<int:num_rankings>',
                       view_func=GrammarsStoredView.as_view('grammars_stored'))
+grammars.add_url_rule('/<dset_name>/stat_profile',
+                      view_func=StatProfileView.as_view('stat_profile'))

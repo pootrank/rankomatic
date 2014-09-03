@@ -3,7 +3,7 @@
 
     $('tbody').on("click", ".delete", function(e) {
         e.preventDefault();
-        $(this).next().show(200);
+        $(this).closest('tr').find('.initially_hidden').show(200);
         $(this).addClass("disabled");
     })
 
@@ -29,8 +29,8 @@
     })
 
     function hide_delete_confirmation($pressed) {
-        $pressed.closest(".initially_hidden").hide(200);
-        $pressed.closest("td").children("a").removeClass("disabled");
+        $pressed.closest(".initially_hidden").hide();
+        $pressed.closest("tr").find('.delete').removeClass("disabled");
     }
 
     function make_delete_url(dset_name) {
