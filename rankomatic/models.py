@@ -257,6 +257,8 @@ class Dataset(db.Document):
             for entailed in v:
                 graph.add_edge(k, entailed)
         self._collapse_cycles(graph)
+        for node in graph.nodes():
+            node.attr['shape'] = 'rect'
         graph.tred()
         graph.layout('dot')
         return graph
@@ -271,7 +273,6 @@ class Dataset(db.Document):
             cycle = list(cycle)
             node_label = self._make_node_label(cycle)
             self._add_edges_with_collapsed_cycle(cycle, graph, node_label)
-            graph.get_node(node_label).attr['shape'] = 'rect'
 
         for cycle in cycles:  # re-iterate in case cycles are connected
             graph.delete_nodes_from(cycle)
