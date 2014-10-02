@@ -1,31 +1,52 @@
-{%- for g in grammar_info -%}
-  {%- set cots_by_cand = g['cots_by_cand'] -%}
-  {%- set input_totals = g['input_totals'] -%}
-  <div class="row breakdown-by-candidate">
-    <h3>{{ g['grammar']|safe }}</h3>
-    <div class="span5">
-      <span class="helper"></span>
-      <img class="graph" src="{{ url_for('grammars.graph', dset_name=dset_name, filename=g['filename']) }}" alt="{{g['filename']}}"></img>
-    </div>
-    <div class="span2">
-    </div>
-    <div class="span5">
-    {%- if not classical -%}
-      <table class="table table-condensed table-hover">
-        <thead>
-          <tr><th>Input</th><th>Output</th><th># COT grammars</th><th>% COT grammars</th></tr>
-        </thead>
-        {%- for i in cots_by_cand.keys() -%}
-        <tbody>
-        <tr><td>{{ i }}</td><td></td><td>{{ input_totals[i]['raw_sum'] }}</td><td>{{ '%0.2f' % input_totals[i]['per_sum'] }}</td></tr>
-            {%- for c in cots_by_cand[i] -%}
-              <tr><td></td><td>{{ c['output'] }}</td><td class="num_cot">{{ c['num_cot'] }}</td><td>{{ '%0.2f' % c['per_cot'] }}</td></tr>
-            {%- endfor -%}
-        </tbody>
-        {%- endfor -%}
-      </table>
-      <a class="toggle-zero-candidates" href="#">Show all candidates</a>
-    {%- endif -%}
+{%- if lengths -%}
+  <h2>View grammars and statistics by number of rankings</h2>
+  <div class="btn-toolbar">
+    <div class="btn-group">
+      {%- for l in lengths -%}
+        <a class="btn{%- if l == num_rankings %} active{%- endif -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=l, page=0, classical=classical) }}">{{ l }}</a>
+      {%- endfor -%}
     </div>
   </div>
-{%- endfor -%}
+  <div>
+    <p>Currently viewing {{ min_ind + 1 }}-{{ max_ind + 1 }} out of {{ num_rank_grams }} grammars with {{ num_rankings }} rankings.</p>
+    <div class="btn-group">
+      <a class="btn{%- if page <= 0 %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page-1), classical=classical) }}"{%- endif -%}>Prev</a>
+      <a class="btn{%- if max_ind + 1 >= num_rank_grams %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page+1), classical=classical) }}"{%- endif -%}>Next</a>
+    </div>
+  </div>
+  <div id="grammar_graphs">
+    {%- for g in grammar_info -%}
+    {%- set cots_by_cand = g['cots_by_cand'] -%}
+    {%- set input_totals = g['input_totals'] -%}
+    <div class="row breakdown-by-candidate">
+      <h3>{{ g['grammar']|safe }}</h3>
+      <div class="span5">
+        <span class="helper"></span>
+        <img class="graph" src="{{ url_for('grammars.graph', dset_name=dset_name, filename=g['filename']) }}" alt="{{g['filename']}}"></img>
+      </div>
+      <div class="span2">
+      </div>
+      <div class="span5">
+        {%- if not classical -%}
+          <table class="table table-condensed table-hover">
+            <thead>
+              <tr><th>Input</th><th>Output</th><th># COT grammars</th><th>% COT grammars</th></tr>
+            </thead>
+            {%- for i in cots_by_cand.keys() -%}
+              <tbody>
+                <tr><td>{{ i }}</td><td></td><td>{{ input_totals[i]['raw_sum'] }}</td><td>{{ '%0.2f' % input_totals[i]['per_sum'] }}</td></tr>
+                {%- for c in cots_by_cand[i] -%}
+                  <tr><td></td><td>{{ c['output'] }}</td><td class="num_cot">{{ c['num_cot'] }}</td><td>{{ '%0.2f' % c['per_cot'] }}</td></tr>
+                {%- endfor -%}
+              </tbody>
+            {%- endfor -%}
+          </table>
+          <a class="toggle-zero-candidates" href="#">Show all candidates</a>
+        {%- endif -%}
+      </div>
+    </div>
+    {%- endfor -%}
+  </div>
+{%- else -%}
+  <h2>No compatible grammars found.</h2>
+{%- endif -%}

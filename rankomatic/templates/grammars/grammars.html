@@ -1,42 +1,13 @@
 {%- extends 'layout.html' -%}
 {%- block content -%}
-<div class="hero-unit">
-  <h2>Global statistics</h2>
-  <table class="table">
-    <thead>
-      <tr><th>Grammar Type</th><th># Compatible</th><th># Possible</th><th>% Compatible</th></tr>
-    </thead>
-    <tbody>
-      {%- if not classical -%}
-      <tr><td>Partial</td><td>{{ num_poots }}</td><td>{{ num_total_poots }}</td><td>{{ '%0.2f' % percent_poots }}</td></tr>
-      {%- endif -%}
-      <tr><td>Classical</td><td>{{ num_cots }}</td><td>{{ num_total_cots }}</td><td>{{ '%0.2f' % percent_cots }}</td></tr>
-    </tbody>
-  </table>
-  <a class="btn btn-primary" href="{{ url_for('grammars.entailments', dset_name=dset_name) }}">Global entailments</a>
+<div class="hero-unit" id="global-statistics">
+  <h2>Calculating grammars and global statistics for {{ dset_name }}</h2>
+  <p>Please be patient, this may take a few minutes...</p>
 </div>
-<div class="container">
-  {%- if lengths -%}
-  <h2>View grammars and statistics by number of rankings</h2>
-  <div class="btn-toolbar">
-    <div class="btn-group">
-      {%- for l in lengths -%}
-      <a class="btn{%- if l == num_rankings %} active{%- endif -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=l, page=0, classical=classical) }}">{{ l }}</a>
-      {%- endfor -%}
-    </div>
-  </div>
-  <div>
-    <p>Currently viewing {{ min_ind + 1 }}-{{ max_ind + 1 }} out of {{ num_rank_grams }} grammars with {{ num_rankings }} rankings.</p>
-    <div class="btn-group">
-      <a class="btn{%- if page <= 0 %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page-1), classical=classical) }}"{%- endif -%}>Prev</a>
-      <a class="btn{%- if max_ind + 1 >= num_rank_grams %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, num_rankings=num_rankings, page=(page+1), classical=classical) }}"{%- endif -%}>Next</a>
-    </div>
-  </div>
-  <div id="grammars">
-  </div>
-  {%- else -%}
-  <h2>No compatible grammars found.</h2>
-  {%- endif -%}
+<div id="spinner"></div>
+<div class="container initially_hidden" id="grammars">
+  <h2>Visualizing grammars and calculating individual grammar statistics</h2>
+  <p>Please be patient, this may take a few minutes...</p>
 </div>
 <div id="info"  dset_name="{{ dset_name }}" num_rankings="{{ num_rankings }}"></div>
 {%- endblock -%}
