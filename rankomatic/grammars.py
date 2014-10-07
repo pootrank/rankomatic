@@ -6,12 +6,11 @@ from flask import (render_template, abort, Blueprint,
                    make_response, request, redirect, url_for, jsonify)
 from flask.views import MethodView
 from rankomatic import db
-from rankomatic.util import get_dset, get_username
+from rankomatic.util import get_dset, get_username, get_url_args
 from rankomatic.models import Dataset
 import urllib
 import gridfs
 import datetime
-import json
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -20,13 +19,13 @@ redis_conn = Redis()
 q = Queue(connection=redis_conn)
 
 
-@job
 def _calculate_grammars_and_statistics(dset_name, num_rankings,
                                        classical, page, username):
     gc = GrammarCalculator(dset_name, num_rankings, classical, page, username)
     gc._get_initial_data()
     gc._calculate_global_stats()
     gc._calculate_navbar_info()
+    gc._truncate_grams_for_pagination()
     gc.dset.global_stats_calculated = True
     gc.dset.save()
 
@@ -46,12 +45,6 @@ def _fork_entailment_calculation(dset_name):
 def _visualize_and_store_grammars(dset_name, username, indices):
     dset = Dataset.objects.get(name=urllib.unquote(dset_name), user=username)
     dset.visualize_and_store_grammars(indices)
-
-
-def get_args():
-    classical = json.loads(request.args.get('classical').lower())
-    page = int(request.args.get('page'))
-    return (classical, page)
 
 
 class GrammarCalculator():
@@ -89,7 +82,6 @@ class GrammarCalculator():
             })
 
         self.dset.global_stats.update({
-            'grams': str(self.grams),
             'num_cots': self.dset.num_compatible_cots(),
             'num_total_cots': self.dset.num_total_cots(),
             'percent_cots': self._make_percent_cots()
@@ -127,6 +119,12 @@ class GrammarCalculator():
         return {'min_ind': min_ind,
                 'max_ind': max_ind}
 
+    def _truncate_grams_for_pagination(self):
+        min_ind = self.dset.grammar_navbar['min_ind']
+        max_ind = self.dset.grammar_navbar['max_ind']
+        self.grams = self.grams[min_ind:max_ind + 1]
+        self.dset.global_stats['grams'] = str(self.grams)
+
 
 class GrammarView(MethodView):
 
@@ -136,15 +134,16 @@ class GrammarView(MethodView):
                                     classical=False, num_rankings=num_rankings,
                                     page=0))
 
-        classical, page = get_args()
+        classical, page = get_url_args()
         dset = get_dset(dset_name)
         dset.global_stats_calculated = False
         dset.save()
-        _calculate_grammars_and_statistics.delay(dset_name, num_rankings,
-                                                 classical, page, get_username())
+        q.enqueue(_calculate_grammars_and_statistics, args=(dset_name, num_rankings, classical,
+                                                            page, get_username()), timeout=1000)
+        #_calculate_grammars_and_statistics.delay(dset_name, num_rankings,
+                                                 #classical, page, get_username())
         return(render_template('grammars.html', page=page,
                                num_rankings=num_rankings, dset_name=dset_name))
-
 
     def _check_params(self):
         return self._check_page() and self._check_classical()
@@ -267,11 +266,10 @@ class GlobalStatsCalculatedView(MethodView):
 class GrammarsStoredView(GlobalStatsCalculatedView):
 
     def get(self, dset_name, num_rankings):
-        self.classical, self.page = get_args()
+        self.classical, self.page = get_url_args()
         self.dset = get_dset(dset_name)
         if self.dset.global_stats['grams'] and self.dset.grammar_navbar['lengths']:
             self.grams = eval(self.dset.global_stats['grams'])
-            self._truncate_grams_for_pagination()
 
             index_range = self._get_index_range_str()
             try:
@@ -283,8 +281,8 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
                 self.username = get_username()
                 job = q.enqueue(self._make_grammar_info)
                 return jsonify(job_id=job.id, dset_name=dset_name,
-                               classical=self.classical, page=self.page,
-                               retry=False, grammars_exist=True)
+                                classical=self.classical, page=self.page,
+                                retry=False, grammars_exist=True)
             else:
                 return jsonify(retry=True)
         else:
@@ -305,10 +303,6 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
         print datetime.datetime.utcnow(), ": finishing grammar info"
         return grammar_info
 
-    def _truncate_grams_for_pagination(self):
-        min_ind = self.dset.grammar_navbar['min_ind']
-        max_ind = self.dset.grammar_navbar['max_ind']
-        self.grams = self.grams[min_ind:max_ind + 1]
 
     def _sum_all_cot_stats(self, cot_stats_by_cand):
         input_totals = {}
@@ -343,8 +337,7 @@ class GrammarStatsCalculated(MethodView):
         if not job.is_finished:
             return jsonify(retry=True)
         else:
-            classical = json.loads(request.args.get('classical').lower())
-            page = int(request.args.get('page'))
+            classical, page = get_url_args()
             dset = get_dset(dset_name)
             grammar_info = job.result
             html_str = render_template('display_grammars.html',

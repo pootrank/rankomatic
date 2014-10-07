@@ -1,5 +1,11 @@
 {%- if lengths -%}
-  <h2>View grammars and statistics by number of rankings</h2>
+  <h4 id="sort-header">Sort grammars by:
+    <select id="sort-grammars-by">
+      <option value="size">size of grammar</option>
+      <option value="rank-volume">ranking volume</option>
+    </select>
+    <button class="btn btn-secondary">sort</button>
+  </h4>
   <div class="btn-toolbar">
     <div class="btn-group">
       {%- for l in lengths -%}

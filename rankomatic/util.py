@@ -1,6 +1,7 @@
 import urllib
+import json
 from rankomatic.models import Dataset
-from flask import session
+from flask import session, request
 
 
 def get_username():
@@ -25,3 +26,9 @@ def get_dset(name_to_find, username=None):
     except Dataset.DoesNotExist:
         dset = Dataset.objects.get_or_404(name=name_to_find, user="guest")
     return dset
+
+
+def get_url_args():
+    classical = json.loads(request.args.get('classical').lower())
+    page = int(request.args.get('page'))
+    return (classical, page)

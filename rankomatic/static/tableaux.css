@@ -34,6 +34,16 @@ input#name {
     font-size: 250%;
 }
 
+#sort-header {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+#sort-grammars-by {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 
 th input, #name {
     font-weight: bold;

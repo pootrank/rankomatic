@@ -48,10 +48,11 @@
                             '&page=' + data['page'] +
                             '&job_id=' + data['job_id'];
                         setTimeout( function() {
-                            poll_for_grammar_stats(grammar_stat_url, spinner)
+                            poll_for_grammar_stats(grammar_stat_url, spinner);
                         }, RETRY_WAIT_TIME)
                     } else {
                         spinner.stop();
+                        $('#grammars').html("<h2>No compatible grammars found.</h2>");
                     }
                 }
             },

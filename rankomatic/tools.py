@@ -154,7 +154,7 @@ class CalculatorView(MethodView):
             if submit == "All grammars":
                 redirect_url = url_for('grammars.grammars',
                                        dset_name=urllib.quote(dset.name),
-                                       num_rankings=0, page=0)
+                                       num_rankings=0, page=0, classical=False)
             else:
                 redirect_url = url_for('grammars.grammars',
                                        dset_name=urllib.quote(dset.name),
