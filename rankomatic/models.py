@@ -387,6 +387,7 @@ class Dataset(db.Document):
 
     def get_cot_stats_by_cand(self, grammar):
         """For each input, return a list of dicts with output and COT stats.
+
         Given a grammar, return a dict from each input to a list. In the list
         is a dict for each output for that input, which contains the numbers
         and percentages of COT grammars that make that candidate optimal.

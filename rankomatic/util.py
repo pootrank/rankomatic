@@ -31,4 +31,5 @@ def get_dset(name_to_find, username=None):
 def get_url_args():
     classical = json.loads(request.args.get('classical').lower())
     page = int(request.args.get('page'))
-    return (classical, page)
+    sort_by = request.args.get('sort_by')
+    return (classical, page, sort_by)

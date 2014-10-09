@@ -97,13 +97,15 @@ class EditView(MethodView):
             if submit == "All grammars":
                 dset.classical = False
                 redirect_url = url_for('grammars.grammars',
-                                       dset_name=dset.name, num_rankings=0,
-                                       page=0, classical=False)
+                                       dset_name=dset.name, sort_value=0,
+                                       page=0, classical=False,
+                                       sort_by='rank_volume')
             else:
                 dset.classical = True
                 redirect_url = url_for('grammars.grammars',
-                                       dset_name=dset.name, num_rankings=0,
-                                       page=0, classical=True)
+                                       dset_name=dset.name, sort_value=0,
+                                       page=0, classical=True,
+                                       sort_by='rank_volume')
             dset.save()
             return redirect(redirect_url)
 
@@ -154,11 +156,13 @@ class CalculatorView(MethodView):
             if submit == "All grammars":
                 redirect_url = url_for('grammars.grammars',
                                        dset_name=urllib.quote(dset.name),
-                                       num_rankings=0, page=0, classical=False)
+                                       sort_value=0, page=0, classical=False,
+                                       sort_by='rank_volume')
             else:
                 redirect_url = url_for('grammars.grammars',
                                        dset_name=urllib.quote(dset.name),
-                                       num_rankings=0, page=0, classical=True)
+                                       sort_value=0, page=0, classical=True,
+                                       sort_by='rank_volume')
 
             if get_username() == "guest":
                 _prepare_to_change_dset_user(dset)

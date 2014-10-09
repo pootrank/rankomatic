@@ -3,16 +3,18 @@
     var target = document.getElementById('spinner');
     var spinner = new Spinner(Util.spinner_opts).spin(target);
     var dset_name = $("#info").attr("dset_name");
-    var num_rankings = $("#info").attr("num_rankings");
+    var sort_value = $("#info").attr("sort_value");
     var stats_calculated_url = '/global_stats_calculated/' + dset_name + '/' +
-              num_rankings +
+              sort_value +
               '?page=' + QueryString.page +
-              '&classical=' + QueryString.classical;
+              '&classical=' + QueryString.classical +
+              '&sort_by=' + QueryString.sort_by;
     var grammars_stored_url = '/grammars_stored/' +
               dset_name + '/' +
-              num_rankings +
+              sort_value +
               '?page=' + QueryString.page +
-              '&classical=' + QueryString.classical;
+              '&classical=' + QueryString.classical +
+              '&sort_by=' + QueryString.sort_by;
 
     (function get_stats_if_calculated() {
         $.ajax({
@@ -43,10 +45,11 @@
                 } else {
                     if (data['grammars_exist']) {
                         var grammar_stat_url = '/grammar_stats_calculated/' +
-                            data['dset_name'] + '/' + num_rankings +
+                            data['dset_name'] + '/' + sort_value +
                             '?classical=' + data['classical'] +
                             '&page=' + data['page'] +
-                            '&job_id=' + data['job_id'];
+                            '&job_id=' + data['job_id'] +
+                            '&sort_by=' + QueryString.sort_by;
                         setTimeout( function() {
                             poll_for_grammar_stats(grammar_stat_url, spinner);
                         }, RETRY_WAIT_TIME)
@@ -75,7 +78,7 @@
                 } else {
                     spinner.stop();
                     $('#grammars').html(data['html_str']);
-                    register_grammar_stats_listener();
+                    register_grammar_listeners();
                     $('td.num_cot').each(toggle_closest_tr_if_zero);
                 }
             }
@@ -99,13 +102,21 @@
         }
     }
 
-    function register_grammar_stats_listener() {
+    function register_grammar_listeners() {
         $("#grammar_graphs").click(function(event) {
             event.preventDefault();
             var $target = $(event.target);
             if ($target.attr('class') === "toggle-zero-candidates") {
                 $target.prev().find('td.num_cot').each(toggle_closest_tr_if_zero);
                 toggle_label_of_toggle_switch($target);
+            }
+        });
+
+        $('#sort-header button').click(function(event) {
+            event.preventDefault();
+            var choice = $('#sort-grammars-by').val();
+            if (choice !== QueryString['sort_by']) {
+                alert('redirecting to: ' + $('#sort-grammars-by').val());
             }
         });
     }

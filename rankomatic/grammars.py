@@ -19,9 +19,9 @@ redis_conn = Redis()
 q = Queue(connection=redis_conn)
 
 
-def _calculate_grammars_and_statistics(dset_name, num_rankings,
-                                       classical, page, username):
-    gc = GrammarCalculator(dset_name, num_rankings, classical, page, username)
+def _calculate_grammars_and_statistics(dset_name, sort_value,
+                                       classical, page, username, sort_by):
+    gc = GrammarCalculator(dset_name, sort_value, classical, page, username, sort_by)
     gc._get_initial_data()
     gc._calculate_global_stats()
     gc._calculate_navbar_info()
@@ -49,26 +49,28 @@ def _visualize_and_store_grammars(dset_name, username, indices):
 
 class GrammarCalculator():
 
-    def __init__(self, dset_name, num_rankings, classical, page, username):
+    def __init__(self, dset_name, sort_value, classical,
+                 page, username, sort_by='rank_volume'):
         self.dset_name = dset_name
-        self.num_rankings = num_rankings
+        self.sort_value = sort_value
         self.classical = classical
         self.page = page
         self.username = username
+        self.sort_by = sort_by
 
     def _get_initial_data(self):
         self.dset = get_dset(self.dset_name, self.username)
         self.dset.classical = self.classical
         if self.classical:
-            self.num_rankings = sum(range(len(self.dset.constraints)))
+            self.sort_value = sum(range(len(self.dset.constraints)))
         self.grams = self._get_correct_size_grammars()
         self.dset.global_stats = {}
 
     def _get_correct_size_grammars(self):
         if self.classical:
-            self.num_rankings = self._classical_grammar_length()
+            self.sort_value = self._classical_grammar_length()
         raw_grammars = enumerate(self.dset.raw_grammars)
-        return [(i, g) for i, g in raw_grammars if len(g) == self.num_rankings]
+        return [(i, g) for i, g in raw_grammars if len(g) == self.sort_value]
 
     def _classical_grammar_length(self):
         return sum(range(len(self.dset.constraints)))
@@ -98,8 +100,8 @@ class GrammarCalculator():
     def _calculate_navbar_info(self):
         grammar_lengths = self._get_grammar_lengths()
         if self.classical:
-            self.num_rankings = self._classical_grammar_length()
-        elif self.num_rankings not in grammar_lengths and self.num_rankings != 0:
+            self.sort_value = self._classical_grammar_length()
+        elif self.sort_value not in grammar_lengths and self.sort_value != 0:
             abort(404)
         num_rank_grams = len(self.grams)
         self.dset.grammar_navbar = self._get_min_max_indices(num_rank_grams)
@@ -128,22 +130,20 @@ class GrammarCalculator():
 
 class GrammarView(MethodView):
 
-    def get(self, dset_name, num_rankings):
+    def get(self, dset_name, sort_value):
         if not self._check_params():
             return redirect(url_for('.grammars', dset_name=dset_name,
-                                    classical=False, num_rankings=num_rankings,
-                                    page=0))
+                                    classical=False, sort_value=sort_value,
+                                    page=0, sort_by='rank_volume'))
 
-        classical, page = get_url_args()
+        classical, page, sort_by = get_url_args()
         dset = get_dset(dset_name)
         dset.global_stats_calculated = False
         dset.save()
-        q.enqueue(_calculate_grammars_and_statistics, args=(dset_name, num_rankings, classical,
-                                                            page, get_username()), timeout=1000)
-        #_calculate_grammars_and_statistics.delay(dset_name, num_rankings,
-                                                 #classical, page, get_username())
+        q.enqueue(_calculate_grammars_and_statistics, args=(dset_name, sort_value, classical,
+                                                            page, get_username(), sort_by), timeout=500)
         return(render_template('grammars.html', page=page,
-                               num_rankings=num_rankings, dset_name=dset_name))
+                               sort_value=sort_value, dset_name=dset_name))
 
     def _check_params(self):
         return self._check_page() and self._check_classical()
@@ -225,7 +225,7 @@ class EntailmentsCalculatedView(MethodView):
 
 class GlobalStatsCalculatedView(MethodView):
 
-    def get(self, dset_name, num_rankings):
+    def get(self, dset_name, sort_value):
         self.dset = get_dset(dset_name)
         to_return = {'finished': False}
         if not self.dset.global_stats_calculated:
@@ -233,13 +233,13 @@ class GlobalStatsCalculatedView(MethodView):
         else:
             to_return['retry'] = False
             self.grams = eval(self.dset.global_stats['grams'])
-            need_redirect = (self.dset.classical and num_rankings == 0) or not self.grams
+            need_redirect = (self.dset.classical and sort_value == 0) or not self.grams
             if need_redirect and self.dset.grammar_navbar['lengths']:
                 to_return['need_redirect'] = True
-                new_num_rankings = self.dset.grammar_navbar['lengths'][-1]
+                new_sort_value = self.dset.grammar_navbar['lengths'][-1]
                 to_return['redirect_url'] = url_for(
                     '.grammars', dset_name=dset_name, classical=self.dset.classical,
-                    num_rankings=new_num_rankings, page=0
+                    sort_value=new_sort_value, page=0, sort_by=get_url_args()[2]
                 )
             else:
                 to_return['need_redirect'] = False
@@ -265,8 +265,8 @@ class GlobalStatsCalculatedView(MethodView):
 
 class GrammarsStoredView(GlobalStatsCalculatedView):
 
-    def get(self, dset_name, num_rankings):
-        self.classical, self.page = get_url_args()
+    def get(self, dset_name, sort_value):
+        self.classical, self.page, self.sort_by = get_url_args()
         self.dset = get_dset(dset_name)
         if self.dset.global_stats['grams'] and self.dset.grammar_navbar['lengths']:
             self.grams = eval(self.dset.global_stats['grams'])
@@ -331,20 +331,22 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
 
 class GrammarStatsCalculated(MethodView):
 
-    def get(self, dset_name, num_rankings):
+    def get(self, dset_name, sort_value):
         job_id = request.args.get('job_id')
         job = Job.fetch(job_id, connection=redis_conn)
         if not job.is_finished:
             return jsonify(retry=True)
         else:
-            classical, page = get_url_args()
+            classical, page, sort_by = get_url_args()
+            print sort_by
             dset = get_dset(dset_name)
             grammar_info = job.result
             html_str = render_template('display_grammars.html',
                                        dset_name=dset_name,
                                        grammar_info=grammar_info,
                                        classical=classical, page=page,
-                                       num_rankings=num_rankings,
+                                       sort_by=sort_by,
+                                       sort_value=sort_value,
                                        **dset.grammar_navbar)
             return jsonify(retry=False, html_str=html_str)
 
@@ -356,7 +358,7 @@ class StatProfileView(MethodView):
 
 
 
-grammars.add_url_rule('/<dset_name>/grammars/<int:num_rankings>',
+grammars.add_url_rule('/<dset_name>/grammars/<int:sort_value>',
                       view_func=GrammarView.as_view('grammars'))
 grammars.add_url_rule('/graphs/<dset_name>/<filename>',
                       view_func=GraphView.as_view('graph'))
@@ -366,15 +368,15 @@ grammars.add_url_rule('/entailments_calculated/<dset_name>/',
                       view_func=EntailmentsCalculatedView.as_view(
                           'entailments_calculated'
                       ))
-grammars.add_url_rule('/grammars_stored/<dset_name>/<int:num_rankings>',
+grammars.add_url_rule('/grammars_stored/<dset_name>/<int:sort_value>',
                       view_func=GrammarsStoredView.as_view('grammars_stored'))
-grammars.add_url_rule('/global_stats_calculated/<dset_name>/<int:num_rankings>',
+grammars.add_url_rule('/global_stats_calculated/<dset_name>/<int:sort_value>',
                       view_func=GlobalStatsCalculatedView.as_view(
                           'global_stats_calculated'
                       ))
 grammars.add_url_rule('/<dset_name>/stat_profile',
                       view_func=StatProfileView.as_view('stat_profile'))
-grammars.add_url_rule('/grammar_stats_calculated/<dset_name>/<int:num_rankings>',
+grammars.add_url_rule('/grammar_stats_calculated/<dset_name>/<int:sort_value>',
                       view_func=GrammarStatsCalculated.as_view(
                           'grammar_stats_calculated'
                       ))

@@ -15,7 +15,7 @@
           <td class="lead dset_name">{{ dset.name }}</td>
           <td>
             <div class="btn-group">
-              <a href="{{url_for('grammars.grammars', dset_name=dset.name, num_rankings=0, page=0, classical=dset.classical)}}" class="btn btn-primary">Grammars</a>
+              <a href="{{url_for('grammars.grammars', dset_name=dset.name, sort_value=0, page=0, classical=dset.classical, sort_by='rank_volume')}}" class="btn btn-primary">Grammars</a>
               <a href="/{{dset.name|urlencode}}/entailments/" class="btn btn-info">Entailments</a>
               <a href="{{url_for('grammars.stat_profile', dset_name=dset.name)}}" class="btn btn-success">Stat profiles</a>
             </div>
