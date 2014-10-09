@@ -7,14 +7,20 @@
     <button class="btn btn-secondary">sort</button>
   </h4>
   <div class="btn-toolbar">
-    <div class="btn-group">
+    <div class="btn-group sort-values">
       {%- for l in lengths -%}
         <a class="btn{%- if l == sort_value %} active{%- endif -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, sort_value=l, page=0, classical=classical, sort_by=sort_by) }}">{{ l }}</a>
       {%- endfor -%}
     </div>
   </div>
   <div>
-    <p>Currently viewing {{ min_ind + 1 }}-{{ max_ind + 1 }} out of {{ num_rank_grams }} grammars with {{ sort_value }} rankings.</p>
+      <p>Currently viewing {{ min_ind + 1 }}-{{ max_ind + 1 }} out of {{ num_rank_grams }} grammars with {{' '}}
+        {%- if sort_by == 'size' -%}
+          {{ sort_value }} rankings.
+        {%- elif sort_by == 'rank_volume' -%}
+          ranking volume of {{ sort_value }}
+        {%- endif -%}
+      </p>
     <div class="btn-group">
       <a class="btn{%- if page <= 0 %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, sort_value=sort_value, page=(page-1), classical=classical, sort_by=sort_by) }}"{%- endif -%}>Prev</a>
       <a class="btn{%- if max_ind + 1 >= num_rank_grams %} disabled"{%- else -%}" href="{{ url_for('grammars.grammars', dset_name=dset_name, sort_value=sort_value, page=(page+1), classical=classical, sort_by=sort_by) }}"{%- endif -%}>Next</a>

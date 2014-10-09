@@ -10,7 +10,6 @@ from rankomatic.util import get_dset, get_username, get_url_args
 from rankomatic.models import Dataset
 import urllib
 import gridfs
-import datetime
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -63,14 +62,18 @@ class GrammarCalculator():
         self.dset.classical = self.classical
         if self.classical:
             self.sort_value = sum(range(len(self.dset.constraints)))
-        self.grams = self._get_correct_size_grammars()
+        self.grams = self._get_correct_grammars()
         self.dset.global_stats = {}
 
-    def _get_correct_size_grammars(self):
+    def _get_correct_grammars(self):
         if self.classical:
             self.sort_value = self._classical_grammar_length()
+        self.dset.sort_by(self.sort_by)
+        self.dset.calculate_compatible_grammars(self.classical)
+
         raw_grammars = enumerate(self.dset.raw_grammars)
-        return [(i, g) for i, g in raw_grammars if len(g) == self.sort_value]
+        sorter = self.dset.get_grammar_sorter()
+        return [(i, g) for i, g in raw_grammars if sorter(g) == self.sort_value]
 
     def _classical_grammar_length(self):
         return sum(range(len(self.dset.constraints)))
@@ -111,7 +114,11 @@ class GrammarCalculator():
         })
 
     def _get_grammar_lengths(self):
-        return sorted(set(map(len, self.dset.raw_grammars)), reverse=True)
+        if self.sort_by == 'size':
+            reverse = True
+        elif self.sort_by == 'rank_volume':
+            reverse = False
+        return sorted(set(map(self.dset.get_grammar_sorter(), self.dset.raw_grammars)), reverse=reverse)
 
     def _get_min_max_indices(self, num_rank_grams):
         min_ind = self.page * GRAMS_PER_PAGE
@@ -233,6 +240,7 @@ class GlobalStatsCalculatedView(MethodView):
         else:
             to_return['retry'] = False
             self.grams = eval(self.dset.global_stats['grams'])
+
             need_redirect = (self.dset.classical and sort_value == 0) or not self.grams
             if need_redirect and self.dset.grammar_navbar['lengths']:
                 to_return['need_redirect'] = True
@@ -289,7 +297,6 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
             return jsonify(retry=False, grammars_exist=False)
 
     def _make_grammar_info(self):
-        print datetime.datetime.utcnow(), ": starting to make grammar info"
         self.dset = get_dset(self.dset.name, self.username)
         grammar_info = []
         for gram in self.grams:
@@ -300,7 +307,6 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
                 'filename': self._make_grammar_filename(gram[0]),
                 'cots_by_cand': cot_stats_by_cand,
                 'input_totals': input_totals})
-        print datetime.datetime.utcnow(), ": finishing grammar info"
         return grammar_info
 
 
@@ -322,8 +328,8 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
             'per_sum': percent_sum}
 
     def _make_grammar_string(self, index):
-        sorted_grammars = sorted(self.dset.grammars, key=len)
-        return self.dset.grammar_to_string(sorted_grammars[index])
+        #sorted_grammars = sorted(self.dset.grammars, key=self.dset.get_grammar_sorter())
+        return self.dset.grammar_to_string(index)
 
     def _make_grammar_filename(self, index):
         return 'grammar%d.png' % index
@@ -338,7 +344,6 @@ class GrammarStatsCalculated(MethodView):
             return jsonify(retry=True)
         else:
             classical, page, sort_by = get_url_args()
-            print sort_by
             dset = get_dset(dset_name)
             grammar_info = job.result
             html_str = render_template('display_grammars.html',

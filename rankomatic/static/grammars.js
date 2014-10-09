@@ -52,7 +52,7 @@
                             '&sort_by=' + QueryString.sort_by;
                         setTimeout( function() {
                             poll_for_grammar_stats(grammar_stat_url, spinner);
-                        }, RETRY_WAIT_TIME)
+                        }, RETRY_WAIT_TIME);
                     } else {
                         spinner.stop();
                         $('#grammars').html("<h2>No compatible grammars found.</h2>");
@@ -80,6 +80,7 @@
                     $('#grammars').html(data['html_str']);
                     register_grammar_listeners();
                     $('td.num_cot').each(toggle_closest_tr_if_zero);
+                    $('#sort-grammars-by').val(QueryString.sort_by);
                 }
             }
         })
@@ -116,7 +117,11 @@
             event.preventDefault();
             var choice = $('#sort-grammars-by').val();
             if (choice !== QueryString['sort_by']) {
-                alert('redirecting to: ' + $('#sort-grammars-by').val());
+                var sort_url = '/' + dset_name + '/grammars/0' +
+                        '?page=0' +
+                        '&classical=' + QueryString.classical +
+                        '&sort_by=' + choice;
+                window.location.href = sort_url;
             }
         });
     }

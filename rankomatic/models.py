@@ -77,6 +77,7 @@ class Dataset(db.Document):
     grammars_stored = db.DictField()
     entailments_calculated = db.BooleanField(default=False)
     entailments_visualized = db.BooleanField(default=False)
+    _sort_by = db.StringField(default="rank_volume")
     grammars = db.ListField(  # list of grammars
         db.ListField(  # list of ordered pairs
             db.ListField(db.StringField())  # ordered pairs
@@ -196,8 +197,9 @@ class Dataset(db.Document):
             poot.dset = self._ot_candidates
         return poot
 
-    def grammar_to_string(self, g):
+    def grammar_to_string(self, index):
         """Convert an ugly grammar into a pretty set-like string"""
+        g = self.grammars[index]
         if g:
             l = ['{']
             for rel in g[:-1]:
@@ -316,6 +318,11 @@ class Dataset(db.Document):
             cycles.add(frozenset(equivalent))
         return cycles
 
+    def sort_by(self, sort_by):
+        if self._sort_by != sort_by:
+            self._grammars = None
+            self._sort_by = sort_by
+
     def calculate_compatible_grammars(self, classical=True):
         """Calculate the compatible grammars for the dataset.
 
@@ -323,9 +330,21 @@ class Dataset(db.Document):
 
         """
         grammars = sorted(list(self.poot.get_grammars(classical=classical)),
-                          key=len)
+                          key=self.get_grammar_sorter())
         self._grammars = str(grammars)
         self.grammars = self._convert_to_pretty_grammars(grammars)
+
+    def get_grammar_sorter(self):
+        if self._sort_by == 'size':
+            return len
+        elif self._sort_by == 'rank_volume':
+            return self.get_rank_volume_sorter()
+
+    def get_rank_volume_sorter(self):
+        lattice = self.poot.lattice
+        def rank_volume_sorter(grammar):
+            return len(lattice[grammar]['max'])
+        return rank_volume_sorter
 
     def _get_pretty_grammars(self):
         grams = eval(self._grammars)
