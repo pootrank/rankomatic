@@ -2,19 +2,12 @@
 {%- block content -%}
 
 <h2>Global Entailments</h2>
+<div class="btn-group">
+  <a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, sort_value=0, page=0, classical=classical, sort_by='rank_volume') }}">Grammars</a>
+  <button class="btn btn-success disabled" href="#">Global entailments</button>
+</div>
+<a class="btn btn-info" href="{{ url_for('tools.edit', dset_name=dset_name)}}">Edit dataset</a>
 <div class="{{dset_name}}" id="entailments"></div>
-<form action="{{url_for('grammars.entailments', dset_name=dset_name)}}" method="POST">
-    <table id="entailment_buttons">
-        <tr>
-            <td>
-                <a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, sort_value=0, page=0, classical=classical, sort_by='rank_volume') }}">View grammars</a>
-            </td>
-            <!--<td>-->
-                <!--<input type="submit" class="btn btn-secondary" value="Recalculate entailments"></input>-->
-            <!--</td>-->
-        </tr>
-    </table>
-</form>
 
 {% raw %}
 <script type="text/x-handlebars-template" id="entailment_graph_template">

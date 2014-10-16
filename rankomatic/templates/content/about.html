@@ -1,4 +1,249 @@
 {%- extends 'layout.html' -%}
+{%- block head -%}
+    <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='about.css') }}>
+{%- endblock -%}
 {%- block content -%}
-  <p>This page will have info about the site and why it exists.</p>
+<div class="container">
+  <div class="row">
+    <div class="span3 about-sidebar">
+        <ul class="nav nav-list bs-docs-sidenav affix">
+          <li>
+            <a href="#intro">
+              Introduction
+              <i class="icon-chevron-right"></i>
+            </a>
+          </li>
+          <li>
+            <a href="#distinctives">
+              Distinctives
+              <i class="icon-chevron-right"></i>
+            </a>
+          </li>
+          <!--<li>-->
+            <!--<a href="#howto">-->
+              <!--How To-->
+              <!--<i class="icon-chevron-right"></i>-->
+            <!--</a>-->
+          <!--</li>-->
+          <!--<li>-->
+            <!--<a href="#glossary">-->
+              <!--Glossary-->
+              <!--<i class="icon-chevron-right"></i>-->
+            <!--</a>-->
+          <!--</li>-->
+          <li>
+            <a href="#references">
+              References
+              <i class="icon-chevron-right"></i>
+            </a>
+          </li>
+          <li>
+            <a href="#citing">
+              Citing
+              <i class="icon-chevron-right"></i>
+            </a>
+          </li>
+          <!--<li>-->
+            <!--<a href="#contact">-->
+              <!--Contact-->
+              <!--<i class="icon-chevron-right"></i>-->
+            <!--</a>-->
+          <!--</li>-->
+        </ul>
+    </div>
+    <div class="span9">
+      <section id="intro">
+        <div class="page-header">
+          <h1>Introduction</h1>
+        </div>
+        <p>Optimality Theory is a linguistic theory developed by Alan Prince and
+        Paul Smolensky (Prince and Smolensky 1993). Partial Order Optimality
+        Theory is a conservative generalization of the classical theory that
+        allows one to describe and explain variation. This web application
+        provides tools for working with both theories.</p>
+      </section>
+      <section id="distinctives">
+        <div class="page-header">
+          <h1>Distinctives</h1>
+          <p>What separates this from other OT software?</p>
+        </div>
+        <h3>Number of optimal candidates</h3>
+          <p>
+            In classical OT, only one candidate can be optimal. In partial
+            order OT, multiple candidates can be optimal. This is useful for
+            modelling variation. For example, multiple outputs appear for a given input
+            in the same dialect (e.g. multiple pronunciations of "data").
+          </p>
+        <h3>Finding all grammars</h3>
+          <p>
+            Most learning algorithms can find a single grammar that is compatible with
+            the data. OTOrder finds all the grammars compatible with the data. This is
+            made possible by the algorithm described in Djalali 2013.
+          </p>
+        <h3>Complexity</h3>
+          <p>
+            Along with finding all the grammars compatible with the data,
+            OTOrder lists them in terms of their complexity, beginning with the
+            simplest, as per Occam's Razor. Complexity is measured in two ways:
+          </p>
+          <ol>
+            <li>
+              <strong>Grammar size.</strong> Since a grammar is an ordering of
+              the constraints, it can be expressed as a set of ordered pairs.
+              One pair <i>(C<sub>1</sub>, C<sub>2</sub>)</i> means that
+              <i>C<sub>1</sub></i> dominates <i>C<sub>2</sub></i>. Grammar size
+              refers to the number of such ordered pairs, or rankings, present in
+              the given grammar. Larger grammars are more complicated than smaller
+              grammars, as they are more restrictive and contain more information.
+            </li>
+            <li>
+              <strong>Ranking volume.</strong> Each grammar is a partial order of
+              the set of constraints, and every partial order is compatible with
+              a certain number of total orders. This number is the ranking volume
+              of that grammar. For example, given the constraints
+              <i>C<sub>1</sub>, C<sub>2</sub></i>, and <i>C<sub>3</sub></i> and the
+              partial order {<i>C<sub>1</sub></i> &raquo; <i>C<sub>3</sub></i>,
+              <i>C<sub>2</sub></i> &raquo; <i>C<sub>3</sub></i>}, there are two
+              total orders that are compatible. They are <i>C<sub>1</sub></i> &raquo;
+              <i>C<sub>2</sub></i> &raquo; <i>C<sub>3</sub></i> and <i>C<sub>2</sub></i>
+              &raquo; <i>C<sub>1</sub></i> &raquo; <i>C<sub>3</sub></i>. The original
+              grammar has a ranking volume of size two.
+            </li>
+          </ol>
+          <h4>A note on statistics</h4>
+          <p>
+            Just as the ranking volume can be calculated for a whole grammar, a
+            ranking volume can be calculated for each candidate. Given a grammar
+            and its set of compatible total orders, a certain number of those
+            total orders select for each candidate.
+          </p>
+          <p>
+            This subset of the subset of total orders is the ranking volume for
+            each candidate, and the distribution of percentages across the
+            candidates gives an empirically falsifiable prediction of
+            variation.
+          </p>
+        <h3>Global entailments</h3>
+          <p>
+            OTOrder also finds entailments between input-output pairs
+            (candidates), i.e. implicational universals. We refer to these as
+            global entailments. These are useful for exploring linguistic
+            typologies. If a certain candidate wins, i.e. is present in a language,
+            what other candidates are guaranteed to also be present in the language?
+          </p>
+        <h3>Visualizing graphs</h3>
+          <p>
+            OTOrder visualizes graphs for every grammar calculated, as well as the
+            graph of global entailments. These graphs are displayed in PNG format
+            and users are encouraged to download them for use in publications.
+          </p>
+      </section>
+      <!--<section id="howto">-->
+        <!--<div class="page-header">-->
+          <!--<h1>How to use this website<h1>-->
+        <!--</div>-->
+        <!--<div class="vert-spacer"></div>-->
+      <!--</section>-->
+      <!--<section id="glossary">-->
+        <!--<div class="page-header">-->
+          <!--<h1>Glossary</h1>-->
+        <!--</div>-->
+        <!--<div class="vert-spacer"></div>-->
+      <!--</section>-->
+      <section id="references">
+        <div class="page-header">
+          <h1>References</h1>
+          <p>
+            An alphabetical list of references used in the construction of this
+            website and relevant background reading.
+          </p>
+        </div>
+        <p class="citation">
+          <strong>Anttila, Arto.</strong> 1997. ‘Deriving variation from grammar’. In Frans
+          Hinskens, Roeland van Hout, &amp; Leo Wetzels (eds.), Variation, Change
+          and Phonological Theory, Amsterdam / Philadelphia: John Benjamins,
+          pp. 35-68.
+        </p>
+
+        <p class="citation">
+        <strong>Anttila, Arto and Young-mee Yu Cho.</strong> 1998. ‘Variation and change in
+        Optimality Theory’, Lingua 104, 31-56. Special issue on Conflicting
+        Constraints.
+        </p>
+
+        <p class="citation">
+        <strong>Anttila, Arto and Curtis Andrus.</strong> 2006. ‘T-Order Generator, software
+        package’, Stanford University,
+        http://www.stanford.edu/~anttila/research/software.html.
+        </p>
+
+        <p class="citation">
+        <strong>Brasoveanu, Adrian and Alan Prince.</strong> 2011. ‘Ranking and necessity: the
+        Fusional Reduction Algorithm’, Natural Language and Linguistic Theory,
+        29, 3-70.
+        </p>
+
+        <p class="citation">
+        <strong>Djalali, Alex J.</strong> 2013. ‘A constructive solution to the ranking problem
+        in Partial Order Optimality Theory’, Ms., Stanford University.
+        </p>
+
+        <p class="citation">
+        <strong>Kiparsky, Paul.</strong> 1993. ‘An OT Perspective on phonological
+        variation’. Handout from Rutgers Optimality Workshop 1993, also
+        presented at NWAVE 1994, Stanford University. Available at
+        http://www.stanford.edu/~kiparsky/Papers/nwave94.pdf.
+        </p>
+
+        <p class="citation">
+        <strong>Prince, Alan.</strong> 2002a. ‘Entailed ranking arguments’. [ROA-500].
+        </p>
+
+        <p class="citation">
+        <strong>Prince, Alan.</strong> 2002b. ‘Arguing Optimality’. [ROA-562].
+        </p>
+
+        <p class="citation">
+        <strong>Prince, Alan.</strong> 2006. 'Implication & Impossibility in Grammatical
+        Systems'. [ROA-880].
+        </p>
+
+        <p class="citation">
+        <strong>Prince, Alan.</strong> 2007. ‘The pursuit of theory’, in Paul de Lacy (ed.),
+        The Cambridge handbook of phonology, Cambridge University Press,
+        Cambridge, pp. 33-60.
+        </p>
+
+        <p class="citation">
+        <strong>Prince, Alan and Paul Smolensky.</strong> 1993/2004. Optimality Theory:
+        Constraint Interaction in Generative Grammar, Blackwell Publishing,
+        Malden, Massachusetts.
+        </p>
+      </section>
+      <section id="citing">
+        <div class="page-header">
+          <h1>How to cite this website</h1>
+        </div>
+        <p>
+          Please feel free to use this website and any graphics, statistics,
+          or other results in your papers, posters, or other publications. We just ask
+          that you include the following citation as one of your references:
+        </p>
+        <p>
+          <strong>
+            Djalali, Alex J. and Cameron Jeffers. 2014. ‘OTOrder,
+            software package’, Stanford University, http://www.otorder.com.
+          </strong>
+        </p>
+      </section>
+      <!--<section id="contact">-->
+        <!--<div class="page-header">-->
+          <!--<h1>Contact us</h1>-->
+        <!--</div>-->
+        <!--<div class="vert-spacer"></div>-->
+      <!--</section>-->
+    </div>
+  </div>
+</div>
+<div id="bottom-spacer"></div>
 {%- endblock -%}

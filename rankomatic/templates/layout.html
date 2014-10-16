@@ -1,12 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 {%- set uname = session.get('username') -%}
 {%- if uname == "guest" -%}
     {%- set uname = None -%}
 {%- endif -%}
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html lang="en">
   <head>
-    <title>Rank-o-Matic</title>
+    <title>OT Order</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="/static/bootstrap/css/bootstrap.css" type="text/css" rel="stylesheet">
     <link href="/static/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
@@ -14,41 +13,25 @@
     <style>.content {padding-top: 80px;}</style>
     {%- block head -%}{%- endblock -%}
   </head>
-  <body class="{%- if bodyclass -%}{{ bodyclass }}{%- endif -%}">
+  <body class="{%- if bodyclass -%}{{ bodyclass }}{%- endif -%}" data-spy="scroll" data-target=".about-sidebar">
 
     {%- block topbar %}
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <a href="{{ url_for('content.landing') }}" class="brand">Rank-o-Matic</a>
+          <a href="{{ url_for('content.landing') }}" class="brand">OTOrder</a>
           <ul class="nav pull-left">
-            <li class="{%- if active == 'landing' -%}active{%- endif -%}">
-              <a href="{{ url_for('content.landing') }}">Home</a>
+            <li class="{%- if active == 'calculator' -%}active{%- endif -%}" >
+              <a href="{{ url_for('tools.calculator') }}">Calculator</a>
             </li>
-            <li class="dropdown{%- if active == 'calculator' or active == 't-order' %} active{%- endif -%}">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                Tools <b class="caret"></b>
-              </a>
-              <ul class="dropdown-menu">
-                <li class="{%- if active == 'calculator' -%}active{%- endif -%}" >
-                  <a href="{{ url_for('tools.calculator') }}">Constraint Calculator</a>
-                </li>
-                <li class="{%- if active =='t-order' -%}active{%- endif -%}">
-                  <a href="{{ url_for('tools.t_order') }}">T-order Calculator</a>
-                </li>
-              </ul>
-            </li>
-            <li class="{%- if active == 'glossary' -%}active{%- endif -%}">
-              <a href="{{ url_for('content.glossary') }}">Glossary</a>
-            </li>
-            <li class="{%- if active == 'cite' -%}active{%- endif -%}">
-              <a href="{{ url_for('content.cite') }}">Citations</a>
-            </li>
+            <!--<li class="{%- if active == 'glossary' -%}active{%- endif -%}">-->
+              <!--<a href="{{ url_for('content.glossary') }}">Glossary</a>-->
+            <!--</li>-->
+            <!--<li class="{%- if active == 'cite' -%}active{%- endif -%}">-->
+              <!--<a href="{{ url_for('content.cite') }}">Citations</a>-->
+            <!--</li>-->
             <li class="{%- if active == 'about' -%}active{%- endif -%}">
               <a href="{{ url_for('content.about') }}">About</a>
-            </li>
-            <li class="{%- if active == 'contact' -%}active{%- endif -%}">
-              <a href="{{ url_for('content.contact') }}">Contact</a>
             </li>
           </ul>
           {%- if uname -%}
@@ -56,7 +39,7 @@
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome, {{ uname }} <b class="caret"></b></a>
                   <ul class="dropdown-menu" role="menu">
-                    <li><a href="{{ url_for('users.logout') }}">Log out<a></li>
+                    <li><a href="{{ url_for('users.logout') }}">Log out</a></li>
                     <li class="divider"></li>
                     <li><a href="{{ url_for('users.account', username=uname) }}">View account</a></li>
                 </ul>
@@ -87,7 +70,6 @@
         {% block content -%}{%- endblock %}
       </div>
     </div>
-    {% block about %}{% endblock %}
     <script type="text/javascript" src="/static/scripts/handlebars-v1.3.0.js"></script>
     <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
     <script type="text/javascript" src="/static/bootstrap/js/bootstrap.js"></script>

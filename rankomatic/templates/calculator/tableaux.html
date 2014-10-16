@@ -1,9 +1,7 @@
 {%- extends 'layout.html' -%}
 {%- block content %}
 <form action="
-  {%- if t_order -%}
-    {{ url_for('tools.t_order') }}
-  {%- elif edit -%}
+  {%- if edit -%}
     {{ url_for('tools.edit', dset_name=dset_name) }}
   {%- else -%}
     {{ url_for('tools.calculator') }}
@@ -21,8 +19,8 @@
             <th>Constraints:</th>
             <td>
               <div class="btn-group">
-                <button id="add_constraint" class="btn" type="button">+</button>
-                <button id="delete_constraint" class="btn" type="button">-</button>
+                <button id="add_constraint" class="btn has-tooltip" type="button" data-title="Add a constraint">+</button>
+                <button id="delete_constraint" class="btn has-tooltip" type="button" data-title="Delete a constraint">-</button>
               </div>
             </td>
           </tr>
@@ -30,8 +28,8 @@
             <th>Input Groups:</th>
             <td>
               <div class="btn-group">
-                <button id="add_input_group" class="btn" type="button">+</button>
-                <button id="delete_input_group" class="btn" type="button">-</button>
+                <button id="add_input_group" class="btn has-tooltip" type="button" data-title="Add an input group">+</button>
+                <button id="delete_input_group" class="btn has-tooltip" type="button" data-title="Delete an input group">-</button>
               </div>
             </td>
           </tr>
@@ -43,10 +41,10 @@
             <td></td>
             <td>
               <div id="submit-btn-container" class="btn-group-vertical">
-                  <input type="submit" id="calculate_all" class="btn btn-primary" name="submit_button" value="All grammars"></input>
-                  <input type="submit" class="btn btn-secondary" name="submit_button" value="Classical grammars"></input>
+                  <input type="submit" id="calculate_all" class="btn btn-primary has-popover" name="submit_button" value="All grammars" data-trigger="hover" data-title="Calculate all possible grammars" data-content="Calculates all grammars compatible with the dataset, both totally and partially orderd grammars." data-delay="200" data-placement="top" data-container="div#submit-btn-container"></input>
+                  <input type="submit" class="btn btn-secondary has-popover" name="submit_button" value="Classical grammars" data-trigger="hover" data-title="Calculate classical grammars only" data-content="Calculates only the totally-ordered grammars compatible with the dataset, as in classical Optimality Theory." data-delay="200" data-placement="bottom" data-container="div#submit-btn-container"></input>
                   {%- if edit -%}
-                  <input type="submit" class="btn btn-danger" name="submit_button" value="Cancel editing"></input>
+                  <input type="submit" class="btn btn-danger has-tooltip" name="submit_button" value="Cancel editing" data-title="...and return to account page" data-placement="bottom" data-container="div#submit-btn-container"></input>
                   {%- endif -%}
               </div>
             </td>
@@ -96,8 +94,8 @@
                     {%- endfor -%}
                     <td class="borderless">
                       <div class="btn-group">
-                        <button class="btn btn-small add_output" type=button title="Add an output to this input group">+</button>
-                        <button class="btn btn-small delete_output" type=button title="Delete an output from this input group">-</button>
+                        <button class="btn btn-small add_output has-tooltip" type=button data-placement="left" data-title="Add a candidate to this input group" data-container="tr">+</button>
+                        <button class="btn btn-small delete_output has-tooltip" type=button data-placement="right" data-title="Delete a candidate from this input group" data-container="tr">-</button>
                       </div>
                     </td>
                   </tr>

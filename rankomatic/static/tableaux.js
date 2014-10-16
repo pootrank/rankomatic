@@ -210,6 +210,8 @@
         row.find('.add_output').click(add_output_row);
         row.find('.delete_output').click(delete_output_row);
         row.find('input[name$="inp"]').change(update_output_rows);
+
+        $('.has-tooltip').tooltip();
     }
 
     /*
@@ -349,4 +351,6 @@
         resize_input_to_value(this, "");
     });
     equalize_column_widths();
+    $('.has-popover').popover();
+    $('.has-tooltip').tooltip();
 })(this, this.document);

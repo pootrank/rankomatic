@@ -219,3 +219,7 @@ body.simple-form {
 #head_table {
     margin-bottom: 2px;
 }
+
+#bottom-spacer {
+    height: 480px;
+}

@@ -10,4 +10,8 @@
     <tr><td>Classical</td><td>{{ num_cots }}</td><td>{{ num_total_cots }}</td><td>{{ '%0.2f' % percent_cots }}</td></tr>
   </tbody>
 </table>
-<a class="btn btn-primary" href="{{ url_for('grammars.entailments', dset_name=dset_name) }}">Global entailments</a>
+<div class="btn-group">
+  <button class="btn btn-primary disabled">Grammars</button>
+  <a class="btn btn-success" href="{{ url_for('grammars.entailments', dset_name=dset_name) }}">Global entailments</a>
+</div>
+<a class="btn btn-info" href="{{ url_for('tools.edit', dset_name=dset_name) }}">Edit dataset</a>

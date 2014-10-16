@@ -1,43 +1,43 @@
 {%- extends 'layout.html' -%}
 {%- block content -%}
 <h2>Datasets belonging to {{ user.username }}</h2>
-  <table class="table">
-      <thead>
-        <!--<tr>-->
-          <!--<th>Name</th>-->
-          <!--<th>Edit</th>-->
-          <!--<th>View</th>-->
-        <!--</tr>-->
-      </thead>
-      <tbody>
-        {%- for dset in dsets -%}
-        <tr id="{{ dset.name|urlencode }}">
-          <td class="lead dset_name">{{ dset.name }}</td>
-          <td>
-            <div class="btn-group">
-              <a href="{{url_for('grammars.grammars', dset_name=dset.name, sort_value=0, page=0, classical=dset.classical, sort_by='rank_volume')}}" class="btn btn-primary">Grammars</a>
-              <a href="/{{dset.name|urlencode}}/entailments/" class="btn btn-info">Entailments</a>
-              <a href="{{url_for('grammars.stat_profile', dset_name=dset.name)}}" class="btn btn-success">Stat profiles</a>
-            </div>
-          </td>
-          <td class="edit">
-            <span class="btn-group">
-              <a href="/{{dset.name|urlencode}}/edit" class="btn btn-primary">Edit</a>
-              <a href="/{{dset.name|urlencode}}/edit_copy" class="btn btn-warning">Copy</a>
-              <a href="#" class="btn btn-danger delete">Delete</a>
-            </span>
-            <span class="initially_hidden">
-              <p>Are you sure?</p>
-              <span class="btn-group">
-                <a class="btn yes" href="#">Yes</a>
-                <a class="btn no btn-primary" href="#">No</a>
-              </span>
-            </span>
-          </td>
-        </tr>
-        {%- endfor -%}
-      </tbody>
-  </table>
+<table class="table">
+  <thead>
+    <tr>
+      <th>
+        <a class="btn btn-primary" href="{{ url_for('tools.calculator') }}">New dataset</a>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {%- for dset in dsets -%}
+    <tr id="{{ dset.name|urlencode }}">
+      <td class="lead dset_name">{{ dset.name }}</td>
+      <td>
+        <div class="btn-group">
+          <a href="{{url_for('grammars.grammars', dset_name=dset.name, sort_value=0, page=0, classical=dset.classical, sort_by='rank_volume')}}" class="btn btn-primary">Grammars</a>
+          <a href="/{{dset.name|urlencode}}/entailments/" class="btn btn-success">Entailments</a>
+          <!--<a href="{{url_for('grammars.stat_profile', dset_name=dset.name)}}" class="btn btn-success">Stat profiles</a>-->
+        </div>
+      </td>
+      <td class="edit">
+        <span class="btn-group">
+          <a href="/{{dset.name|urlencode}}/edit" class="btn btn-info">Edit</a>
+          <a href="/{{dset.name|urlencode}}/edit_copy" class="btn btn-warning">Copy</a>
+          <a href="#" class="btn btn-danger delete">Delete</a>
+        </span>
+        <span class="initially_hidden">
+          <p>Are you sure?</p>
+          <span class="btn-group">
+            <a class="btn yes" href="#">Yes</a>
+            <a class="btn no btn-primary" href="#">No</a>
+          </span>
+        </span>
+      </td>
+    </tr>
+    {%- endfor -%}
+  </tbody>
+</table>
 
 {% raw %}
 <script type="text/x-handlebars-template" id="alert_template">
