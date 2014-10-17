@@ -19,12 +19,12 @@
               <i class="icon-chevron-right"></i>
             </a>
           </li>
-          <!--<li>-->
-            <!--<a href="#howto">-->
-              <!--How To-->
-              <!--<i class="icon-chevron-right"></i>-->
-            <!--</a>-->
-          <!--</li>-->
+          <li>
+            <a href="#howto">
+              How To
+              <i class="icon-chevron-right"></i>
+            </a>
+          </li>
           <!--<li>-->
             <!--<a href="#glossary">-->
               <!--Glossary-->
@@ -71,7 +71,7 @@
           <p>
             In classical OT, only one candidate can be optimal. In partial
             order OT, multiple candidates can be optimal. This is useful for
-            modelling variation. For example, multiple outputs appear for a given input
+            modelling variation. For example: for a given input, multiple outputs may appear
             in the same dialect (e.g. multiple pronunciations of "data").
           </p>
         <h3>Finding all grammars</h3>
@@ -138,12 +138,61 @@
             and users are encouraged to download them for use in publications.
           </p>
       </section>
-      <!--<section id="howto">-->
-        <!--<div class="page-header">-->
-          <!--<h1>How to use this website<h1>-->
-        <!--</div>-->
-        <!--<div class="vert-spacer"></div>-->
-      <!--</section>-->
+      <section id="howto">
+        <div class="page-header">
+          <h1>How to use this website</h1>
+        </div>
+        <h3>Calculator</h3>
+          Begin by going to <a href="{{ url_for('tools.calculator') }}">the calculator page</a> and entering a dataset. Enter inputs, outputs, constraints, and the
+          number of violations each candidate has on each constraint. Any of the violation boxes that are left empty default to 0. You can also choose a title for your dataset
+          by typing in the "Dataset Title" box. If you do not specify a title, a random string will be chosen for the title of your dataset. Once you have finished editing,
+          choose "All grammars" or "Classical grammars", depending on whether you want only the totally-ordered grammars (as in classical OT) or all the grammars, partially- and
+          totally-ordered. Once you click to choose, you will be redirected to the grammars page.
+        <h3>Grammars</h3>
+          The grammars page may take a few minutes to load, as it calculates the compatible grammars for your dataset. Once it has finished loading, you will see several things:
+            <h4>Global statistics</h4>
+              A chart with global statistics, that displays the numbers of partial and classical grammars that are compatible with your dataset, along with the total number of
+              possible grammars of each type and the percentage of possible grammars that are compatible with your data.
+              <p></p><p>
+              Beneath this chart is a set of links to global entailments and to edit the dataset.
+              </p>
+            <h4>Grammar navigation</h4>
+              At the bottom of the page the compatible grammars will be displayed, along with some controls to navigate the set of grammars. There is a selector box to choose
+              the measure of complexity by which the grammars are sorted. The options are ranking volume and grammar size, and the default is ranking volume. In either case,
+              the simplest (smallest size or largest ranking volume) grammars are displayed initially. Changing the sorting key causes the grammars to be recalculated and
+              re-sorted. Below the selection box is a row of numbered buttons, with the rightmost button depressed. The numbers depend on the sorting key. If the grammars are
+              sorted by size, clicking on a number will display the grammars of that size. If they are sorted by ranking volume, clicking on a number will display all the
+              grammars with that ranking volume. If there are too many grammars to display on one page, the "Prev" and "Next" buttons can be used to navigate further.
+            <h4>Grammars</h4>
+              Finally, the grammars themselves will be displayed at the bottom of the page. For each grammar, the set notation will be displayed on top. Every ordered pair
+              <i>(C<sub>1</sub>, C<sub>2</sub>)</i> in the set denotes that <i>C<sub>1</sub></i> outranks <i>C<sub>2</sub></i>. On the left is a graphic visualization of
+              the grammar, where each node is a constraint, and an arrow from <i>C<sub>1</sub></i> to <i>C<sub>2</sub></i> denotes that <i>C<sub>1</sub></i> outranks
+              <i>C<sub>2</sub></i>. On the right is a table with statistics for that grammar. For each output in an input group, the number and percentage of that grammar's
+              compatible total orders that cause it to win are displayed. In other words, each candidate's ranking volume is displayed. The distribution of percentages gives an
+              empirically falsifiable prediction of variation for that grammar.
+              <p></p><p>
+              Click on the "Global entailments" link under the global statistics, which will redirect you to another page.
+              </p>
+        <h3>Entailments</h3>
+          The global entailments page may take a few minutes to load, and once it has loaded it displays a few navigation links and a graph of all the global entailments for
+          your dataset. In the graph, each node represents an input-output pair (candidate). If multiple candidates are listed in one node, they are part of an entailment cycle
+          in which each candidate entails each other candidate in the cycle. They are therefore functionally equivalent, and can be listed in a single node. An arrow from node
+          <i>N<sub>1</sub></i> to <i>N<sub>2</sub></i> indicates that all the candidates listed in <i>N<sub>1</sub></i> entail the candidates in <i>N<sub>2</sub></i>.
+          Entailments are transitive, so everything entailed by the candidates in <i>N<sub>2</sub></i> is also entailed by <i>N<sub>2</sub></i>. Click on the "Edit dataset"
+          link.
+        <h3>Saving</h3>
+          If you are not logged in, attempting to edit your dataset will redirect you to a login page. Log in, if you would like to save the work on your dataset and be able to
+          edit and come back to it in the future. If you do not have an account, click on the "Create one" link at the bottom of the page. Logging in will automatically save the
+          dataset to your account. After logging in, you will be able to edit your dataset as often as you would like, experimenting with how changes affect changes to the
+          compatible grammars and global entailments.
+        <h3>Account</h3>
+          To view the list of your datasets, log in and click on your username in the upper right hand corner. From the dropdown menu, click on "View account". This redirect you
+          to your account page, where you can see all of your datasets. For each dataset, there are links to the grammars and entailments, and buttons to edit, copy, or delete
+          the dataset. Copying the dataset creates an exact copy which you can edit, if you would like to have multiple variations of the same dataset without re-entering from
+          scratch.
+        <p></p>
+        <p>Good luck and enjoy!</p>
+      </section>
       <!--<section id="glossary">-->
         <!--<div class="page-header">-->
           <!--<h1>Glossary</h1>-->

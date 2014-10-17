@@ -30,6 +30,7 @@ input#name {
     margin-right: auto;
     margin-bottom: 50px;
     height: 60px;
+    line-height: 60px;
     width: 400px;
     font-size: 250%;
 }
