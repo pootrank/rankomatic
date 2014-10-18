@@ -25,12 +25,12 @@
               <i class="icon-chevron-right"></i>
             </a>
           </li>
-          <!--<li>-->
-            <!--<a href="#glossary">-->
-              <!--Glossary-->
-              <!--<i class="icon-chevron-right"></i>-->
-            <!--</a>-->
-          <!--</li>-->
+          <li>
+            <a href="#glossary">
+              Glossary
+              <i class="icon-chevron-right"></i>
+            </a>
+          </li>
           <li>
             <a href="#references">
               References
@@ -69,16 +69,15 @@
         </div>
         <h3>Number of optimal candidates</h3>
           <p>
-            In classical OT, only one candidate can be optimal. In partial
-            order OT, multiple candidates can be optimal. This is useful for
+            In classical OT, only one <a href="#def-candidate">candidate</a> can be optimal. In Partial
+            Order OT, multiple candidates can be optimal. This is useful for
             modelling variation. For example: for a given input, multiple outputs may appear
             in the same dialect (e.g. multiple pronunciations of "data").
           </p>
         <h3>Finding all grammars</h3>
           <p>
-            Most learning algorithms can find a single grammar that is compatible with
-            the data. OTOrder finds all the grammars compatible with the data. This is
-            made possible by the algorithm described in Djalali 2013.
+            Most learning algorithms can find a single <a href="#def-grammar">grammar</a> that is compatible with the data. OTOrder finds all the grammars compatible with the
+            data. This is made possible by the algorithm described in Djalali 2013.
           </p>
         <h3>Complexity</h3>
           <p>
@@ -88,26 +87,17 @@
           </p>
           <ol>
             <li>
-              <strong>Grammar size.</strong> Since a grammar is an ordering of
-              the constraints, it can be expressed as a set of ordered pairs.
-              One pair <i>(C<sub>1</sub>, C<sub>2</sub>)</i> means that
-              <i>C<sub>1</sub></i> dominates <i>C<sub>2</sub></i>. Grammar size
-              refers to the number of such ordered pairs, or rankings, present in
-              the given grammar. Larger grammars are more complicated than smaller
-              grammars, as they are more restrictive and contain more information.
+              <strong><a href="#def-grammar-size">Grammar size.</a></strong> Since a grammar is an ordering of the constraints, it can be expressed as a set of ordered pairs.
+              One pair <i>(C<sub>1</sub>, C<sub>2</sub>)</i> means that <i>C<sub>1</sub></i> dominates <i>C<sub>2</sub></i>. Grammar size refers to the number of such ordered
+              pairs, or rankings, present in the given grammar. Larger grammars are more complicated than smaller grammars, as they are more restrictive and contain more
+              information.
             </li>
             <li>
-              <strong>Ranking volume.</strong> Each grammar is a partial order of
-              the set of constraints, and every partial order is compatible with
-              a certain number of total orders. This number is the ranking volume
-              of that grammar. For example, given the constraints
-              <i>C<sub>1</sub>, C<sub>2</sub></i>, and <i>C<sub>3</sub></i> and the
-              partial order {<i>C<sub>1</sub></i> &raquo; <i>C<sub>3</sub></i>,
-              <i>C<sub>2</sub></i> &raquo; <i>C<sub>3</sub></i>}, there are two
-              total orders that are compatible. They are <i>C<sub>1</sub></i> &raquo;
-              <i>C<sub>2</sub></i> &raquo; <i>C<sub>3</sub></i> and <i>C<sub>2</sub></i>
-              &raquo; <i>C<sub>1</sub></i> &raquo; <i>C<sub>3</sub></i>. The original
-              grammar has a ranking volume of size two.
+              <strong><a href="#def-ranking-volume">Ranking volume.</a></strong> Each grammar is a partial order of the set of constraints, and every partial order is compatible
+              with a certain number of total orders. This number is the ranking volume of that grammar. For example, given the constraints <i>C<sub>1</sub>, C<sub>2</sub></i>, and
+              <i>C<sub>3</sub></i> and the partial order {<i>C<sub>1</sub></i> &raquo; <i>C<sub>3</sub></i>, <i>C<sub>2</sub></i> &raquo; <i>C<sub>3</sub></i>}, there are two total
+              orders that are compatible. They are <i>C<sub>1</sub></i> &raquo; <i>C<sub>2</sub></i> &raquo; <i>C<sub>3</sub></i> and <i>C<sub>2</sub></i> &raquo;
+              <i>C<sub>1</sub></i> &raquo; <i>C<sub>3</sub></i>. The original grammar has a ranking volume of size two.
             </li>
           </ol>
           <h4>A note on statistics</h4>
@@ -125,11 +115,9 @@
           </p>
         <h3>Global entailments</h3>
           <p>
-            OTOrder also finds entailments between input-output pairs
-            (candidates), i.e. implicational universals. We refer to these as
-            global entailments. These are useful for exploring linguistic
-            typologies. If a certain candidate wins, i.e. is present in a language,
-            what other candidates are guaranteed to also be present in the language?
+            OTOrder also finds entailments between input-output pairs (candidates), i.e. implicational universals. We refer to these as <a href="#def-global-entailments">global
+            entailments</a>. These are useful for exploring linguistic typologies. If a certain <a href="#def-candidate">candidate</a> wins, i.e. is present in a language, what
+            other candidates are guaranteed to also be present in the language?
           </p>
         <h3>Visualizing graphs</h3>
           <p>
@@ -143,62 +131,219 @@
           <h1>How to use this website</h1>
         </div>
         <h3>Calculator</h3>
-          Begin by going to <a href="{{ url_for('tools.calculator') }}">the calculator page</a> and entering a dataset. Enter inputs, outputs, constraints, and the
-          number of violations each candidate has on each constraint. Any of the violation boxes that are left empty default to 0. You can also choose a title for your dataset
-          by typing in the "Dataset Title" box. If you do not specify a title, a random string will be chosen for the title of your dataset. Once you have finished editing,
-          choose "All grammars" or "Classical grammars", depending on whether you want only the totally-ordered grammars (as in classical OT) or all the grammars, partially- and
-          totally-ordered. Once you click to choose, you will be redirected to the grammars page.
+          Begin by going to <a href="{{ url_for('tools.calculator') }}">the calculator page</a> and entering a <a href="#def-dataset">dataset</a>. Enter inputs, outputs, constraints,
+          and the number of violations each candidate has on each constraint. Any of the violation boxes that are left empty default to 0. You can also choose a title for your
+          dataset by typing in the "Dataset Title" box. If you do not specify a title, a random string will be chosen for the title of your dataset. Once you have finished
+          editing, choose "All grammars" or "Classical grammars", depending on whether you want only the totally-ordered <a href="#def-grammar">grammars</a> (as in classical OT)
+          or all the grammars, partially- and totally-ordered. Once you click to choose, you will be redirected to the grammars page.
         <h3>Grammars</h3>
-          The grammars page may take a few minutes to load, as it calculates the compatible grammars for your dataset. Once it has finished loading, you will see several things:
-            <h4>Global statistics</h4>
-              A chart with global statistics, that displays the numbers of partial and classical grammars that are compatible with your dataset, along with the total number of
-              possible grammars of each type and the percentage of possible grammars that are compatible with your data.
-              <p></p><p>
-              Beneath this chart is a set of links to global entailments and to edit the dataset.
-              </p>
-            <h4>Grammar navigation</h4>
-              At the bottom of the page the compatible grammars will be displayed, along with some controls to navigate the set of grammars. There is a selector box to choose
-              the measure of complexity by which the grammars are sorted. The options are ranking volume and grammar size, and the default is ranking volume. In either case,
-              the simplest (smallest size or largest ranking volume) grammars are displayed initially. Changing the sorting key causes the grammars to be recalculated and
-              re-sorted. Below the selection box is a row of numbered buttons, with the rightmost button depressed. The numbers depend on the sorting key. If the grammars are
-              sorted by size, clicking on a number will display the grammars of that size. If they are sorted by ranking volume, clicking on a number will display all the
-              grammars with that ranking volume. If there are too many grammars to display on one page, the "Prev" and "Next" buttons can be used to navigate further.
-            <h4>Grammars</h4>
-              Finally, the grammars themselves will be displayed at the bottom of the page. For each grammar, the set notation will be displayed on top. Every ordered pair
-              <i>(C<sub>1</sub>, C<sub>2</sub>)</i> in the set denotes that <i>C<sub>1</sub></i> outranks <i>C<sub>2</sub></i>. On the left is a graphic visualization of
-              the grammar, where each node is a constraint, and an arrow from <i>C<sub>1</sub></i> to <i>C<sub>2</sub></i> denotes that <i>C<sub>1</sub></i> outranks
-              <i>C<sub>2</sub></i>. On the right is a table with statistics for that grammar. For each output in an input group, the number and percentage of that grammar's
-              compatible total orders that cause it to win are displayed. In other words, each candidate's ranking volume is displayed. The distribution of percentages gives an
-              empirically falsifiable prediction of variation for that grammar.
-              <p></p><p>
-              Click on the "Global entailments" link under the global statistics, which will redirect you to another page.
-              </p>
+          The grammars page may take a few minutes to load, as it calculates the compatible <a href="#def-grammar">grammars</a> for your <a href="#def-dataset">dataset</a>. Once it
+          has finished loading, you will see several things:
+          <h4>Global statistics</h4>
+            A chart with global statistics, that displays the numbers of partial and classical grammars that are compatible with your dataset, along with the total number of
+            possible grammars of each type and the percentage of possible grammars that are compatible with your data.
+            <p></p><p>
+            Beneath this chart is a set of links to global entailments and to edit the dataset.
+            </p>
+          <h4>Grammar navigation</h4>
+            At the bottom of the page the compatible <a href="#def-grammar">grammars</a> will be displayed, along with some controls to navigate the set of grammars. There is a selector box to choose
+            the measure of complexity by which the grammars are sorted. The options are <a href="#def-ranking-volume">ranking volume</a> and <a href="#def-grammar-size">grammar
+            size</a>, and the default is ranking volume. In either case, the simplest (smallest size or largest ranking volume) grammars are displayed initially. Changing the
+            sorting key causes the grammars to be recalculated and re-sorted. Below the selection box is a row of numbered buttons, with the rightmost button depressed. The
+            numbers depend on the sorting key. If the grammars are sorted by size, clicking on a number will display the grammars of that size. If they are sorted by ranking
+            volume, clicking on a number will display all the grammars with that ranking volume. If there are too many grammars to display on one page, the "Prev" and "Next"
+            buttons can be used to navigate further.
+          <h4>Grammars</h4>
+          Finally, the <a href="#def-grammar">grammars</a> themselves will be displayed at the bottom of the page. For each grammar, the set notation will be displayed on top.
+          Every ordered pair <i>(C<sub>1</sub>, C<sub>2</sub>)</i> in the set denotes that <i>C<sub>1</sub></i> outranks <i>C<sub>2</sub></i>. On the left is a graphic
+          visualization of the grammar, where each node is a constraint, and an arrow from <i>C<sub>1</sub></i> to <i>C<sub>2</sub></i> denotes that <i>C<sub>1</sub></i> outranks
+          <i>C<sub>2</sub></i>. On the right is a table with statistics for that grammar. For each output in an <a href="#def-input-group">input group</a>, the number and
+          percentage of that grammar's compatible total orders that cause it to win are displayed. In other words, each <a href="#def-candidate">candidate</a>'s ranking volume is
+          displayed. The distribution of percentages gives an empirically falsifiable prediction of variation for that grammar.
+          <p></p><p>Click on the "Global entailments" link under the global statistics, which will redirect you to another page.</p>
         <h3>Entailments</h3>
-          The global entailments page may take a few minutes to load, and once it has loaded it displays a few navigation links and a graph of all the global entailments for
-          your dataset. In the graph, each node represents an input-output pair (candidate). If multiple candidates are listed in one node, they are part of an entailment cycle
-          in which each candidate entails each other candidate in the cycle. They are therefore functionally equivalent, and can be listed in a single node. An arrow from node
-          <i>N<sub>1</sub></i> to <i>N<sub>2</sub></i> indicates that all the candidates listed in <i>N<sub>1</sub></i> entail the candidates in <i>N<sub>2</sub></i>.
-          Entailments are transitive, so everything entailed by the candidates in <i>N<sub>2</sub></i> is also entailed by <i>N<sub>2</sub></i>. Click on the "Edit dataset"
-          link.
+          The <a href="#def-global-entailments">global entailments</a> page may take a few minutes to load, and once it has loaded it displays a few navigation links and a graph
+          of all the global entailments for your dataset. In the graph, each node represents an <a href="#def-candidate">input-output pair (candidate)</a>. If multiple candidates
+          are listed in one node, they are part of an entailment cycle in which each candidate entails each other candidate in the cycle. They are therefore functionally
+          equivalent, and can be listed in a single node. An arrow from node <i>N<sub>1</sub></i> to <i>N<sub>2</sub></i> indicates that all the candidates listed in
+          <i>N<sub>1</sub></i> entail the candidates in <i>N<sub>2</sub></i>. Entailments are transitive, so everything entailed by the candidates in <i>N<sub>2</sub></i> is also
+          entailed by <i>N<sub>2</sub></i>. Click on the "Edit dataset" link.
         <h3>Saving</h3>
-          If you are not logged in, attempting to edit your dataset will redirect you to a login page. Log in, if you would like to save the work on your dataset and be able to
-          edit and come back to it in the future. If you do not have an account, click on the "Create one" link at the bottom of the page. Logging in will automatically save the
-          dataset to your account. After logging in, you will be able to edit your dataset as often as you would like, experimenting with how changes affect changes to the
-          compatible grammars and global entailments.
+          If you are not logged in, attempting to edit your <a href="#def-dataset">dataset</a> will redirect you to a login page. Log in, if you would like to save the work on
+          your dataset and be able to edit and come back to it in the future. If you do not have an account, click on the "Create one" link at the bottom of the page. Logging in
+          will automatically save the dataset to your account. After logging in, you will be able to edit your dataset as often as you would like, experimenting with how changes
+          affect changes to the compatible <a href="#def-grammar">grammars</a> and <a href="#def-global-entailments">global entailments</a>.
         <h3>Account</h3>
-          To view the list of your datasets, log in and click on your username in the upper right hand corner. From the dropdown menu, click on "View account". This redirect you
-          to your account page, where you can see all of your datasets. For each dataset, there are links to the grammars and entailments, and buttons to edit, copy, or delete
-          the dataset. Copying the dataset creates an exact copy which you can edit, if you would like to have multiple variations of the same dataset without re-entering from
-          scratch.
+          To view the list of your <a href="#def-dataset">datasets</a>, log in and click on your username in the upper right hand corner. From the dropdown menu, click on "View
+          account". This redirect you to your account page, where you can see all of your datasets. For each dataset, there are links to the <a href="#def-grammar">grammars</a>
+          and <a href="#def-global-entailments">entailments</a>, and buttons to edit, copy, or delete the dataset. Copying the dataset creates an exact copy which you can edit,
+          if you would like to have multiple variations of the same dataset without re-entering from scratch.
         <p></p>
         <p>Good luck and enjoy!</p>
       </section>
-      <!--<section id="glossary">-->
-        <!--<div class="page-header">-->
-          <!--<h1>Glossary</h1>-->
-        <!--</div>-->
-        <!--<div class="vert-spacer"></div>-->
-      <!--</section>-->
+      <section id="glossary">
+        <div class="page-header">
+          <h1>Glossary</h1>
+        </div>
+        <div id="def-grammar">
+          <h2 class="term">Grammar</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            A ranking of constraints. Under classical Optimality Theory, this must be a total ranking, under Partial Order Optimality Theory it can be any strict partial order.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            In Optimality Theory, a grammar is simply a strict ranking of constraints. Under classical Optimality Theory, this ranking has to be a total order. This means that each
+            constraint has to be ranked relative to every other constraint. There can be no ties, so the graph of a total ranking looks like a straight line. However, under Partial
+            Order Optimality Theory, the constraints can be ranked in any strict partial order. Formally, this means that not every constraint needs to be ranked with respect to
+            every other constraint. In other words, there can be ties, so a graph might have branches or constraints floating by themselves, if they are not ranked with respect to
+            any other constraint.
+          </p>
+        </div>
+        <div id="def-grammar-size">
+          <h2 class="term">Grammar size</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            The total number of pairwise rankings in the <a href="#def-grammar">grammar</a>.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            Each <a href="#def-grammar">grammar</a> is a ranking, and a ranking can be represented as a set of ordered pairs, where each pair (A, B) says A is ranked over B. These sets are closed under
+            transitivity, which just means that if (A, B) and (B, C) are in the set, then (A, C) has to be in the set as well. The grammar size refers to the number of ordered
+            pairs in the set.
+          </p>
+        </div>
+        <div id="def-ranking-volume">
+          <h2 class="term">Ranking volume</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            Given a ranking, the number of totally-ordered rankings compatible with that ranking.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            Any partial ranking has a certain number of total rankings that it is compatible with. Here are some simple examples:
+            <table class="table-condensed table">
+              <thead>
+                <tr>
+                  <th>Constraints</th>
+                  <th>Partial ranking</th>
+                  <th>Total rankings</th>
+                  <th>Ranking volume</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>A, B, C</td>
+                  <td>
+                    A &raquo; C <br />
+                    B &raquo; C
+                  </td>
+                  <td>
+                    A &raquo; B &raquo; C <br />
+                    B &raquo; A &raquo; C
+                  </td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td>A, B, C</td>
+                  <td>B &raquo; C</td>
+                  <td>
+                    A &raquo; B &raquo; C <br />
+                    B &raquo; A &raquo; C <br />
+                    B &raquo; C &raquo; A
+                  </td>
+                  <td>3</td>
+                </tr>
+                <tr>
+                  <td>A, B, C</td>
+                  <td><small>(no rankings)</small></td>
+                  <td>
+                    A &raquo; B &raquo; C,  A &raquo; C &raquo; B <br />
+                    B &raquo; A &raquo; C,  C &raquo; A &raquo; B <br />
+                    B &raquo; C &raquo; A,  C &raquo; B &raquo; A
+                  </td>
+                  <td>6</td>
+                </tr>
+                <tr>
+                  <td>A, B, C</td>
+                  <td>A &raquo; B &raquo; C</td>
+                  <td>A &raquo; B &raquo; C</td>
+                  <td>1</td>
+                </tr>
+              </tbody>
+            </table>
+            Notice a couple of things from this table. In general, when the number of rankings in the partial ranking increases, the ranking volume decreases. One extreme is the
+            empty partial ranking, which is compatible with all possible total rankings (in this case, 6). The other extreme is when the partial ranking is also a total ranking.
+            In this case, there is only one compatible total ranking (the partial ranking itself), so it has a ranking volume of 1.
+          </p>
+        </div>
+        <div id="def-dataset">
+          <h2 class="term">Dataset</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            A set of <a href="#def-candidate">candidates</a> with their <a href="#def-violation-vector">violation vectors</a> and whether or not they are optimal, and a list of
+            constraints.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            A dataset is the basic unit of data. It consists essentially of one or more <a href="#def-input-group">input groups</a> and a list of constraints. If you create an
+            account, you can save, copy, and edit your datasets. You can view the <a href="#def-grammar">grammars</a> or <a href="#def-global-entailments">entailments</a> for a
+            dataset, edit the number and names of the constraints, change its title, and edit anything about the input groups.
+          </p>
+        </div>
+        <div id="def-input-group">
+          <h2 class="term">Input group</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            A group of <a href="#def-candidate">candidates</a> that have the same input.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            In Optimality Theory, each input can have multiple possible outputs. Although for the purposes of our ranking algorithm every candidate is formally independent from
+            every other candidate, it can be helpful to group them based on the input. These groups are referred to as input groups.
+          </p>
+        </div>
+        <div id="def-candidate">
+          <h2 class="term">Candidate</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            An input-output pair.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            Every input may have several outputs, and it is possible for distinct inputs to have common outputs. A candidate is a unique pairing of an input with an output. We
+            sometimes refer to a candidate as including whether or not the output can be optimal, along with the <a href="#def-violation-vector">violation vector</a>.
+          </p>
+        </div>
+        <div id="def-violation-vector">
+          <h2 class="term">Violation vector</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            Given a <a href="#def-candidate">candidate</a> and a list of constraints, an ordered list of the number of violations the output incurs on each constraint.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            Given an input, an output, and a constraint, it is straightforward to determine the number of times the output violates the constraint, for the input. In classical OT
+            tableaux this is the number of asterisks in the cell for the <a href="#def-candidate">candidate</a> and the constraint. If, rather than a single constraint, we have a
+            list of them, the violation vector is a list of the number of violations (in the same order as the list of constraints).
+          </p>
+        </div>
+        <div id="def-global-entailments">
+          <h2 class="term">Global entailments</h2>
+          <p class="summary">
+            <h3>Summary</h3>
+            One <a href="#def-candidate">candidate</a> is said to globally entail another if every <a href="#def-grammar">grammar</a> that makes the first candidate optimal also
+            makes the second candidate optimal.
+          </p>
+          <p class="in-depth">
+            <h3>In Depth</h3>
+            For every <a href="#def-candidate">candidate</a>, there are a certain number of <a href="#def-grammar">grammars</a> that will make it optimal for its input. If every
+            single one of those grammars also makes a second candidate optimal for its input, then the first grammar entails the second candidate. Under classical OT, only one
+            candidate per input can be optimal, so candidates can only entail candidates with different inputs. However, under Partial Order OT, candidates with the same input
+            can potentially entail or be entailed by each other. We take all of the global entailments for a <a href="#def-dataset">dataset</a> and visualize them as a graph.
+          </p>
+        </div>
+      </section>
       <section id="references">
         <div class="page-header">
           <h1>References</h1>

@@ -77,6 +77,13 @@ div.vert-spacer {
   height: 500px;
   background-color: blue;
 }
+.term:before {
+  display: block;
+  content: " ";
+  margin-top: -41px;
+  height: 41px;
+  visibility: hidden;
+}
 
 /*
  * Bibliography stuff
