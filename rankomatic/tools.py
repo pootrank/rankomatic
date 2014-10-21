@@ -217,9 +217,47 @@ class TOrderView(MethodView):
                                    active='t-order')
 
 
+class ExampleEditView(MethodView):
+
+    def get(self):
+        return render_template('tableaux.html', dset_name="Kiparsky",
+                               form=_get_form_from_dset_name("Kiparsky"),
+                               active='calculator', t_order=False, edit=False,
+                               example=True, js_includes=['example_edit.js'])
+
+    def post(self):
+        form = TableauxForm(request.form)
+        submit = request.form['submit_button']
+        if not form.validate_for_editing():
+            for e in form.get_errors():
+                flash(e)
+            return render_template('tableaux.html', form=form,
+                                   active='calculator', t_order=False,
+                                   dset_name="Kiparsky", edit=True)
+        else:
+            dset = Dataset(data=form.data, data_is_from_form=True)
+            dset.remove_old_files()
+            dset.user = get_username()
+            dset.name = dset.name + '-tmp-' + _make_random_dset_name()
+            dset.id = None
+            if submit == "All grammars":
+                dset.classical = False
+            else:
+                dset.classical = True
+            redirect_url = url_for('grammars.grammars',
+                                    dset_name=dset.name, sort_value=0,
+                                    page=0, classical=dset.classical,
+                                    sort_by='rank_volume')
+            dset.save()
+            if get_username() == "guest":
+                _prepare_to_change_dset_user(dset)
+            return redirect(redirect_url)
+
 tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
 tools.add_url_rule('/t-order/', view_func=TOrderView.as_view('t_order'))
 tools.add_url_rule('/<dset_name>/edit/', view_func=EditView.as_view('edit'))
 tools.add_url_rule('/<dset_name>/edit_copy',
                    view_func=EditCopyView.as_view('edit_copy'))
+tools.add_url_rule('/example_edit/',
+                   view_func=ExampleEditView.as_view('example_edit'))

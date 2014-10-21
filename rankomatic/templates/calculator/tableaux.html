@@ -1,13 +1,25 @@
 {%- extends 'layout.html' -%}
 {%- block content %}
 <form action="
-  {%- if edit -%}
+  {%- if example -%}
+    {{ url_for('tools.example_edit') }}
+  {%- elif edit -%}
     {{ url_for('tools.edit', dset_name=dset_name) }}
   {%- else -%}
     {{ url_for('tools.calculator') }}
   {%- endif -%}" method="POST">
   <div class="row">
-    {%- if edit -%}
+    {%- if example -%}
+    <h2>Example dataset.</h2>
+    <p>
+      Feel free to make changes and check out the grammars and entailments.
+      {%- if uname -%}
+        Changes will be saved to your account when you click to view grammars.
+      {% else %}
+        Changes can be saved by logging in or creating an account after viewing the grammars.
+      {%- endif -%}
+    </p>
+    {%- elif edit -%}
     <h2>Editing...</h2>
     {%- endif -%}
     <div class="span12">
@@ -107,7 +119,6 @@
             {%- endfor %}
           </table>
           </div>
-
         </fieldset>
       </div>
     </div>

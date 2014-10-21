@@ -24,12 +24,6 @@
             <li class="{%- if active == 'calculator' -%}active{%- endif -%}" >
               <a href="{{ url_for('tools.calculator') }}">Calculator</a>
             </li>
-            <!--<li class="{%- if active == 'glossary' -%}active{%- endif -%}">-->
-              <!--<a href="{{ url_for('content.glossary') }}">Glossary</a>-->
-            <!--</li>-->
-            <!--<li class="{%- if active == 'cite' -%}active{%- endif -%}">-->
-              <!--<a href="{{ url_for('content.cite') }}">Citations</a>-->
-            <!--</li>-->
             <li class="{%- if active == 'about' -%}active{%- endif -%}">
               <a href="{{ url_for('content.about') }}">About</a>
             </li>
@@ -75,6 +69,9 @@
     <script type="text/javascript" src="/static/bootstrap/js/bootstrap.js"></script>
     <script type="text/javascript" src="/static/util.js"></script>
     <script type="text/javascript" src="http://fgnass.github.io/spin.js/spin.min.js"></script>
+    {%- for to_include in js_includes -%}
+    <script type="text/javascript" src="{{ url_for('static', filename=to_include)}}"></script>
+    {%- endfor -%}
     {% block js_footer -%}{%- endblock %}
   </body>
 </html>
