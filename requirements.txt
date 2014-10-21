@@ -13,7 +13,7 @@ gunicorn==17.5
 itsdangerous==0.21
 mongoengine==0.8.2
 nose==1.3.3
-ot==0.4.01
+git+git://github.com/cjeffers/ot
 pygraphviz==1.2
 pymongo==2.5.2
 redis==2.10.1
