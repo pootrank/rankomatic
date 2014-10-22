@@ -70,11 +70,19 @@ class SignupView(MethodView):
         if cancel_create:
             return redirect(url_for('.signup'))
         user = User(username=username)
+        self._copy_free_datasets(username)
         user.set_password(password)
         user.save()
         flash("Go ahead and log in!")
         return redirect(url_for('.login'))
 
+    def _copy_free_datasets(self, username):
+        dset_names = ['CV Syllabification', 'Kiparsky']
+        for dset_name in dset_names:
+            dset = Dataset.objects.get(user='guest', name=dset_name)
+            dset.id = None
+            dset.user = username
+            dset.save()
 
 class LogoutView(MethodView):
 
