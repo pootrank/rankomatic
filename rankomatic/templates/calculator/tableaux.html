@@ -13,11 +13,38 @@
     <h2>Example dataset.</h2>
     <p>
       Feel free to make changes and check out the grammars and entailments.
-      {%- if uname -%}
+      {% if uname %}
         Changes will be saved to your account when you click to view grammars.
       {% else %}
         Changes can be saved by logging in or creating an account after viewing the grammars.
       {%- endif -%}
+    </p>
+    <p>
+      This dataset is adapted from <a href="http://www.stanford.edu/~kiparsky/Papers/nwave94.pdf">Kiparsky 1993</a>, and an in-depth discussion can be found in
+      <a href="http://web.stanford.edu/~anttila/research/torders/t-order-manual.pdf">Anttila and Andrus 2006</a>. In short, it is a dataset regarding word-final t-deletion.
+      word-final <i>t</i> is deleted if it is not parsed as part of a syllable, which are marked with square brackets. The constraints are as follows:
+      <table id="explain-constraints" class="table">
+        <tr>
+          <td class="constraint">*Complex</td>
+          <td>Avoid consonant clusters within a syllable.</td>
+        </tr>
+        <tr>
+          <td class="constraint">Onset</td>
+          <td>Syllables have onsets.</td>
+        </tr>
+        <tr>
+          <td class="constraint">Parse</td>
+          <td>Segments belong to syllables.</td>
+        </tr>
+        <tr>
+          <td class="constraint">Align-L-Word</td>
+          <td>Syllables cannot straddle word boundaries.</td>
+        </tr>
+        <tr>
+          <td class="constraint">Align-R-Phrase</td>
+          <td>Phrase-final consonants are also word-final.</td>
+        </tr>
+      </table>
     </p>
     {%- elif edit -%}
     <h2>Editing...</h2>
@@ -68,7 +95,7 @@
       <div class="span9">
         <fieldset>
           {{ form.csrf_token() }}
-          <table id="head_table" class="table condensed" cellspacing="0">
+          <table id="head_table" class="table table-alternate condensed" cellspacing="0">
           <thead>
             <tr id="tableaux_header">
               <th>Input</th>
@@ -86,7 +113,7 @@
           </thead>
           </table>
           <div class="scrollable">
-          <table id="tableaux" class="table condensed" cellspacing="0">
+          <table id="tableaux" class="table table-alternate condensed" cellspacing="0">
             {%- for ig in form.input_groups %}
               <tbody id="" class="input-group">
                 {{ ig.csrf_token() }}
