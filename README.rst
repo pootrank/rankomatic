@@ -7,7 +7,7 @@ using Flask, it is built on a Python implementation of Alex Djalali's solution
 to the ranking problem in theoretical OT.  For the details of his solution, see
 `his paper`_ "A constructive solution to the ranking problem in Partial Order
 Optimality Theory" (2013).  For the source of his implementation,
-refer to `the Github repo`_.
+refer to `the Github repo`_. You can find it at www.otorder.com.
 
 The app is organized loosely according to the recommendations in the `Flask
 documentation`_.  The views are implemented using Flask
