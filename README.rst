@@ -11,7 +11,7 @@ his implementation, refer to `the Github repo`_.
 
 You can find this app at www.otorder.com.
 
-In order to run it, make sure you have pip installed.  Then clone the
+In order to run it locally, make sure you have pip installed.  Then clone the
 repository, run the commands::
 
   pip install -r requirements.txt
