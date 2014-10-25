@@ -17,7 +17,6 @@ In order to run it, make sure you have pip installed.  Then clone the
 repository, run the commands::
 
   pip install -r requirements.txt
-  pip install git+git://github.com/cjeffers/OT
   python runserver.py
 
 to start the basic server on your local machine.
