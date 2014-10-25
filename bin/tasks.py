@@ -8,3 +8,6 @@ def remove_temp_datasets():
         if dset.name not in guest_dset_names:
             dset.remove_old_files()
             dset.delete()
+
+if __name__ == "__main__":
+    remove_temp_datasets()
