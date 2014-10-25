@@ -9,10 +9,6 @@ to the ranking problem in theoretical OT.  For the details of his solution, see
 Optimality Theory" (2013).  For the source of his implementation,
 refer to `the Github repo`_. You can find it at www.otorder.com.
 
-The app is organized loosely according to the recommendations in the `Flask
-documentation`_.  The views are implemented using Flask
-Blueprints for modularity.
-
 In order to run it, make sure you have pip installed.  Then clone the
 repository, run the commands::
 
