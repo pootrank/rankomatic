@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from rankomatic.models import Dataset
+from ..models import Dataset
 
 guest_dset_names = ["Kiparsky", "CV Syllabification"]
 

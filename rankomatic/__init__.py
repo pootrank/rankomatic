@@ -13,9 +13,10 @@ available for import from the rankomatic module.
 from flask import Flask
 from flask.ext.mongoengine import MongoEngine
 from flask.ext.rq import RQ
+import config.default_config
 
 app = Flask(__name__)
-app.config.from_object('rankomatic.config.default-config')
+app.config.from_object(config.default_config)
 app.config.from_envvar('APP_CONFIG', silent=True)
 RQ(app)
 
