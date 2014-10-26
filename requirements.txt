@@ -18,5 +18,4 @@ pygraphviz==1.2
 pymongo==2.5.2
 redis==2.10.1
 rq==0.4.6
-rq-scheduler==0.5.0
 wsgiref==0.1.2
