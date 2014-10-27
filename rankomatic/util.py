@@ -17,7 +17,6 @@ def set_username(username="guest"):
 
 
 def get_dset(name_to_find, username=None):
-    print name_to_find
     name_to_find = urllib.unquote(name_to_find)
     if username is None:
         username = get_username()

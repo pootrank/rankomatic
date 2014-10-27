@@ -127,6 +127,7 @@ class TestAccount(OTOrderBaseCase):
             response = self.client.get(url_for('users.account',
                                                username='john'))
             self.assert_status(response, 200)
+            self.assert_template_used('account.html')
             assert 'john' in response.data
 
 

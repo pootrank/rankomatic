@@ -84,6 +84,7 @@ class SignupView(MethodView):
             dset.user = username
             dset.save()
 
+
 class LogoutView(MethodView):
 
     def get(self):
