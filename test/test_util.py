@@ -98,7 +98,7 @@ class TestGetDset(OTOrderBaseCase):
         # john, test --> 404 if not logged in
         get_dset('test')
 
-    def test_guest_user_logged_in(self):
+    def test_guest_dset_user_logged_in(self):
         # john, Kiparsky --> correct dset
         with self.client:
             self.client.post(url_for('users.login'), data={'username': 'john',
@@ -107,6 +107,11 @@ class TestGetDset(OTOrderBaseCase):
             assert dset.user == "guest"
             assert dset.name == "Kiparsky"
 
+    def test_user_dset_not_logged_in_using_username(self):
+        # test, john --> correct dset
+        dset = get_dset('test', username='john')
+        assert dset.name == 'test'
+        assert dset.user == 'john'
 
 class TestGetURLArgs(OTOrderBaseCase):
 
