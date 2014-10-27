@@ -1,5 +1,4 @@
-from .. import app
-from .. import forms
+from rankomatic import app, forms
 
 import structures
 

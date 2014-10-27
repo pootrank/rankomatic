@@ -1,8 +1,7 @@
 import gridfs
 from nose.tools import raises
 import ot.data
-from .. import models
-from .. import db
+from rankomatic import models, db
 import structures
 
 

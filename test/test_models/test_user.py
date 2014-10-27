@@ -1,4 +1,4 @@
-from .. import models
+from rankomatic import models
 
 
 def test_user_password():
