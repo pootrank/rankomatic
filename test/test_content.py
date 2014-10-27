@@ -4,8 +4,6 @@ from test import OTOrderBaseCase
 
 class TestContent(OTOrderBaseCase):
 
-    render_templates = False
-
     def test_landing(self):
         response = self.client.get(url_for('content.landing'))
         self.assert_status(response, 200)
