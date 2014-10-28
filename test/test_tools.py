@@ -63,9 +63,6 @@ class TestCalculator(OTOrderBaseCase):
         # form is empty
         data = create_empty_tableaux_data(self)
         response = self.client.post(url_for('tools.calculator'), data=data)
-        print response.status
-        print response.headers
-        print response.data
         self.assert_200(response)
         self.assert_template_used('tableaux.html')
 
@@ -198,10 +195,13 @@ class TestExampleEdit(OTOrderBaseCase):
         delete_bad_datasets()
 
 
-class TestEditCopy(OTOrderBaseCase):
+class EditCase(OTOrderBaseCase):
+
+    __test__ = False
 
     def setUp(self):
         dset = Dataset(user='john', name='blank')
+        self.url = None
         dset.save()
 
     def tearDown(self):
@@ -209,8 +209,7 @@ class TestEditCopy(OTOrderBaseCase):
 
     def test_not_logged_in(self):
         with self.client:
-            response = self.client.get(url_for('tools.edit_copy',
-                                               dset_name='blank'))
+            response = self.client.get(self.url)
             self.assert_redirects(response, url_for('users.login'))
             try:
                 session['redirect_url']
@@ -219,11 +218,19 @@ class TestEditCopy(OTOrderBaseCase):
             else:
                 assert True
 
+
+class TestEditCopy(EditCase):
+
+    __test__ = True
+
+    def setUp(self):
+        super(TestEditCopy, self).setUp()
+        self.url = url_for('tools.edit_copy', dset_name='blank')
+
     def test_logged_in(self):
         with self.client:
             self.client.post(url_for('users.login'), data=login_data)
-            response = self.client.get(url_for('tools.edit_copy',
-                                               dset_name='blank'))
+            response = self.client.get(self.url)
             self.assert_redirects(response, url_for('tools.edit',
                                                     dset_name='blank-copy'))
             user_dsets = Dataset.objects(user=login_data['username'])
@@ -234,8 +241,16 @@ class TestEditCopy(OTOrderBaseCase):
         dset.save()
         with self.client:
             self.client.post(url_for('users.login'), data=login_data)
-            response = self.client.get(url_for('tools.edit_copy',
-                                               dset_name='blank'))
+            response = self.client.get(self.url)
             self.assert_redirects(response,
                                   url_for('users.account',
                                           username=login_data['username']))
+
+
+class TestEdit(EditCase):
+
+    __test__ = True
+
+    def setUp(self):
+        super(TestEdit, self).setUp()
+        self.url = url_for('tools.edit', dset_name='blank')
