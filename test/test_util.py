@@ -12,7 +12,7 @@ def setup_module():
     john.save()
 
 
-def teardown_module(self):
+def teardown_module():
     john = User.objects.get(username='john')
     john.delete()
 
@@ -112,6 +112,7 @@ class TestGetDset(OTOrderBaseCase):
         dset = get_dset('test', username='john')
         assert dset.name == 'test'
         assert dset.user == 'john'
+
 
 class TestGetURLArgs(OTOrderBaseCase):
 
