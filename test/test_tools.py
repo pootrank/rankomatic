@@ -7,6 +7,10 @@ from rankomatic.models import Dataset, User
 login_data = {'username': 'john', 'password': 'abc'}
 
 
+def login(client):
+    client.post(url_for('users.login'), data=login_data)
+
+
 def setup_module():
     john = User(username=login_data['username'])
     john.set_password(login_data['password'])
@@ -106,10 +110,8 @@ class TestCalculator(OTOrderBaseCase):
 
     def test_logged_in_user(self):
         data = create_valid_empty_tableaux_data(self)
-        username = 'john'
         with self.client:
-            self.client.post(url_for('users.login'),
-                             data={'username': username, 'password': 'abc'})
+            login(self.client)
             response = self.client.post(url_for('tools.calculator'), data=data)
             dset = Dataset.objects.get(name='blank')
             self.assert_redirects(response, url_for('grammars.grammars',
@@ -117,7 +119,7 @@ class TestCalculator(OTOrderBaseCase):
                                                     sort_value=0, page=0,
                                                     classical=False,
                                                     sort_by='rank_volume'))
-            assert dset.user == username
+            assert dset.user == login_data['username']
             try:
                 session['redirect_url']
             except KeyError:
@@ -142,7 +144,7 @@ class TestExampleEdit(OTOrderBaseCase):
 
     def test_logged_in_get(self):
         with self.client:
-            self.client.post(url_for('users.login'), data=login_data)
+            login(self.client)
             response = self.client.get(url_for('tools.example_edit'))
             self.assert_200(response)
             assert "saved to your account" in response.data
@@ -167,7 +169,7 @@ class TestExampleEdit(OTOrderBaseCase):
     def test_logged_in_valid_post(self):
         data = create_valid_empty_tableaux_data(self)
         with self.client:
-            self.client.post(url_for('users.login'), data=login_data)
+            login(self.client)
             response = self.client.post(url_for('tools.example_edit'),
                                         data=data)
             self.assert_status(response, 302)
@@ -229,7 +231,7 @@ class TestEditCopy(EditCase):
 
     def test_logged_in(self):
         with self.client:
-            self.client.post(url_for('users.login'), data=login_data)
+            login(self.client)
             response = self.client.get(self.url)
             self.assert_redirects(response, url_for('tools.edit',
                                                     dset_name='blank-copy'))
@@ -240,7 +242,7 @@ class TestEditCopy(EditCase):
         dset = Dataset(user=login_data['username'], name='blank-copy')
         dset.save()
         with self.client:
-            self.client.post(url_for('users.login'), data=login_data)
+            login(self.client)
             response = self.client.get(self.url)
             self.assert_redirects(response,
                                   url_for('users.account',
@@ -254,3 +256,62 @@ class TestEdit(EditCase):
     def setUp(self):
         super(TestEdit, self).setUp()
         self.url = url_for('tools.edit', dset_name='blank')
+
+    def test_get_logged_in(self):
+        with self.client:
+            login(self.client)
+            response = self.client.get(url_for('tools.edit',
+                                               dset_name='blank'))
+            self.assert_200(response)
+            assert "blank" in response.data
+
+    def test_change_dset_user(self):
+        data = create_valid_empty_tableaux_data(self)
+        data['name'] = 'blank2'
+        with self.client:
+            self.client.post(url_for('tools.calculator'), data=data)
+            login(self.client)
+            self.client.get(url_for('tools.edit', dset_name='blank2'))
+            dset = Dataset.objects.get(name='blank2')
+            assert dset.user == login_data['username']
+
+    def test_cancel_post_logged_in(self):
+        data = create_valid_empty_tableaux_data(self)
+        data['submit_button'] = "Cancel editing"
+        with self.client:
+            login(self.client)
+            response = self.client.post(self.url, data=data)
+            self.assert_redirects(response, url_for(
+                'users.account',
+                username=login_data['username']
+            ))
+
+    def test_invalid_form(self):
+        data = create_empty_tableaux_data(self)
+        with self.client:
+            login(self.client)
+            response = self.client.post(self.url, data=data)
+            self.assert_200(response)
+            self.assert_template_used('tableaux.html')
+            assert "Editing" in response.data
+
+    def test_valid_post(self, classical=False, data=None):
+        if data is None:
+            data = create_valid_empty_tableaux_data(self)
+        dset = Dataset.objects.get(name='blank')
+        assert dset.constraints[0] == ""
+        with self.client:
+            login(self.client)
+            response = self.client.post(self.url, data=data)
+        edited_dset = Dataset.objects.get(name='blank')
+        self.assert_redirects(response, url_for(
+            'grammars.grammars', dset_name='blank', sort_value=0,
+            page=0, classical=classical, sort_by='rank_volume'
+        ))
+        assert edited_dset.id != dset.id
+        assert edited_dset.constraints[0] == "C0"
+
+    def test_classical_post(self):
+        data = create_valid_empty_tableaux_data(self)
+        data['submit_button'] = "Classical grammars"
+        self.test_valid_post(classical=True, data=data)

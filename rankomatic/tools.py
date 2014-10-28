@@ -50,16 +50,15 @@ def _prepare_to_change_dset_user(dset):
 
 def _change_dset_user_if_necessary(dset_name):
     try:
-        save_new_user = session.pop('save_new_user')
+        session.pop('save_new_user')
     except KeyError:
         pass
     else:
-        if save_new_user:
-            dset = get_dset(dset_name)
-            dset.user = get_username()
-            dset.save()
-            message = "Saved %s as %s!" % (dset.name, dset.user)
-            flash(message)
+        dset = get_dset(dset_name)
+        dset.user = get_username()
+        dset.save()
+        message = "Saved %s as %s!" % (dset.name, dset.user)
+        flash(message)
 
 
 class EditView(MethodView):
@@ -96,18 +95,13 @@ class EditView(MethodView):
             dset.remove_old_files()
             if submit == "All grammars":
                 dset.classical = False
-                redirect_url = url_for('grammars.grammars',
-                                       dset_name=dset.name, sort_value=0,
-                                       page=0, classical=False,
-                                       sort_by='rank_volume')
             else:
                 dset.classical = True
-                redirect_url = url_for('grammars.grammars',
-                                       dset_name=dset.name, sort_value=0,
-                                       page=0, classical=True,
-                                       sort_by='rank_volume')
             dset.save()
-            return redirect(redirect_url)
+            return redirect(url_for(
+                'grammars.grammars', dset_name=dset.name, sort_value=0, page=0,
+                classical=dset.classical, sort_by='rank_volume'
+            ))
 
 
 class EditCopyView(MethodView):
