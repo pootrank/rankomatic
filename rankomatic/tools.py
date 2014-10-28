@@ -139,7 +139,6 @@ class CalculatorView(MethodView):
                                active='calculator', t_order=False)
 
     def post(self):
-        print get_username()
         form = TableauxForm(request.form)
         submit = request.form['submit_button']
         if not form.validate():
