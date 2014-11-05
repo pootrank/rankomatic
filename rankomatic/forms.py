@@ -42,17 +42,18 @@ class ZeroIntegerField(IntegerField):
     #     something more generic
 
     def process_formdata(self, valuelist):
-        if valuelist:
-            if valuelist[0] is None or len(valuelist[0]) == 0:
-                self.data = 0
-            else:
-                try:
-                    self.data = int(valuelist[0])
-                except ValueError:
-                    self.data = None
-                    raise ValueError("Violation vectors must consist of"
-                                     " non-negative integers")
-                # TODO refactor this so the error can be handled someplace else
+        if valuelist[0] is None or len(valuelist[0]) == 0:
+            self.data = 0
+        else:
+            try:
+                self.data = int(valuelist[0])
+                if self.data < 0:
+                    raise ValueError
+            except ValueError:
+                self.data = None
+                raise ValueError("Violation vectors must consist of"
+                                    " non-negative integers")
+            # TODO refactor this so the error can be handled someplace else
 
 
 class CandidateForm(Form):
@@ -179,22 +180,6 @@ class AtLeastOneOptimal(object):
             raise ValidationError(self.message)
 
 
-class UniqueInDB(object):
-
-    def __init__(self, message=None):
-        if not message:
-            message = "That name is already taken"
-        self.message = message
-
-    def __call__(self, form, field):
-        try:
-            Dataset.objects.get(name=field.data,)
-        except Dataset.DoesNotExist:
-            pass
-        else:
-            raise ValidationError(self.message)
-
-
 class TableauxForm(Form):
     """Creates the Tableaux, displayed as the main calculator."""
     len_validator = validators.Length(min=1, max=255,
@@ -203,8 +188,8 @@ class TableauxForm(Form):
 
     constraints = FieldList(
         TextField(validators=[len_validator]),
-        default=[TextField(default="",
-                           validators=[len_validator]) for x in range(3)],
+        default=[TextField(default="", validators=[len_validator])
+                 for x in range(3)],
         validators=[MembersUnique("Constraints must be unique"),
                     validators.Length(min=2, max=8,
                                       message="There must be between 2 and 8 "

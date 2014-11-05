@@ -10,6 +10,7 @@ from rankomatic.util import get_dset, get_username, get_url_args
 from rankomatic.models import Dataset
 import urllib
 import gridfs
+import json
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -153,7 +154,7 @@ class GrammarView(MethodView):
                                sort_value=sort_value, dset_name=dset_name))
 
     def _check_params(self):
-        return self._check_page() and self._check_classical()
+        return self._check_page() and self._check_classical() and self._check_sort_by()
 
     def _check_page(self):
         page = request.args.get('page')
@@ -170,16 +171,22 @@ class GrammarView(MethodView):
 
     def _check_classical(self):
         classical = request.args.get('classical')
-        if classical is None or self._is_bool(classical):
-            return True
-        return False
+        return self._is_bool(classical)
 
     def _is_bool(self, string):
         try:
-            bool(string)
-        except ValueError:
+            to_check = json.loads(string.lower())
+        except (ValueError, AttributeError):
             return False
-        return True
+        else:
+            if to_check is True or to_check is False:
+                return True
+            else:
+                return False
+
+    def _check_sort_by(self):
+        sort_by = request.args.get('sort_by')
+        return sort_by in ['rank_volume', 'size']
 
 
 class GraphView(MethodView):
@@ -210,14 +217,6 @@ class EntailmentView(MethodView):
         _fork_entailment_calculation(dset_name)
         return render_template('entailments.html', dset_name=dset_name,
                                classical=classical)
-
-    def post(self, dset_name):
-        dset = get_dset(dset_name)
-        dset.remove_old_files()
-        dset.entailments_calculated = False
-        dset.entailments_visualized = False
-        dset.save()
-        return self.get(dset_name)
 
 
 class EntailmentsCalculatedView(MethodView):
@@ -308,7 +307,6 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
                 'cots_by_cand': cot_stats_by_cand,
                 'input_totals': input_totals})
         return grammar_info
-
 
     def _sum_all_cot_stats(self, cot_stats_by_cand):
         input_totals = {}
