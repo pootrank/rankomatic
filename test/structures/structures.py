@@ -47,7 +47,7 @@ to_flatten = {
 
 flattened = ["bad", "worse", "oh no!",
              "that didn't work", "that also didn't work",
-             'a', 'a', 'a',]
+             'a', 'a', 'a']
 
 base_form_data = {
     'constraints-0': u'a',
@@ -73,6 +73,7 @@ base_form_data = {
     'submit_button': u'All grammars'
 }
 
+
 def change_one_value(key, value):
     ret = deepcopy(base_form_data)
     ret[key] = value
@@ -97,4 +98,55 @@ invalid_forms = [
     outputs_not_unique,
     special_chars,
     none_optimal
- ]
+]
+
+grammar_info = [
+    {
+        'grammar': "{(C1, C2)}",
+        'filename': "grammar0.png",
+        'cots_by_cand': {
+            'I1': [
+                {
+                    'output': 'O1',
+                    'num_cots': 3,
+                    'per_cot': 50.0
+                },
+                {
+                    'output': 'O2',
+                    'num_cots': 3,
+                    'per_cot': 50.0
+                }
+            ]
+        },
+        'input_totals': {
+            'I1': {
+                'per_sum': 100.0,
+                'raw_sum': 6
+            }
+        }
+    },
+    {
+        'grammar': "{(C2, C3)}",
+        'filename': "grammar1.png",
+        'cots_by_cand': {
+            'I1': [
+                {
+                    'output': 'O1',
+                    'num_cots': 2,
+                    'per_cot': 33.3
+                },
+                {
+                    'output': 'O2',
+                    'num_cots': 4,
+                    'per_cot': 66.7
+                }
+            ]
+        },
+        'input_totals': {
+            'I1': {
+                'per_sum': 100.0,
+                'raw_sum': 6
+            }
+        }
+    }
+]
