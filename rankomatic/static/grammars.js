@@ -26,45 +26,28 @@
                 } else if (data['need_redirect']) {
                     window.location.href = data['redirect_url'];
                 } else if (data['finished']) {
-                    $('#global-statistics').html(data['html_str']);
-                    setTimeout(get_grammars_if_stored, RETRY_WAIT_TIME);
-                }
-            }
-        })
-    })();
-
-    function get_grammars_if_stored() {
-        $('#grammars').show();
-        target = document.getElementById('grammars');
-        $.ajax({
-            url: grammars_stored_url,
-            dataType: "json",
-            success: function(data) {
-                if (data['retry']) {
-                    setTimeout(get_grammars_if_stored, RETRY_WAIT_TIME);
-                } else {
                     if (data['grammars_exist']) {
+                        $('#grammars').show();
                         var grammar_stat_url = '/grammar_stats_calculated/' +
                             data['dset_name'] + '/' + sort_value +
                             '?classical=' + data['classical'] +
                             '&page=' + data['page'] +
                             '&job_id=' + data['job_id'] +
                             '&sort_by=' + QueryString.sort_by;
+                        $('#global-statistics').html(data['html_str']);
                         setTimeout( function() {
                             poll_for_grammar_stats(grammar_stat_url, spinner);
                         }, RETRY_WAIT_TIME);
+                        //setTimeout(get_grammars_if_stored, RETRY_WAIT_TIME);
                     } else {
                         spinner.stop();
-                        $('#grammars').html("<h2>No compatible grammars found.</h2>");
+                        $('#global-statistics').html("<h2>No compatible grammars found.</h2>");
+                        $('#grammars').hide();
                     }
                 }
-            },
-            error: function(data) {
-                spinner.stop();
-                $("#grammars").html("Uh oh.");
             }
-        });
-    }
+        })
+    })();
 
     function poll_for_grammar_stats(url, spinner) {
         $.ajax({
@@ -77,6 +60,7 @@
                     }, RETRY_WAIT_TIME);
                 } else {
                     spinner.stop();
+                    console.log(data)
                     $('#grammars').html(data['html_str']);
                     register_grammar_listeners();
                     $('td.num_cot').each(toggle_closest_tr_if_zero);

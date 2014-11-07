@@ -233,6 +233,7 @@ class GlobalStatsCalculatedView(MethodView):
 
     def get(self, dset_name, sort_value):
         self.dset = get_dset(dset_name)
+        classical, page, sort_by = get_url_args()
         to_return = {'finished': False}
         if not self.dset.global_stats_calculated:
             to_return['retry'] = True
@@ -248,55 +249,35 @@ class GlobalStatsCalculatedView(MethodView):
                     '.grammars', dset_name=dset_name, classical=self.dset.classical,
                     sort_value=new_sort_value, page=0, sort_by=get_url_args()[2]
                 )
-            else:
-                to_return['need_redirect'] = False
-                to_return['finished'] = True
-                to_return['html_str'] = render_template(
-                    'display_global_stats.html', dset_name=dset_name,
-                    classical=self.dset.classical, **self.dset.global_stats
-                )
-                self._fork_grammar_visualization(dset_name)
-        return jsonify(**to_return)
-
-    def _fork_grammar_visualization(self, dset_name):
-        if self.grams:
-            index_range = self._get_index_range_str()
-            self.dset.grammars_stored[index_range] = False
-            self.dset.save()
-            _visualize_and_store_grammars.delay(dset_name, get_username(),
-                                                [x[0] for x in self.grams])
-
-    def _get_index_range_str(self):
-        return str(self.grams[0][0]) + '-' + str(self.grams[-1][0])
-
-
-class GrammarsStoredView(GlobalStatsCalculatedView):
-
-    def get(self, dset_name, sort_value):
-        self.classical, self.page, self.sort_by = get_url_args()
-        self.dset = get_dset(dset_name)
-        if self.dset.global_stats['grams'] and self.dset.grammar_navbar['lengths']:
-            self.grams = eval(self.dset.global_stats['grams'])
-
-            index_range = self._get_index_range_str()
-            try:
-                is_stored = self.dset.grammars_stored[index_range]
-            except KeyError:
-                is_stored = False
-
-            if is_stored:
+            elif self.grams and self.dset.grammar_navbar['lengths']:
                 self.username = get_username()
                 job = q.enqueue(self._make_grammar_info)
-                return jsonify(job_id=job.id, dset_name=dset_name,
-                                classical=self.classical, page=self.page,
-                                retry=False, grammars_exist=True)
+                to_return.update({
+                    'need_redirect': False,
+                    'finished': True,
+                    'job_id': job.id,
+                    'dset_name': dset_name,
+                    'classical': self.dset.classical,
+                    'page': page,
+                    'grammars_exist': True,
+                    'html_str': render_template('display_global_stats.html',
+                                                dset_name=dset_name,
+                                                classical=self.dset.classical,
+                                                **self.dset.global_stats)
+                })
             else:
-                return jsonify(retry=True)
-        else:
-            return jsonify(retry=False, grammars_exist=False)
+                to_return.update({
+                    'grammars_exist': False,
+                    'need_redirect': False,
+                    'finished': True
+                })
+
+        return jsonify(**to_return)
 
     def _make_grammar_info(self):
         self.dset = get_dset(self.dset.name, self.username)
+        self.dset.visualize_and_store_grammars([x[0] for x in self.grams])
+        self.dset.save()
         grammar_info = []
         for gram in self.grams:
             cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
@@ -331,6 +312,17 @@ class GrammarsStoredView(GlobalStatsCalculatedView):
 
     def _make_grammar_filename(self, index):
         return 'grammar%d.png' % index
+
+    def _fork_grammar_visualization(self, dset_name):
+        if self.grams:
+            index_range = self._get_index_range_str()
+            self.dset.grammars_stored[index_range] = False
+            self.dset.save()
+            _visualize_and_store_grammars.delay(dset_name, get_username(),
+                                                [x[0] for x in self.grams])
+
+    def _get_index_range_str(self):
+        return str(self.grams[0][0]) + '-' + str(self.grams[-1][0])
 
 
 class GrammarStatsCalculated(MethodView):
@@ -371,8 +363,6 @@ grammars.add_url_rule('/entailments_calculated/<dset_name>/',
                       view_func=EntailmentsCalculatedView.as_view(
                           'entailments_calculated'
                       ))
-grammars.add_url_rule('/grammars_stored/<dset_name>/<int:sort_value>',
-                      view_func=GrammarsStoredView.as_view('grammars_stored'))
 grammars.add_url_rule('/global_stats_calculated/<dset_name>/<int:sort_value>',
                       view_func=GlobalStatsCalculatedView.as_view(
                           'global_stats_calculated'

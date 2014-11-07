@@ -162,7 +162,8 @@ class TestGlobalStatsCalculated(OTOrderBaseCase):
         dset.global_stats_calculated = False
         dset.save()
         response = self.client.get(url_for('grammars.global_stats_calculated',
-                                           dset_name='blank', sort_value=0))
+                                           dset_name='blank', sort_value=0,
+                                           sort_by='size', page=0, classical=False))
         data = json.loads(response.data)
         self.assert_200(response)
         assert data['retry']
@@ -207,138 +208,64 @@ class TestGlobalStatsCalculated(OTOrderBaseCase):
         assert data['need_redirect']
         assert "/6?" in data['redirect_url']
 
-    def test_need_redirect_no_lengths(self):
-        patch_str = ('rankomatic.grammars.GlobalStatsCalculatedView.'
-                     '_fork_grammar_visualization')
-        with mock.patch(patch_str) as mock_fork_grammar_visualization:
-            dset = Dataset(name='blank', user='guest')
-            dset.global_stats_calculated = True
-            dset.classical = False
-            dset.grammar_navbar['lengths'] = []
-            dset.global_stats = {
-                'grams': "[]",
-                'num_poots': 0,
-                'num_total_poots': 19,
-                'percent_poots': 0.0,
-                'num_cots': 0,
-                'num_total_cots': 6,
-                'percent_cots': 0.0
-            }
-            dset.save()
-
-            response = self.client.get(url_for(
-                'grammars.global_stats_calculated', dset_name='blank',
-                sort_value=0, classical=False, page=0, sort_by='size'
-            ))
-            self.assert_200(response)
-            data = json.loads(response.data)
-            assert not data['need_redirect']
-            assert data['finished']
-            assert not data['retry']
-            assert mock_fork_grammar_visualization.called
-
-    def test_no_redirect_html_response(self):
-        patch_str = ('rankomatic.grammars.GlobalStatsCalculatedView.'
-                     '_fork_grammar_visualization')
-        with mock.patch(patch_str) as mock_fork_grammar_visualization:
-            dset = Dataset(name='blank', user='guest')
-            dset.global_stats_calculated = True
-            dset.classical = False
-            dset.grammar_navbar['lengths'] = [1, 3, 6]
-            dset.global_stats = {
-                'grams': "[frozenset([(1, 2)]), frozenset([2, 3])]",
-                'num_poots': 5,
-                'num_total_poots': 19,
-                'percent_poots': 5.0/19,
-                'num_cots': 2,
-                'num_total_cots': 6,
-                'percent_cots': 2.0/6
-            }
-            dset.save()
-
-            response = self.client.get(url_for(
-                'grammars.global_stats_calculated', dset_name='blank',
-                sort_value=6, classical=False, page=0, sort_by='size'
-            ))
-            self.assert_200(response)
-            data = json.loads(response.data)
-            assert not data['need_redirect']
-            assert data['finished']
-            assert not data['retry']
-            assert mock_fork_grammar_visualization.called
-
-
-class TestGrammarsStored(OTOrderBaseCase):
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        delete_bad_datasets()
-
-    @mock.patch('rq.Queue.enqueue', return_value=MockJob())
-    def test_no_grammars_found(self, mock_enqueue):
-        # no compatible grammars
+    @mock.patch('rq.Queue.enqueue')
+    def test_need_redirect_no_lengths(self, mock_enqueue):
         dset = Dataset(name='blank', user='guest')
-        dset.global_stats['grams'] = ""
+        dset.global_stats_calculated = True
+        dset.classical = False
         dset.grammar_navbar['lengths'] = []
+        dset.global_stats = {
+            'grams': "[]",
+            'num_poots': 0,
+            'num_total_poots': 19,
+            'percent_poots': 0.0,
+            'num_cots': 0,
+            'num_total_cots': 6,
+            'percent_cots': 0.0
+        }
         dset.save()
-        response = self.client.get(url_for('grammars.grammars_stored',
-                                           dset_name='blank',
-                                           sort_value=0,
-                                           page=0, sort_by='rank_volume',
-                                           classical=False))
+
+        response = self.client.get(url_for(
+            'grammars.global_stats_calculated', dset_name='blank',
+            sort_value=0, classical=False, page=0, sort_by='size'
+        ))
+        print(response.data)
         self.assert_200(response)
         data = json.loads(response.data)
+        assert not data['need_redirect']
+        assert data['finished']
         assert not data['retry']
         assert not data['grammars_exist']
         assert not mock_enqueue.called
 
     @mock.patch('rq.Queue.enqueue', return_value=MockJob())
-    def test_no_grammars_stored(self, mock_enqueue):
-        # grammars found but not stored yet
+    def test_no_redirect_html_response(self, mock_enqueue):
         dset = Dataset(name='blank', user='guest')
-        dset.global_stats['grams'] = "[(0, frozenset([(1, 2)]))]"
-        dset.grammar_navbar['lengths'] = [1]
+        dset.global_stats_calculated = True
+        dset.classical = False
+        dset.grammar_navbar['lengths'] = [1, 3, 6]
+        dset.global_stats = {
+            'grams': "[frozenset([(1, 2)]), frozenset([2, 3])]",
+            'num_poots': 5,
+            'num_total_poots': 19,
+            'percent_poots': 5.0/19,
+            'num_cots': 2,
+            'num_total_cots': 6,
+            'percent_cots': 2.0/6
+        }
         dset.save()
-        response = self.client.get(url_for('grammars.grammars_stored',
-                                           dset_name='blank',
-                                           sort_value=1,
-                                           page=0, sort_by='size',
-                                           classical=False))
-        self.assert_200(response)
-        data = json.loads(response.data)
-        assert data['retry']
-        assert len(data) == 1
-        assert not mock_enqueue.called
 
-    @mock.patch('rq.Queue.enqueue', return_value=MockJob())
-    def test_grammars_stored(self, mock_enqueue):
-        dset_name = 'blank'
-        username = 'guest'
-        page_value = 0
-        classical = False
-        dset = Dataset(name=dset_name, user=username)
-        dset.global_stats['grams'] = "[(0, frozenset([(1, 2)]))]"
-        dset.grammar_navbar['lengths'] = [1]
-        dset.grammars_stored['0-0'] = True
-        dset.save()
-        response = self.client.get(url_for('grammars.grammars_stored',
-                                           dset_name='blank',
-                                           sort_value=1,
-                                           page=page_value,
-                                           sort_by='size',
-                                           classical=classical))
+        response = self.client.get(url_for(
+            'grammars.global_stats_calculated', dset_name='blank',
+            sort_value=6, classical=False, page=0, sort_by='size'
+        ))
         self.assert_200(response)
-        assert mock_enqueue.called
+        print response.data
         data = json.loads(response.data)
-        assert data['job_id'] == MockJob.JOB_ID
-        assert data['dset_name'] == dset_name
-        assert data['classical'] is classical
-        assert data['page'] == page_value
+        assert not data['need_redirect']
+        assert data['finished']
         assert not data['retry']
-        assert data['grammars_exist']
-        assert len(data) == 6
+        assert mock_enqueue.called
 
 
 class TestGrammarStatsCalculated(OTOrderBaseCase):
