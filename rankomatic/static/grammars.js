@@ -28,17 +28,11 @@
                 } else if (data['finished']) {
                     if (data['grammars_exist']) {
                         $('#grammars').show();
-                        var grammar_stat_url = '/grammar_stats_calculated/' +
-                            data['dset_name'] + '/' + sort_value +
-                            '?classical=' + data['classical'] +
-                            '&page=' + data['page'] +
-                            '&job_id=' + data['job_id'] +
-                            '&sort_by=' + QueryString.sort_by;
                         $('#global-statistics').html(data['html_str']);
                         setTimeout( function() {
-                            poll_for_grammar_stats(grammar_stat_url, spinner);
+                            poll_for_grammar_stats(data['grammar_stat_url'],
+                                                   spinner);
                         }, RETRY_WAIT_TIME);
-                        //setTimeout(get_grammars_if_stored, RETRY_WAIT_TIME);
                     } else {
                         spinner.stop();
                         $('#global-statistics').html("<h2>No compatible grammars found.</h2>");

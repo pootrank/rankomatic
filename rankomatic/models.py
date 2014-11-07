@@ -74,7 +74,8 @@ class Dataset(db.Document):
     global_stats = db.DictField()
     global_stats_calculated = db.BooleanField(default=False)
     classical = db.BooleanField(default=False)
-    grammars_stored = db.DictField()
+    grammar_info = db.ListField(db.DictField())
+    grammar_stats_calculated = db.BooleanField(default=False)
     entailments_calculated = db.BooleanField(default=False)
     entailments_visualized = db.BooleanField(default=False)
     _sort_by = db.StringField(default="rank_volume")
@@ -380,8 +381,6 @@ class Dataset(db.Document):
                         fs.put(tf, filename=path)
             else:
                 print "found %s" % fname
-            index_range = str(inds[0]) + '-' + str(inds[-1])
-            self.grammars_stored[index_range] = True
             self.save()
 
     def remove_old_files(self):

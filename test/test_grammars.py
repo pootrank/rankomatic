@@ -64,8 +64,8 @@ class TestGrammar(OTOrderBaseCase):
             response = self.client.get(url)
             self.assert_redirects(response, redirect_url)
 
-    @mock.patch('rq.Queue.enqueue')
-    def test_good_get(self, mock_enqueue):
+    @mock.patch('rankomatic.worker_jobs.calculate_grammars_and_statistics')
+    def test_good_get(self, mock_calculate_grams_and_stats):
         urls = []
         for combo in itertools.product(self.good_classical_values,
                                        self.good_page_values,
@@ -75,7 +75,7 @@ class TestGrammar(OTOrderBaseCase):
             response = self.client.get(url)
             self.assert_200(response)
             assert 'blank' in response.data
-            assert mock_enqueue.called
+            assert mock_calculate_grams_and_stats.called
 
 
 class TestGraph(OTOrderBaseCase):
@@ -208,8 +208,8 @@ class TestGlobalStatsCalculated(OTOrderBaseCase):
         assert data['need_redirect']
         assert "/6?" in data['redirect_url']
 
-    @mock.patch('rq.Queue.enqueue')
-    def test_need_redirect_no_lengths(self, mock_enqueue):
+    @mock.patch('rankomatic.worker_jobs.make_grammar_info')
+    def test_no_grammars_exist(self, mock_make_grammar_info):
         dset = Dataset(name='blank', user='guest')
         dset.global_stats_calculated = True
         dset.classical = False
@@ -236,10 +236,10 @@ class TestGlobalStatsCalculated(OTOrderBaseCase):
         assert data['finished']
         assert not data['retry']
         assert not data['grammars_exist']
-        assert not mock_enqueue.called
+        assert not mock_make_grammar_info.called
 
-    @mock.patch('rq.Queue.enqueue', return_value=MockJob())
-    def test_no_redirect_html_response(self, mock_enqueue):
+    @mock.patch('rankomatic.worker_jobs.make_grammar_info')
+    def test_no_redirect_html_response(self, mock_make_grammar_info):
         dset = Dataset(name='blank', user='guest')
         dset.global_stats_calculated = True
         dset.classical = False
@@ -265,7 +265,9 @@ class TestGlobalStatsCalculated(OTOrderBaseCase):
         assert not data['need_redirect']
         assert data['finished']
         assert not data['retry']
-        assert mock_enqueue.called
+        assert data['html_str']
+        assert data['grammar_stat_url']
+        mock_make_grammar_info.assert_called_with('blank')
 
 
 class TestGrammarStatsCalculated(OTOrderBaseCase):
@@ -276,17 +278,18 @@ class TestGrammarStatsCalculated(OTOrderBaseCase):
     def tearDown(self):
         delete_bad_datasets()
 
-    @mock.patch('rq.job.Job.fetch', return_value=MockJob())
-    def test_not_finished(self, mock_fetch):
+    def test_not_finished(self):
+        dset = Dataset(name='blank', username='guest')
+        dset.grammar_stats_calculated = False
+        dset.save()
         response = self.client.get(url_for(
             'grammars.grammar_stats_calculated', dset_name='blank',
-            sort_value=0, job_id=MockJob.JOB_ID
+            sort_value=0
         ))
         self.assert_200(response)
         data = json.loads(response.data)
         assert data['retry']
         assert len(data) == 1
-        assert mock_fetch.called
 
     def test_finished(self):
         classical = False
@@ -302,31 +305,30 @@ class TestGrammarStatsCalculated(OTOrderBaseCase):
             'lengths': [1, 3, 6],
             'num_rank_grams': 2
         }
+        dset.grammar_stats_calculated = True
+        dset.grammar_info = structures.structures.grammar_info
         dset.save()
 
-        mock_job = MockJob(is_finished=True,
-                           result=structures.structures.grammar_info)
-        patch_str = 'rq.job.Job.fetch'
-        with mock.patch(patch_str, return_value=mock_job) as mock_fetch:
-            response = self.client.get(url_for(
-                'grammars.grammar_stats_calculated',
-                job_id=MockJob.JOB_ID, classical=classical, page=page,
-                sort_value=sort_value, dset_name=dset_name,
-                sort_by=sort_by
-            ))
-            self.assert_200(response)
-            data = json.loads(response.data)
-            assert mock_fetch.called
-            assert not data['retry']
-            assert "(C1, C2)" in data['html_str']
-            assert len(data) == 2
-            self.assert_template_used('display_grammars.html')
+        #mock_job = MockJob(is_finished=True,
+                           #result=structures.structures.grammar_info)
+        response = self.client.get(url_for(
+            'grammars.grammar_stats_calculated',
+            job_id=MockJob.JOB_ID, classical=classical, page=page,
+            sort_value=sort_value, dset_name=dset_name,
+            sort_by=sort_by
+        ))
+        self.assert_200(response)
+        data = json.loads(response.data)
+        assert not data['retry']
+        assert "(C1, C2)" in data['html_str']
+        assert len(data) == 2
+        self.assert_template_used('display_grammars.html')
 
 
 class TestEntailment(OTOrderBaseCase):
 
-    @mock.patch('rankomatic.grammars._fork_entailment_calculation')
-    def test_get(self, mock_fork_entailment_calculation):
+    @mock.patch('rankomatic.worker_jobs.calculate_entailments')
+    def test_get(self, mock_calculate_entailments):
         dset_name = 'blank'
         dset = Dataset(name=dset_name, user='guest')
         dset.classical = False
@@ -336,7 +338,7 @@ class TestEntailment(OTOrderBaseCase):
                                            dset_name=dset_name))
         self.assert_200(response)
         assert "Global Entailments" in response.data
-        mock_fork_entailment_calculation.assert_called_with(dset_name)
+        mock_calculate_entailments.assert_called_with(dset_name)
         self.assert_template_used('entailments.html')
 
 
