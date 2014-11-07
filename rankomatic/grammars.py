@@ -1,11 +1,13 @@
-from flask import (render_template, abort, Blueprint,
-                   make_response, request, redirect, url_for, jsonify)
-from flask.views import MethodView
-from rankomatic import db, worker_jobs
-from rankomatic.util import get_dset, get_username, get_url_args
 import urllib
 import gridfs
 import json
+
+from flask import (render_template, abort, Blueprint,
+                   make_response, request, redirect, url_for, jsonify)
+from flask.views import MethodView
+
+from rankomatic import db, worker_jobs
+from rankomatic.util import get_dset, get_username, get_url_args
 
 grammars = Blueprint('grammars', __name__,
                      template_folder='templates/grammars')
@@ -29,7 +31,9 @@ class GrammarView(MethodView):
                                sort_value=sort_value, dset_name=dset_name))
 
     def _check_params(self):
-        return self._check_page() and self._check_classical() and self._check_sort_by()
+        return (self._check_page() and
+                self._check_classical() and
+                self._check_sort_by())
 
     def _check_page(self):
         page = request.args.get('page')
@@ -117,18 +121,18 @@ class GlobalStatsCalculatedView(MethodView):
             to_return['retry'] = False
             self.grams = eval(self.dset.global_stats['grams'])
 
-            need_redirect = (self.dset.classical and sort_value == 0) or not self.grams
+            need_redirect = ((self.dset.classical and sort_value == 0) or not
+                             self.grams)
             if need_redirect and self.dset.grammar_navbar['lengths']:
                 to_return['need_redirect'] = True
                 new_sort_value = self.dset.grammar_navbar['lengths'][-1]
                 to_return['redirect_url'] = url_for(
-                    '.grammars', dset_name=dset_name, classical=self.dset.classical,
-                    sort_value=new_sort_value, page=0, sort_by=get_url_args()[2]
+                    '.grammars', dset_name=dset_name, classical=classical,
+                    sort_value=new_sort_value, page=0, sort_by=sort_by
                 )
             elif self.grams and self.dset.grammar_navbar['lengths']:
                 self.username = get_username()
                 worker_jobs.make_grammar_info(dset_name)
-                #job = q.enqueue(info_maker.make_grammar_info)
                 to_return.update({
                     'need_redirect': False,
                     'finished': True,

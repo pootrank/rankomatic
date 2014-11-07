@@ -23,10 +23,10 @@ class TestLogin(OTOrderBaseCase):
 
     def test_password_username_combos(self):
         possible_combinations = [
-            ('john', 'abc', url_for('users.account', username='john')),
-            ('john', '123', url_for('users.login')),
-            ('NOT A USER', 'abc', url_for('users.login')),
-            ('NOT A USER', 'NOT A PASSWORD', url_for('users.login'))
+            ('john', 'abc', url_for('users.account', username='john')),  # good
+            ('john', '123', url_for('users.login')),  # bad
+            ('NOT A USER', 'abc', url_for('users.login')),  # bad
+            ('NOT A USER', 'NOT A PASSWORD', url_for('users.login'))  # bad
         ]
 
         for combo in possible_combinations:

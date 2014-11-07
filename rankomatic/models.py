@@ -14,7 +14,6 @@ Dataset: Represents a user's tableaux or dataset. Consists of a list of
           constraint names and a list of Candidates.
 User: A user of the website.
 """
-# TODO make sure documentation is up to date.
 
 import hashlib
 import os
@@ -343,8 +342,10 @@ class Dataset(db.Document):
 
     def get_rank_volume_sorter(self):
         lattice = self.poot.lattice
+
         def rank_volume_sorter(grammar):
             return len(lattice[grammar]['max'])
+
         return rank_volume_sorter
 
     def _get_pretty_grammars(self):

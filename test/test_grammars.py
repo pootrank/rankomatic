@@ -1,13 +1,13 @@
-from test import OTOrderBaseCase
-from flask import url_for
-import itertools
-from test_tools import delete_bad_datasets
-from rankomatic.models import Dataset
-from structures import png_filename
 import mock
 import json
 import gridfs
-import structures.structures
+import itertools
+from flask import url_for
+
+from test import OTOrderBaseCase
+from test_tools import delete_bad_datasets
+from rankomatic.models import Dataset
+from structures import structures, png_filename
 
 
 class MockJob(mock.MagicMock):
@@ -163,7 +163,8 @@ class TestGlobalStatsCalculated(OTOrderBaseCase):
         dset.save()
         response = self.client.get(url_for('grammars.global_stats_calculated',
                                            dset_name='blank', sort_value=0,
-                                           sort_by='size', page=0, classical=False))
+                                           sort_by='size', page=0,
+                                           classical=False))
         data = json.loads(response.data)
         self.assert_200(response)
         assert data['retry']
@@ -306,15 +307,12 @@ class TestGrammarStatsCalculated(OTOrderBaseCase):
             'num_rank_grams': 2
         }
         dset.grammar_stats_calculated = True
-        dset.grammar_info = structures.structures.grammar_info
+        dset.grammar_info = structures.grammar_info
         dset.save()
 
-        #mock_job = MockJob(is_finished=True,
-                           #result=structures.structures.grammar_info)
         response = self.client.get(url_for(
-            'grammars.grammar_stats_calculated',
-            job_id=MockJob.JOB_ID, classical=classical, page=page,
-            sort_value=sort_value, dset_name=dset_name,
+            'grammars.grammar_stats_calculated', classical=classical,
+            page=page, sort_value=sort_value, dset_name=dset_name,
             sort_by=sort_by
         ))
         self.assert_200(response)

@@ -24,24 +24,40 @@ class LoginView(MethodView):
                                bodyclass='simple-form')
 
     def post(self):
-        form = LoginForm(request.form)
-        username = form.username.data
-        password = form.password.data
+        if self._is_successful_login():
+            set_username(username=self.username)
+            return self._good_login_html()
+        else:
+            return self._bad_login_html()
+
+    def _is_successful_login(self):
+        self._get_form_data()
+        user = self._get_user()
+        return user and user.is_password_valid(self.password)
+
+    def _get_form_data(self):
+        self.form = LoginForm(request.form)
+        self.username = self.form.username.data
+        self.password = self.form.password.data
+
+    def _get_user(self):
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(username=self.username)
         except User.DoesNotExist:
             user = None
-        if not user or not user.is_password_valid(password):
-            flash('Incorrect username/password combination')
-            return redirect(url_for('.login'))
-        else:
-            set_username(username=username)
-            flash('Welcome, %s!' % get_username())
-            try:
-                redirect_url = session.pop('redirect_url')
-            except KeyError:
-                redirect_url = url_for('.account', username=get_username())
-            return redirect(redirect_url)
+        return user
+
+    def _bad_login_html(self):
+        flash('Incorrect username/password combination')
+        return redirect(url_for('.login'))
+
+    def _good_login_html(self):
+        flash('Welcome, %s!' % get_username())
+        try:
+            redirect_url = session.pop('redirect_url')
+        except KeyError:
+            redirect_url = url_for('.account', username=get_username())
+        return redirect(redirect_url)
 
 
 class SignupView(MethodView):
@@ -51,27 +67,52 @@ class SignupView(MethodView):
                                bodyclass='simple-form')
 
     def post(self):
-        form = SignupForm(request.form)
-        username = form.username.data
-        password = form.password.data
+        if self._signup_successful():
+            return self._successful_signup_html()
+        else:
+            return redirect(url_for('.signup'))
 
-        cancel_create = False  # track errors in creation
-        user = User.objects(username=username)
-        if user:
+    def _signup_successful(self):
+        self._initialize_signup_data()
+        return (self._username_is_unique() and
+                self._password_meets_criteria())
+
+    def _initialize_signup_data(self):
+        self.form = SignupForm(request.form)
+        self.username = self.form.username.data
+        self.password = self.form.password.data
+        self.user = User.objects(username=self.username)
+
+    def _username_is_unique(self):
+        if self.user:
             flash('That username has already been chosen.'
                   'Try a different one.')
-            cancel_create = True
-        if password != form.password_conf.data:
+            return False
+        else:
+            return True
+
+    def _password_meets_criteria(self):
+        return (self._password_matches_confirmation() and
+                self._password_is_long_enough())
+
+    def _password_matches_confirmation(self):
+        if self.password != self.form.password_conf.data:
             flash("The password confirmation doesn't match.")
-            cancel_create = True
-        if len(password) < 6:
+            return False
+        else:
+            return True
+
+    def _password_is_long_enough(self):
+        if len(self.password) < 6:
             flash("The password is too short.")
-            cancel_create = True
-        if cancel_create:
-            return redirect(url_for('.signup'))
-        user = User(username=username)
-        self._copy_free_datasets(username)
-        user.set_password(password)
+            return False
+        else:
+            return True
+
+    def _successful_signup_html(self):
+        user = User(username=self.username)
+        self._copy_free_datasets(self.username)
+        user.set_password(self.password)
         user.save()
         flash("Go ahead and log in!")
         return redirect(url_for('.login'))

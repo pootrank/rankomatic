@@ -1,7 +1,8 @@
 from rq import Queue
 from redis import Redis
-from rankomatic.util import get_dset, get_username, get_url_args
 from flask import abort
+
+from rankomatic.util import get_dset, get_username, get_url_args
 
 redis_conn = Redis()
 q = Queue(connection=redis_conn)

@@ -1,7 +1,8 @@
 import urllib
 import json
-from rankomatic.models import Dataset
 from flask import session, request
+
+from rankomatic.models import Dataset
 
 
 def get_username():
