@@ -2,6 +2,8 @@ from flask import url_for, session
 from test import OTOrderBaseCase
 from rankomatic.forms import TableauxForm
 from rankomatic.models import Dataset, User
+import mock
+from rankomatic.tools import CalculatorView
 
 
 login_data = {'username': 'john', 'password': 'abc'}
@@ -56,7 +58,24 @@ def create_empty_tableaux_data(test_case):
         return to_return
 
 
+class MockChooser():
+
+    attempts = 0
+
+    @classmethod
+    def choose(self, itr):
+        to_return = itr[MockChooser.attempts / 10]
+        MockChooser.attempts += 1
+        return to_return
+
+
 class TestCalculator(OTOrderBaseCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        delete_bad_datasets()
 
     def test_get(self):
         response = self.client.get(url_for('tools.calculator'))
@@ -69,6 +88,15 @@ class TestCalculator(OTOrderBaseCase):
         response = self.client.post(url_for('tools.calculator'), data=data)
         self.assert_200(response)
         self.assert_template_used('tableaux.html')
+
+    def test_duplicate_dset(self):
+        dset = Dataset(name='blank', user='guest')
+        dset.save()
+        data = create_valid_empty_tableaux_data(self)
+        response = self.client.post(url_for('tools.calculator'), data=data)
+        self.assert_200(response)
+        self.assert_template_used('tableaux.html')
+        assert "name already exists" in response.data
 
     def test_valid_empty_dataset(self):
         data = create_valid_empty_tableaux_data(self)
@@ -128,6 +156,25 @@ class TestCalculator(OTOrderBaseCase):
                 assert False
             dset.delete()
 
+    @mock.patch('random.choice', MockChooser.choose)
+    def test_make_unique_random_dset_name(self):
+        dset = Dataset(user='guest', name='0000000000')
+        dset.save()
+        with self.app.test_request_context():
+            name = CalculatorView().make_unique_random_dset_name()
+            assert name == "1111111111"
+
+
+class MockStringMaker():
+
+    num_to_use = 0
+
+    @classmethod
+    def make_string(cls):
+        string = str(cls.num_to_use)
+        cls.num_to_use += 1
+        return string
+
 
 class TestExampleEdit(OTOrderBaseCase):
 
@@ -164,8 +211,6 @@ class TestExampleEdit(OTOrderBaseCase):
             else:
                 assert True
 
-        delete_bad_datasets()
-
     def test_logged_in_valid_post(self):
         data = create_valid_empty_tableaux_data(self)
         with self.client:
@@ -178,7 +223,22 @@ class TestExampleEdit(OTOrderBaseCase):
             user_dsets = Dataset.objects(user=login_data['username'])
             assert len(guest_dsets) == 2
             assert len(user_dsets) == 1
-            delete_bad_datasets()
+
+    @mock.patch('rankomatic.tools.CalculatorView.make_unique_random_dset_name',
+                MockStringMaker.make_string)
+    def test_duplicate_save_name(self):
+        # should keep getting strings until it finds a unique one
+        dset_name = "Kiparsky-tmp-0"
+        dset = Dataset(user=login_data['username'], name=dset_name)
+        dset.save()
+        data = create_valid_empty_tableaux_data(self)
+        data['name'] = "Kiparsky"
+        with self.client:
+            login(self.client)
+            response = self.client.post(url_for('tools.example_edit'),
+                                        data=data)
+            self.assert_status(response, 302)
+            assert "Kiparsky-tmp-1" in response.location
 
     def test_invalid_post(self):
         data = create_empty_tableaux_data(self)
@@ -194,7 +254,6 @@ class TestExampleEdit(OTOrderBaseCase):
             response = client.post(url_for('tools.example_edit'),
                                    data=data)
             assert "classical=True" in response.location
-        delete_bad_datasets()
 
 
 class EditCase(OTOrderBaseCase):

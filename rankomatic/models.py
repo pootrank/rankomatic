@@ -61,7 +61,7 @@ class Dataset(db.Document):
 
     """
     upload_date = db.DateTimeField(default=datetime.datetime.utcnow())
-    name = db.StringField(max_length=255, required=True)
+    name = db.StringField(max_length=255, required=True, unique_with='user')
     constraints = db.ListField(
         db.StringField(max_length=255, required=True),
         default=lambda: ["" for x in range(3)]

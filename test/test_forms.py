@@ -103,18 +103,9 @@ def test_get_errors():
 
 
 @with_setup(add_dset, delete_bad_datasets)
-def test_not_unique():
+def test_unique():
+    # this fails at DB level, not form level
     with app.test_request_context(method="POST",
                                   data=structures.valid_form_data):
         f = forms.TableauxForm(request.form)
-        assert not f.validate()
-        assert len(f.get_errors()) == 1
-
-
-@with_setup(add_dset, delete_bad_datasets)
-def test_edit_validate():
-    # should validate with duplicate
-    with app.test_request_context(method="POST",
-                                  data=structures.valid_form_data):
-        f = forms.TableauxForm(request.form)
-        assert f.validate_for_editing()
+        assert f.validate()

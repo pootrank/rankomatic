@@ -13,9 +13,6 @@ from wtforms import (TextField, PasswordField, FieldList, FormField,
                      BooleanField, IntegerField, validators)
 from wtforms.validators import ValidationError
 
-from rankomatic.models import Dataset
-from rankomatic.util import get_username
-
 
 class LoginForm(Form):
     """
@@ -52,7 +49,7 @@ class ZeroIntegerField(IntegerField):
             except ValueError:
                 self.data = None
                 raise ValueError("Violation vectors must consist of"
-                                    " non-negative integers")
+                                 " non-negative integers")
             # TODO refactor this so the error can be handled someplace else
 
 
@@ -277,17 +274,3 @@ class TableauxForm(Form):
     def get_errors(self):
         """return the errors in a uniq'd list."""
         return sorted(list(set(self._flatten(self.errors))))
-
-    def validate_for_editing(self, *args, **kwargs):
-        return super(TableauxForm, self).validate(*args, **kwargs)
-
-    def validate(self, *args, **kwargs):
-        valid = super(TableauxForm, self).validate(*args, **kwargs)
-        try:
-            Dataset.objects.get(name=self.name.data,
-                                user=get_username())
-        except Dataset.DoesNotExist:
-            return valid
-        else:
-            self.errors['form'] = "That name is already taken"
-            return False

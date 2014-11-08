@@ -68,6 +68,7 @@ class SignupView(MethodView):
 
     def post(self):
         if self._signup_successful():
+            self._create_new_account()
             return self._successful_signup_html()
         else:
             return redirect(url_for('.signup'))
@@ -109,11 +110,13 @@ class SignupView(MethodView):
         else:
             return True
 
-    def _successful_signup_html(self):
+    def _create_new_account(self):
         user = User(username=self.username)
         self._copy_free_datasets(self.username)
         user.set_password(self.password)
         user.save()
+
+    def _successful_signup_html(self):
         flash("Go ahead and log in!")
         return redirect(url_for('.login'))
 

@@ -3,7 +3,8 @@ from flask import url_for, session
 from werkzeug.exceptions import NotFound
 from test import OTOrderBaseCase
 from rankomatic.models import User, Dataset
-from rankomatic.util import get_username, set_username, get_dset, get_url_args
+from rankomatic.util import (get_username, set_username, get_dset,
+                             get_url_args, is_logged_in)
 
 
 def setup_module():
@@ -123,3 +124,16 @@ class TestGetURLArgs(OTOrderBaseCase):
                                page=to_send[1], sort_by=to_send[2]))
             args = get_url_args()
             assert to_send == args
+
+
+class TestIsLoggedIn(OTOrderBaseCase):
+
+    def test_is_logged_in_when_not_logged_in(self):
+        with self.app.test_request_context():
+            assert not is_logged_in()
+
+    def test_is_logged_in_when_logged_in(self):
+        with self.client:
+            self.client.post(url_for('users.login'),
+                             data={'username': 'john', 'password': 'abc'})
+            assert is_logged_in()
