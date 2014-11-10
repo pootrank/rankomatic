@@ -2,7 +2,8 @@ import gridfs
 from nose.tools import raises
 import ot.data
 from rankomatic import models, db
-import structures
+import test.structures.structures as structures
+from test.test_tools import delete_bad_datasets
 
 
 class TestDataset(object):
@@ -21,6 +22,7 @@ class TestDataset(object):
         pymongodb = db.get_pymongo_db()
         pymongodb.tmp.files.drop()
         pymongodb.tmp.chunks.drop()
+        delete_bad_datasets()
 
     def test_constructor(self):
         self.check_bare_constructor()
@@ -70,58 +72,55 @@ class TestDataset(object):
                 {'candidates': [
                     {
                         'inp': 'ovea',
-                        'outp': 'o.ve.a',
+                        'outp': 'o-ve-a',
                         'vvector': [0, 1, 1, 0],
                         'optimal': True
                     },
                     {
                         'inp': 'ovea',
-                        'outp': 'o.vee',
+                        'outp': 'o-vee',
                         'vvector': [0, 0, 0, 1],
                         'optimal': True
                     }
                 ]},
-
                 {'candidates': [
                     {
                         'inp': 'idea',
-                        'outp': 'i.de.a',
+                        'outp': 'i-de-a',
                         'vvector': [0, 1, 1, 0],
                         'optimal': True
                     },
                     {
                         'inp': 'idea',
-                        'outp': 'i.dee',
+                        'outp': 'i-dee',
                         'vvector': [1, 0, 0, 1],
                         'optimal': False
                     }
                 ]},
-
                 {'candidates': [
                     {
                         'inp': 'lasi-a',
-                        'outp': 'la.si.a',
+                        'outp': 'la-si-a',
                         'vvector': [0, 0, 1, 0],
                         'optimal': True
                     },
                     {
                         'inp': 'lasi-a',
-                        'outp': 'la.sii',
+                        'outp': 'la-sii',
                         'vvector': [0, 0, 0, 1],
                         'optimal': True
                     }
                 ]},
-
                 {'candidates': [
                     {
                         'inp': 'rasia',
-                        'outp': 'ra.si.a',
+                        'outp': 'ra-si-a',
                         'vvector': [0, 0, 1, 0],
                         'optimal': True
                     },
                     {
                         'inp': 'rasia',
-                        'outp': 'ra.sii',
+                        'outp': 'ra-sii',
                         'vvector': [1, 0, 0, 1],
                         'optimal': False
                     }
@@ -130,6 +129,8 @@ class TestDataset(object):
         }
 
     def test_raw_grammars(self):
+        self.d.sort_by('size')
+        # calculate once
         assert self.d.raw_grammars == [
             frozenset([(3, 1), (2, 1)]),
             frozenset([(3, 1), (2, 4)]),
@@ -141,8 +142,10 @@ class TestDataset(object):
             frozenset([(2, 3), (3, 1), (4, 1), (2, 1)]),
             frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
             frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
-            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])]
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])
+        ]
 
+        # recalculate cached
         assert self.d.raw_grammars == [
             frozenset([(3, 1), (2, 1)]),
             frozenset([(3, 1), (2, 4)]),
@@ -154,7 +157,24 @@ class TestDataset(object):
             frozenset([(2, 3), (3, 1), (4, 1), (2, 1)]),
             frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
             frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
-            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])]
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])
+        ]
+
+        # get from grammar strings
+        self.d.grammars = None
+        assert self.d.raw_grammars == [
+            frozenset([(3, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 4)]),
+            frozenset([(3, 2), (3, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 4), (2, 1)]),
+            frozenset([(3, 1), (4, 1), (2, 1)]),
+            frozenset([(3, 1), (2, 3), (2, 1)]),
+            frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 1)]),
+            frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
+            frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
+            frozenset([(2, 3), (3, 1), (4, 1), (2, 4), (2, 1)])
+        ]
 
     def candidates_are_set_correctly(self, dataset, ot_dset):
         num_set = 0
@@ -177,13 +197,37 @@ class TestDataset(object):
         assert ot_data == data
 
     def test_calculate_compatible_grammars(self):
-        d = models.Dataset.objects.get(name="test")
+        # classical by default
+        data = {
+            'constraints': ['C1', 'C2', 'C3'],
+            'candidates': [
+                {
+                    'input': 'a',
+                    'output': 'b',
+                    'optimal': True,
+                    'vvector': {1: 1, 2: 0, 3: 1}
+                },
+                {
+                    'input': 'a',
+                    'output': 'c',
+                    'optimal': False,
+                    'vvector': {1: 0, 2: 1, 3: 0}
+                }
+            ],
+            'name': 'blank'
+        }
+        d = models.Dataset(data=data, data_is_from_form=False)
         assert not d._grammars
         d.calculate_compatible_grammars()
-        assert d.grammars == [[[u'C2', u'C1'], [u'C2', u'C3'], [u'C3', u'C1']],
-                              [[u'C2', u'C1'], [u'C2', u'C3'], [u'C1', u'C3']]]
+        for g in d.grammars:
+            print g
+        assert d.grammars == [
+            [[u'C2', u'C1'], [u'C2', u'C3'], [u'C3', u'C1']],
+            [[u'C2', u'C1'], [u'C2', u'C3'], [u'C1', u'C3']]
+        ]
 
     def test_calculate_compatible_poot_grammars(self):
+        self.d.sort_by('size')
         self.d.calculate_compatible_grammars(classical=False)
         assert self.d.grammars == structures.compatible_poot_grammars
 
@@ -194,27 +238,66 @@ class TestDataset(object):
         assert self.d.grammars == []
 
     def test_grammar_to_string(self):
+        self.d.sort_by('size')
         self.d.calculate_compatible_grammars(False)
-        gram_str = self.d.grammar_to_string(self.d.grammars[0])
+        gram_str = self.d.grammar_to_string(0)
+        print gram_str
         assert gram_str == '{(c1, c3), (c1, c2)}'
-        assert self.d.grammar_to_string([]) == "{ }"
+
+    def test_grammar_to_string_empty_grammar(self):
+        data = {'name': 'blank',
+                'constraints': ['c1', 'c2', 'c3'],
+                'candidates': [
+                    {
+                        'input': 'a',
+                        'output': 'b',
+                        'optimal': True,
+                        'vvector': {1: 0, 2: 0, 3: 0}
+                    },
+                    {
+                        'input': 'a',
+                        'output': 'c',
+                        'optimal': False,
+                        'vvector': {1: 1, 2: 1, 3: 1}
+                    }
+                ]
+            }
+        d = models.Dataset(data=data, data_is_from_form=False)
+        d.calculate_compatible_grammars(classical=False)
+        gram_str = d.grammar_to_string(-1)
+        print gram_str
+        assert gram_str == "{ }"
 
     def test_calculate_global_entailments(self):
         self.d.calculate_global_entailments()
         assert self.d.entailments == structures.global_entailments
-        d = models.Dataset()
-        d.calculate_global_entailments()
-        assert d.entailments == {}
+
+        # recalculate for coverage
+        self.d.calculate_global_entailments()
+        assert self.d.entailments == structures.global_entailments
 
     @raises(gridfs.NoFile)
     def test_visualize_and_store_entailments_no_entailments(self):
-        self.d = models.Dataset()
+        data = {
+            'constraints': ['c1', 'c2', 'c3'],
+            'candidates': [{
+                'input': 'a',
+                'output': 'b',
+                'vvector': {1: 0, 2: 0, 3: 0},
+                'optimal': True
+            }],
+            'name': 'blank'
+        }
+        self.d = models.Dataset(data=data, data_is_from_form=False)
         self.d.calculate_global_entailments()
         self.d.visualize_and_store_entailments()
         self.fs.get_last_version(filename=self.entailments_fname)
 
     def test_visualize_and_store_entailments_with_entailments(self):
         self.d.calculate_global_entailments()
+        self.d.visualize_and_store_entailments()
+        assert self.fs.get_last_version(filename=self.entailments_fname)
+
         self.d.visualize_and_store_entailments()
         assert self.fs.get_last_version(filename=self.entailments_fname)
 
@@ -240,6 +323,12 @@ class TestDataset(object):
             assert self.fs.get_last_version(filename=(
                 self.grammar_format_str % i))
 
+        # should be faster
+        self.d.visualize_and_store_grammars(range(5))
+        for i in range(5):
+            assert self.fs.get_last_version(filename=(
+                self.grammar_format_str % i))
+
     def test_visualize_and_store_grammars_poot(self):
         self.d.calculate_compatible_grammars(classical=False)
         self.d.visualize_and_store_grammars(range(5))
@@ -248,6 +337,42 @@ class TestDataset(object):
                 self.grammar_format_str % i))
 
     def test_get_cot_stats_by_cand(self):
+        self.d.sort_by('size')
         self.d.calculate_compatible_grammars(classical=False)
         stats = self.d.get_cot_stats_by_cand(self.d.raw_grammars[0])
         assert stats == structures.cot_stats_by_cand
+
+    def test_sort_by(self):
+        assert self.d.sort_by() == 'rank_volume'
+        self.d.sort_by('size')
+        assert self.d.sort_by() == 'size'
+        self.d.sort_by('size')
+        assert self.d.sort_by() == 'size'
+
+    @raises(gridfs.NoFile)
+    def test_remove_old_files(self):
+        self.d.calculate_global_entailments()
+        self.d.visualize_and_store_entailments()
+        assert self.fs.get_last_version(filename=self.entailments_fname)
+
+        self.d.remove_old_files()
+        self.fs.get_last_version(filename=self.entailments_fname)
+
+    def test_num_compatible_poots(self):
+        self.d.calculate_compatible_grammars(classical=False)
+        assert self.d.num_compatible_poots() == 11
+
+    def test_num_total_poots(self):
+        assert self.d.num_total_poots() == 219
+
+    def test_num_compatible_cots(self):
+        data = {'name': 'cv_dset'}
+        data.update(ot.data.cv_dset)
+        d = models.Dataset(data=data, data_is_from_form=False)
+        assert d.num_compatible_cots() == 6
+
+    def test_num_total_cots(self):
+        data = {'name': 'cv_dset'}
+        data.update(ot.data.cv_dset)
+        d = models.Dataset(data=data, data_is_from_form=False)
+        assert d.num_total_cots() == 24

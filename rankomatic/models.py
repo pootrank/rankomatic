@@ -217,11 +217,7 @@ class Dataset(db.Document):
         if not self.entailments_calculated:
             print "recalculating entailments"
             entailments = self.poot.get_entailments(atomic=True)
-            if entailments:
-                self.entailments = self._process_entailments(entailments)
-            else:
-                self.entailments = {}
-
+            self.entailments = self._process_entailments(entailments)
             self.entailments_calculated = True
             self.save()
 
@@ -318,10 +314,11 @@ class Dataset(db.Document):
             cycles.add(frozenset(equivalent))
         return cycles
 
-    def sort_by(self, sort_by):
-        if self._sort_by != sort_by:
+    def sort_by(self, sort_by=None):
+        if sort_by and self._sort_by != sort_by:
             self._grammars = None
             self._sort_by = sort_by
+        return self._sort_by
 
     def calculate_compatible_grammars(self, classical=True):
         """Calculate the compatible grammars for the dataset.
@@ -337,7 +334,8 @@ class Dataset(db.Document):
     def get_grammar_sorter(self):
         if self._sort_by == 'size':
             return len
-        elif self._sort_by == 'rank_volume':
+        else:
+            # default is 'rank_volume':
             return self.get_rank_volume_sorter()
 
     def get_rank_volume_sorter(self):
