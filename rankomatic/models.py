@@ -185,6 +185,10 @@ class Grammar(db.EmbeddedDocument):
             self._raw_grammar = eval(self._raw_grammar_str.grammar)
         return self._raw_grammar
 
+    @property
+    def fs(self):
+        return gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
+
     def _make_list_grammar(self, dataset):
         self.list_grammar = [
             [dataset.constraints[rel[1] - 1], dataset.constraints[rel[0] - 1]]
@@ -206,14 +210,121 @@ class Grammar(db.EmbeddedDocument):
     def _pair_to_string(self, p):
         return "".join([p[0], ', ', p[1]])
 
-    def make_grammar_graph(self):
+    def visualize(self, dset_name, index):
         """Create an AGraph version of the given grammar."""
-        graph = pygraphviz.AGraph(directed=True, rankdir="LR")
+        self._initialize_visualization(dset_name, index)
+        if not self._is_already_visualized(dset_name, index):
+            self._make_graph()
+            self._store_graph(dset_name, index)
+
+    def _initialize_visualization(self, dset_name, index):
+        self.dset_name = dset_name
+        self.index = index
+        self.filename = self._make_grammar_graph_filename()
+
+    def _make_grammar_graph_filename(self):
+        encode_name = urllib.quote(self.dset_name)
+        return "".join([encode_name, '/', ('grammar%d.png' % self.index)])
+
+    def _is_already_visualized(self, dset_name, index):
+        try:
+            self.fs.get_last_version(filename=self.filename)
+        except gridfs.NoFile:
+            return False
+        else:
+            return True
+
+    def _make_graph(self):
+        self.graph = pygraphviz.AGraph(directed=True, rankdir="LR")
         for rel in self.list_grammar:
-            graph.add_edge(rel[0], rel[1])
-        graph.tred()
-        graph.layout('dot')
-        return graph
+            self.graph.add_edge(rel[0], rel[1])
+        self.graph.tred()
+        self.graph.layout('dot')
+
+    def _store_graph(self, dset_name, index):
+        with tempfile.TemporaryFile() as tf:
+            self.graph.draw(tf, format='png')
+            tf.seek(0)
+            self.fs.put(tf, filename=self.filename)
+
+
+class DatasetConverter():
+
+    @classmethod
+    def form_data_to_ot_data(cls, form_data):
+        processed = cls._initialize_ot_data_from(form_data)
+        for ig in form_data['input_groups']:
+            for cand in ig['candidates']:
+                processed['candidates'].append(cls._process_candidate(cand))
+        return processed
+
+    @classmethod
+    def _initialize_ot_data_from(cls, form_data):
+        return {
+            'name': form_data['name'],
+            'constraints': form_data['constraints'],
+            'candidates': []}
+
+    @classmethod
+    def _process_candidate(cls, form_cand):
+        return {
+            'output': form_cand['outp'],
+            'input': form_cand['inp'],
+            'optimal': form_cand['optimal'],
+            'vvector': cls._make_violation_vector_dict(form_cand['vvector'])}
+
+    @classmethod
+    def _make_violation_vector_dict(cls, list_vvect):
+        return dict((i+1, v) for i, v in enumerate(list_vvect))
+
+    @classmethod
+    def db_dataset_to_form_data(cls, dset):
+        form_data = cls._initialize_form_data(dset)
+        inputs = cls._get_all_inputs_from_candidates(dset)
+        for inp in inputs:
+            input_group = cls._create_input_group_for(inp, dset)
+            form_data['input_groups'].append(input_group)
+        return form_data
+
+    @classmethod
+    def _initialize_form_data(cls, dset):
+        return {
+            'name': dset.name,
+            'constraints': dset.constraints,
+            'input_groups': []
+        }
+
+    @classmethod
+    def _get_all_inputs_from_candidates(cls, dset):
+        inputs = [cand.input for cand in dset.candidates]
+        unique_inputs = list(OrderedDict.fromkeys(inputs))
+        return unique_inputs
+
+    @classmethod
+    def _create_input_group_for(cls, inp, dset):
+        input_group = {'candidates': []}
+        for cand in dset.candidates:
+            if cand.input == inp:
+                input_group['candidates'].append(cls._make_cand_dict(cand))
+        return input_group
+
+    @classmethod
+    def _make_cand_dict(self, old_cand):
+        return {
+            'inp': old_cand.input,
+            'outp': old_cand.output,
+            'optimal': old_cand.optimal,
+            'vvector': old_cand.vvector
+        }
+
+    @classmethod
+    def create_ot_compatible_candidates(cls, dset):
+        return [{
+                'input': c.input,
+                'output': c.output,
+                'optimal': c.optimal,
+                'vvector': cls._make_violation_vector_dict(c.vvector)
+                } for c in dset.candidates]
 
 
 class Dataset(db.Document):
@@ -225,28 +336,27 @@ class Dataset(db.Document):
     """
     upload_date = db.DateTimeField(default=datetime.datetime.utcnow())
     name = db.StringField(max_length=255, required=True, unique_with='user')
-    constraints = db.ListField(
-        db.StringField(max_length=255, required=True),
-        default=lambda: ["" for x in range(3)]
-    )
+    constraints = db.ListField(db.StringField(max_length=255, required=True),
+                               default=lambda: ["" for x in range(3)])
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
     entailments = db.DictField()
+    classical = db.BooleanField(default=False)
+    _sort_by = db.StringField(default="rank_volume")
+    grammars = db.ListField(db.EmbeddedDocumentField(Grammar), default=None)
+    user = db.StringField(default="guest")
+
     grammar_navbar = db.DictField()
     global_stats = db.DictField()
     global_stats_calculated = db.BooleanField(default=False)
-    classical = db.BooleanField(default=False)
-    grammar_stats_calculated = db.BooleanField(default=False)
     grammar_info = db.ListField(db.DictField())
+
+    grammar_stats_calculated = db.BooleanField(default=False)
     entailments_calculated = db.BooleanField(default=False)
     entailments_visualized = db.BooleanField(default=False)
-    _sort_by = db.StringField(default="rank_volume")
-    grammars = db.ListField(db.EmbeddedDocumentField(Grammar),
-                            default=lambda: [])
-    user = db.StringField(default="guest")
 
     @property
     def raw_grammars(self):
-        if not self.grammars:
+        if self.grammars is None:
             self.calculate_compatible_grammars()
         return [gram.raw_grammar for gram in self.grammars]
 
@@ -268,62 +378,11 @@ class Dataset(db.Document):
 
     def process_form_data(self, form_data):
         """Convert raw form data into the stuff used by the ot library."""
-        processed = self._initialize_ot_data_from(form_data)
-        for ig in form_data['input_groups']:
-            for cand in ig['candidates']:
-                processed['candidates'].append(self._process_candidate(cand))
-        return processed
-
-    def _initialize_ot_data_from(self, form_data):
-        return {
-            'name': form_data['name'],
-            'constraints': form_data['constraints'],
-            'candidates': []}
-
-    def _process_candidate(self, form_cand):
-        return {
-            'output': form_cand['outp'],
-            'input': form_cand['inp'],
-            'optimal': form_cand['optimal'],
-            'vvector': self._make_violation_vector_dict(form_cand['vvector'])}
-
-    def _make_violation_vector_dict(self, list_vvect):
-        return dict((i+1, v) for i, v in enumerate(list_vvect))
+        return DatasetConverter.form_data_to_ot_data(form_data)
 
     def create_form_data(self):
         """Create a dict which contains the dataset as used by the forms."""
-        form_data = self._initialize_form_data()
-        inputs = self._get_all_inputs_from_candidates()
-
-        for inp in inputs:
-            input_group = self._create_input_group_for(inp)
-            form_data['input_groups'].append(input_group)
-
-        return form_data
-
-    def _initialize_form_data(self):
-        return {
-            'name': self.name,
-            'constraints': self.constraints,
-            'input_groups': []}
-
-    def _get_all_inputs_from_candidates(self):
-        inputs = [cand.input for cand in self.candidates]
-        unique_inputs = list(OrderedDict.fromkeys(inputs))
-        return unique_inputs
-
-    def _create_input_group_for(self, inp):
-        input_group = {'candidates': []}
-        for cand in self.candidates:
-            if cand.input == inp:
-                input_group['candidates'].append(self._make_cand_dict(cand))
-        return input_group
-
-    def _make_cand_dict(self, old_cand):
-        return {'inp': old_cand.input,
-                'outp': old_cand.output,
-                'optimal': old_cand.optimal,
-                'vvector': old_cand.vvector}
+        return DatasetConverter.db_dataset_to_form_data(self)
 
     def set_dset(self, data):
         """From ot library form, set the corresponding fields"""
@@ -333,12 +392,7 @@ class Dataset(db.Document):
         self.candidates = [Candidate(cand) for cand in data['candidates']]
 
     def create_ot_compatible_candidates(self):
-        return [{
-                'input': c.input,
-                'output': c.output,
-                'optimal': c.optimal,
-                'vvector': self._make_violation_vector_dict(c.vvector)
-                } for c in self.candidates]
+        return DatasetConverter.create_ot_compatible_candidates(self)
 
     def build_poot(self):
         """Builds the PoOT object and attaches it to self.poot.
@@ -389,7 +443,7 @@ class Dataset(db.Document):
     def sort_by(self, sort_by=None):
         #TODO make property
         if sort_by and self._sort_by != sort_by:
-            self._grammars = None
+            self.grammars = None
             self._sort_by = sort_by
         return self._sort_by
 
@@ -420,24 +474,9 @@ class Dataset(db.Document):
     def visualize_and_store_grammars(self, inds):
         """Generate visualization images and store them in GridFS"""
         if inds:
-            fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-            encode_name = urllib.quote(self.name)
-            fname = "".join([encode_name, '/', ('grammar%d.png' % inds[0])])
-            try:
-                fs.get_last_version(filename=fname)
-            except gridfs.NoFile:
-                print "storing grammars: ", inds
-                for i in inds:
-                    graph = self.grammars[i].make_grammar_graph()
-                    with tempfile.TemporaryFile() as tf:
-                        graph.draw(tf, format='png')
-                        tf.seek(0)
-                        filename = 'grammar%d.png' % i
-                        path = "".join([encode_name, '/', filename])
-                        fs.put(tf, filename=path)
-            else:
-                print "found %s" % fname
-            self.save()
+            for i in inds:
+                self.grammars[i].visualize(self.name, i)
+        self.save()
 
     def remove_old_files(self):
         fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
