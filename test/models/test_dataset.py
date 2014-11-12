@@ -180,7 +180,7 @@ class TestDataset(object):
     def candidates_are_set_correctly(self, dataset, ot_dset):
         num_set = 0
         for c in ot_dset['candidates']:
-            source_cand = models.Candidate(data=c)
+            source_cand = models.candidate.Candidate(data=c)
             for dest_cand in dataset.candidates:
                 if source_cand == dest_cand:
                     num_set += 1
