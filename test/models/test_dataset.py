@@ -14,6 +14,7 @@ class TestDataset(object):
             'name': 'voweldset'
         }
         self.d = models.Dataset(data=self.data, data_is_from_form=False)
+        self.d.classical = False
         self.entailments_fname = "".join([self.d.name, "/", 'entailments.png'])
         self.grammar_format_str = self.d.name + "/grammar%d.png"
         self.fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
@@ -217,29 +218,28 @@ class TestDataset(object):
             'name': 'blank'
         }
         d = models.Dataset(data=data, data_is_from_form=False)
-        assert not d._grammars
         d.calculate_compatible_grammars()
         for g in d.grammars:
-            print g
-        assert d.grammars == [
-            [[u'C2', u'C1'], [u'C2', u'C3'], [u'C3', u'C1']],
-            [[u'C2', u'C1'], [u'C2', u'C3'], [u'C1', u'C3']]
-        ]
+            print g.raw_grammar
+        assert d.raw_grammars == [frozenset([(1, 2), (3, 2), (1, 3)]),
+                                  frozenset([(1, 2), (3, 2), (3, 1)]),
+                                  frozenset([(1, 2), (3, 2)])]
 
     def test_calculate_compatible_poot_grammars(self):
         self.d.sort_by('size')
-        self.d.calculate_compatible_grammars(classical=False)
-        assert self.d.grammars == structures.compatible_poot_grammars
+        self.d.calculate_compatible_grammars()
+        for gram_string in [gram.string for gram in self.d.grammars]:
+            assert gram_string in structures.compatible_poot_grammars
 
     def test_calculate_compatible_grammars_no_grammars(self):
         self.data['candidates'] = ot.data.no_rankings
         self.d = models.Dataset(self.data, False)
-        self.d.calculate_compatible_grammars(False)
+        self.d.calculate_compatible_grammars()
         assert self.d.grammars == []
 
     def test_grammar_to_string(self):
         self.d.sort_by('size')
-        self.d.calculate_compatible_grammars(False)
+        self.d.calculate_compatible_grammars()
         gram_str = self.d.grammar_to_string(0)
         print gram_str
         assert gram_str == '{(c1, c3), (c1, c2)}'
@@ -263,9 +263,8 @@ class TestDataset(object):
                 ]
             }
         d = models.Dataset(data=data, data_is_from_form=False)
-        d.calculate_compatible_grammars(classical=False)
+        d.calculate_compatible_grammars()
         gram_str = d.grammar_to_string(-1)
-        print gram_str
         assert gram_str == "{ }"
 
     def test_calculate_global_entailments(self):
@@ -309,7 +308,7 @@ class TestDataset(object):
 
     @raises(gridfs.NoFile)
     def test_visualize_and_store_grammars_no_indices_poot(self):
-        self.d.calculate_compatible_grammars(classical=False)
+        self.d.calculate_compatible_grammars()
         self.d.visualize_and_store_grammars([])
         self.fs.get_last_version(filename=(self.grammar_format_str % 0))
 
@@ -330,7 +329,7 @@ class TestDataset(object):
                 self.grammar_format_str % i))
 
     def test_visualize_and_store_grammars_poot(self):
-        self.d.calculate_compatible_grammars(classical=False)
+        self.d.calculate_compatible_grammars()
         self.d.visualize_and_store_grammars(range(5))
         for i in range(5):
             assert self.fs.get_last_version(filename=(
@@ -338,7 +337,7 @@ class TestDataset(object):
 
     def test_get_cot_stats_by_cand(self):
         self.d.sort_by('size')
-        self.d.calculate_compatible_grammars(classical=False)
+        self.d.calculate_compatible_grammars()
         stats = self.d.get_cot_stats_by_cand(self.d.raw_grammars[0])
         assert stats == structures.cot_stats_by_cand
 
@@ -359,7 +358,7 @@ class TestDataset(object):
         self.fs.get_last_version(filename=self.entailments_fname)
 
     def test_num_compatible_poots(self):
-        self.d.calculate_compatible_grammars(classical=False)
+        self.d.calculate_compatible_grammars()
         assert self.d.num_compatible_poots() == 11
 
     def test_num_total_poots(self):

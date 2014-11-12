@@ -53,6 +53,169 @@ class Candidate(db.EmbeddedDocument):
             self.vvector = [vvec[k] for k in sorted(vvec.keys())]
 
 
+class EntailmentGraph(pygraphviz.AGraph):
+
+    def __init__(self, entailments, dset_name):
+        super(EntailmentGraph, self).__init__(directed=True)
+        self.entailments = entailments
+        self.dset_name = dset_name
+        self.fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
+        self._make_filename()
+        if self._is_not_visualized():
+            self._make_entailment_graph()
+
+    def _make_filename(self):
+        self.filename = "".join([urllib.quote(self.dset_name), "/",
+                                 "entailments.png"])
+
+    def _is_not_visualized(self):
+        try:
+            self.fs.get_last_version(filename=self.filename)
+        except gridfs.NoFile:
+            return True
+        else:
+            return False
+
+    def _make_entailment_graph(self):
+        self._add_edges()
+        self._collapse_cycles()
+        self._make_nodes_rectangular()
+        self.tred()
+        self.layout('dot')
+
+    def _add_edges(self):
+        for k, v in self.entailments.iteritems():
+            for entailed in v:
+                self.add_edge(k, entailed)
+
+    def _collapse_cycles(self):
+        self._get_equivalent_nodes()
+        self._get_cycles_from_equivalent_nodes()
+        self._remove_cycles_from_graph()
+
+    def _get_equivalent_nodes(self):
+        self.equivalent_nodes = defaultdict(lambda: set([]))
+        edges = set(self.edges())  # for determining membership later
+        for edge in edges:
+            endpoints_are_same = edge[0] == edge[1]
+            reverse_edge = (edge[1], edge[0])
+            if reverse_edge in edges and not endpoints_are_same:
+                self._add_equivalent_node_for_both_endpoints(edge)
+
+    def _add_equivalent_node_for_both_endpoints(self, edge):
+        self.equivalent_nodes[edge[0]].add(edge[1])
+        self.equivalent_nodes[edge[1]].add(edge[0])
+
+    def _get_cycles_from_equivalent_nodes(self):
+        self.cycles = set([])
+        for node, equivalent in self.equivalent_nodes.iteritems():
+            equivalent.add(node)
+            self.cycles.add(frozenset(equivalent))
+
+    def _remove_cycles_from_graph(self):
+        for cycle in self.cycles:  # collapse the cycles
+            self._collapse_single_cycle(cycle)
+
+        for cycle in self.cycles:  # re-iterate in case cycles are connected
+            self.delete_nodes_from(cycle)
+
+    def _collapse_single_cycle(self, cycle):
+        # make the label for the collapsed node and put it in the graph
+        cycle = list(cycle)
+        node_label = self._make_node_label(cycle)
+        self._add_edges_to_and_from_collapsed_cycle(cycle, node_label)
+
+    def _make_node_label(self, cycle):
+        chunks = list(self._chunk_list(cycle))
+        return ''.join([self._pretty_chunk_string(chunk) for chunk in chunks])
+
+    def _chunk_list(self, to_chunk, size_of_chunks=1):
+        for i in xrange(0, len(to_chunk), size_of_chunks):
+            yield to_chunk[i:i+size_of_chunks]
+
+    def _pretty_chunk_string(self, chunk):
+        return "(" + "), (".join(chunk) + ")\n"
+
+    def _add_edges_to_and_from_collapsed_cycle(self, cycle, node_label):
+        for edge in self.edges():
+            if edge[0] in cycle:
+                self.add_edge(node_label, edge[1])
+            if edge[1] in cycle:
+                self.add_edge(edge[0], node_label)
+
+    def _make_nodes_rectangular(self):
+        for node in self.nodes():
+            node.attr['shape'] = 'rect'
+
+    def visualize_to_gridfs(self):
+        if self._is_not_visualized():
+            with tempfile.TemporaryFile() as tf:
+                self.draw(tf, format='png')
+                tf.seek(0)
+                self.fs.put(tf, filename=self.filename)
+
+
+class RawGrammar(db.Document):
+    grammar = db.StringField(unique=True)
+    meta = {'indexes': ['grammar']}
+
+
+class Grammar(db.EmbeddedDocument):
+    _raw_grammar_str = db.ReferenceField(RawGrammar, required=True)
+    string = db.StringField(required=True)
+    list_grammar = db.ListField(db.ListField(db.StringField()))
+    stats = db.DictField()
+
+    def __init__(self, frozenset_gram=None, dataset=None, *args, **kwargs):
+        super(Grammar, self).__init__(*args, **kwargs)
+        if frozenset_gram is not None and dataset is not None:
+            frozenset_gram = frozenset(sorted(list(frozenset_gram)))
+            self._raw_grammar_str = RawGrammar.objects.get(
+                grammar=str(frozenset_gram)
+            )
+            self._raw_grammar = frozenset_gram
+            self._make_list_grammar(dataset)
+            self._make_string(dataset)
+
+    @property
+    def raw_grammar(self):
+        try:
+            return self._raw_grammar
+        except AttributeError:
+            self._raw_grammar = eval(self._raw_grammar_str.grammar)
+        return self._raw_grammar
+
+    def _make_list_grammar(self, dataset):
+        self.list_grammar = [
+            [dataset.constraints[rel[1] - 1], dataset.constraints[rel[0] - 1]]
+            for rel in self.raw_grammar
+        ]
+
+    def _make_string(self, dataset):
+        if self.list_grammar:
+            to_join = ['{']
+            for rel in self.list_grammar[:-1]:
+                to_join.extend(['(', self._pair_to_string(rel), '), '])
+            to_join.extend(['(',
+                            self._pair_to_string(self.list_grammar[-1]),
+                            ')}'])
+        else:
+            to_join = ['{', ' }']
+        self.string = "".join(to_join)
+
+    def _pair_to_string(self, p):
+        return "".join([p[0], ', ', p[1]])
+
+    def make_grammar_graph(self):
+        """Create an AGraph version of the given grammar."""
+        graph = pygraphviz.AGraph(directed=True, rankdir="LR")
+        for rel in self.list_grammar:
+            graph.add_edge(rel[0], rel[1])
+        graph.tred()
+        graph.layout('dot')
+        return graph
+
+
 class Dataset(db.Document):
     """Represents a user's tableaux or dataset. Consists of a list of
     constraint names and a list of Candidates. Also exports methods for
@@ -66,34 +229,26 @@ class Dataset(db.Document):
         db.StringField(max_length=255, required=True),
         default=lambda: ["" for x in range(3)]
     )
-    _grammars = db.StringField()
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
     entailments = db.DictField()
     grammar_navbar = db.DictField()
     global_stats = db.DictField()
     global_stats_calculated = db.BooleanField(default=False)
     classical = db.BooleanField(default=False)
-    grammar_info = db.ListField(db.DictField())
     grammar_stats_calculated = db.BooleanField(default=False)
+    grammar_info = db.ListField(db.DictField())
     entailments_calculated = db.BooleanField(default=False)
     entailments_visualized = db.BooleanField(default=False)
     _sort_by = db.StringField(default="rank_volume")
-    grammars = db.ListField(  # list of grammars
-        db.ListField(  # list of ordered pairs
-            db.ListField(db.StringField())  # ordered pairs
-        ),
-        default=lambda: []
-    )
+    grammars = db.ListField(db.EmbeddedDocumentField(Grammar),
+                            default=lambda: [])
     user = db.StringField(default="guest")
 
     @property
     def raw_grammars(self):
-        if self._grammars is None:
-            self.calculate_compatible_grammars(self.classical)
-        elif not self.grammars:
-            self.grammars = self._get_pretty_grammars()
-            self.save()
-        return eval(self._grammars)
+        if not self.grammars:
+            self.calculate_compatible_grammars()
+        return [gram.raw_grammar for gram in self.grammars]
 
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
         super(Dataset, self).__init__(*args, **kwargs)
@@ -199,15 +354,7 @@ class Dataset(db.Document):
 
     def grammar_to_string(self, index):
         """Convert an ugly grammar into a pretty set-like string"""
-        g = self.grammars[index]
-        if g:
-            l = ['{']
-            for rel in g[:-1]:
-                l.extend(['(', self.double_to_string(rel), '), '])
-            l.extend(['(', self.double_to_string(g[-1]), ')}'])
-        else:
-            l = ['{', ' }']
-        return "".join(l)
+        return self.grammars[index].string
 
     def double_to_string(self, d):
         l = [d[0], ', ', d[1]]
@@ -234,108 +381,32 @@ class Dataset(db.Document):
         return self.double_to_string(tuple(fset)[0])
 
     def visualize_and_store_entailments(self):
-        if not self.entailments_visualized:
-            fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
-            filename = "".join([urllib.quote(self.name),
-                                "/", 'entailments.png'])
-            try:
-                fs.get_last_version(filename=filename)
-            except gridfs.NoFile:
-                graph = self.make_entailment_graph()
-                self._write_graph_to_gridfs(graph, fs, filename)
-            self.entailments_visualized = True
-            self.save()
-
-    def _write_graph_to_gridfs(self, graph, fs, filename):
-        with tempfile.TemporaryFile() as tf:
-            graph.draw(tf, format='png')
-            tf.seek(0)
-            fs.put(tf, filename=filename)
-
-    def make_entailment_graph(self):
-        graph = pygraphviz.AGraph(directed=True)
-        for k, v in self.entailments.iteritems():
-            for entailed in v:
-                graph.add_edge(k, entailed)
-        self._collapse_cycles(graph)
-        for node in graph.nodes():
-            node.attr['shape'] = 'rect'
-        graph.tred()
-        graph.layout('dot')
-        return graph
-
-    def _collapse_cycles(self, graph):
-        equivalent_nodes = self._get_equivalent_nodes(graph)
-        cycles = self._get_cycles_from_equivalent_nodes(equivalent_nodes)
-        self._remove_cycles_from_graph(cycles, graph)
-
-    def _remove_cycles_from_graph(self, cycles, graph):
-        for cycle in cycles:
-            cycle = list(cycle)
-            node_label = self._make_node_label(cycle)
-            self._add_edges_with_collapsed_cycle(cycle, graph, node_label)
-
-        for cycle in cycles:  # re-iterate in case cycles are connected
-            graph.delete_nodes_from(cycle)
-
-    def _make_node_label(self, cycle):
-        chunks = list(self._chunk_list(cycle))
-        return ''.join([self._pretty_chunk_string(chunk) for chunk in chunks])
-
-    def _pretty_chunk_string(self, chunk):
-        return "(" + "), (".join(chunk) + ")\n"
-
-    def _chunk_list(self, to_chunk, size_of_chunks=1):
-        for i in xrange(0, len(to_chunk), size_of_chunks):
-            yield to_chunk[i:i+size_of_chunks]
-
-    def _add_edges_with_collapsed_cycle(self, cycle, graph, node_label):
-        for edge in graph.edges():
-            if edge[0] in cycle:
-                graph.add_edge(node_label, edge[1])
-            if edge[1] in cycle:
-                graph.add_edge(edge[0], node_label)
-
-    def _get_equivalent_nodes(self, graph):
-        equivalent_nodes = defaultdict(lambda: set([]))
-        edges = set(graph.edges())
-        for edge in edges:
-            endpoints_are_same = edge[0] == edge[1]
-            reverse_edge = (edge[1], edge[0])
-            if reverse_edge in edges and not endpoints_are_same:
-                equivalent_nodes[edge[0]].add(edge[1])
-                equivalent_nodes[edge[1]].add(edge[0])
-        return equivalent_nodes
-
-    def _get_cycles_from_equivalent_nodes(self, equivalent_nodes):
-        cycles = set([])
-        for node, equivalent in equivalent_nodes.iteritems():
-            equivalent.add(node)
-            cycles.add(frozenset(equivalent))
-        return cycles
+        graph = EntailmentGraph(self.entailments, self.name)
+        graph.visualize_to_gridfs()
+        self.entailments_visualized = True
+        self.save()
 
     def sort_by(self, sort_by=None):
+        #TODO make property
         if sort_by and self._sort_by != sort_by:
             self._grammars = None
             self._sort_by = sort_by
         return self._sort_by
 
-    def calculate_compatible_grammars(self, classical=True):
+    def calculate_compatible_grammars(self):
         """Calculate the compatible grammars for the dataset.
 
         If any are found, put them in the grammars list.
 
         """
-        grammars = sorted(list(self.poot.get_grammars(classical=classical)),
-                          key=self.get_grammar_sorter())
-        self._grammars = str(grammars)
-        self.grammars = self._convert_to_pretty_grammars(grammars)
+        grammars = list(self.poot.get_grammars(classical=self.classical))
+        grammars.sort(key=self.get_grammar_sorter())
+        self.grammars = [Grammar(gram, self) for gram in grammars]
 
     def get_grammar_sorter(self):
         if self._sort_by == 'size':
             return len
-        else:
-            # default is 'rank_volume':
+        else:  # default is 'rank_volume':
             return self.get_rank_volume_sorter()
 
     def get_rank_volume_sorter(self):
@@ -345,20 +416,6 @@ class Dataset(db.Document):
             return len(lattice[grammar]['max'])
 
         return rank_volume_sorter
-
-    def _get_pretty_grammars(self):
-        grams = eval(self._grammars)
-        return self._convert_to_pretty_grammars(grams)
-
-    def _convert_to_pretty_grammars(self, grammars):
-        converted = []
-        for g in grammars:
-            new_gram = []
-            for rel in g:
-                new_gram.append([self.constraints[rel[1]-1],
-                                 self.constraints[rel[0]-1]])
-            converted.append(new_gram)
-        return converted
 
     def visualize_and_store_grammars(self, inds):
         """Generate visualization images and store them in GridFS"""
@@ -371,7 +428,7 @@ class Dataset(db.Document):
             except gridfs.NoFile:
                 print "storing grammars: ", inds
                 for i in inds:
-                    graph = self.make_grammar_graph(self.grammars[i])
+                    graph = self.grammars[i].make_grammar_graph()
                     with tempfile.TemporaryFile() as tf:
                         graph.draw(tf, format='png')
                         tf.seek(0)
@@ -390,17 +447,6 @@ class Dataset(db.Document):
             last_version = fs.get_last_version(filename)
             file_id = last_version._id
             fs.delete(file_id)
-
-    def make_grammar_graph(self, grammar):
-        """Create an AGraph version of the given grammar."""
-        graph = pygraphviz.AGraph(directed=True, rankdir="LR")
-        for c in self.constraints:
-            graph.add_node(c)
-        for rel in grammar:
-            graph.add_edge(rel[0], rel[1])
-        graph.tred()
-        graph.layout('dot')
-        return graph
 
     def get_cot_stats_by_cand(self, grammar):
         """For each input, return a list of dicts with output and COT stats.

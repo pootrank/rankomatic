@@ -66,7 +66,7 @@ class GrammarCalculator():
         if self.classical:
             self.sort_value = self._classical_grammar_length()
         self.dset.sort_by(self.sort_by)
-        self.dset.calculate_compatible_grammars(self.classical)
+        self.dset.calculate_compatible_grammars()
 
         raw_grammars = enumerate(self.dset.raw_grammars)
         sorter = self.dset.get_grammar_sorter()
