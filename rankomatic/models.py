@@ -360,6 +360,16 @@ class Dataset(db.Document):
             self.calculate_compatible_grammars()
         return [gram.raw_grammar for gram in self.grammars]
 
+    @property
+    def sort_by(self):
+        return self._sort_by
+
+    @sort_by.setter
+    def sort_by(self, value):
+        if value and self._sort_by != value:
+            self.grammars = None
+            self._sort_by = value
+
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
         super(Dataset, self).__init__(*args, **kwargs)
 
@@ -439,13 +449,6 @@ class Dataset(db.Document):
         graph.visualize_to_gridfs()
         self.entailments_visualized = True
         self.save()
-
-    def sort_by(self, sort_by=None):
-        #TODO make property
-        if sort_by and self._sort_by != sort_by:
-            self.grammars = None
-            self._sort_by = sort_by
-        return self._sort_by
 
     def calculate_compatible_grammars(self):
         """Calculate the compatible grammars for the dataset.

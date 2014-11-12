@@ -130,7 +130,7 @@ class TestDataset(object):
         }
 
     def test_raw_grammars(self):
-        self.d.sort_by('size')
+        self.d.sort_by = 'size'
         # calculate once
         assert self.d.raw_grammars == [
             frozenset([(3, 1), (2, 1)]),
@@ -226,7 +226,7 @@ class TestDataset(object):
                                   frozenset([(1, 2), (3, 2)])]
 
     def test_calculate_compatible_poot_grammars(self):
-        self.d.sort_by('size')
+        self.d.sort_by = 'size'
         self.d.calculate_compatible_grammars()
         for gram_string in [gram.string for gram in self.d.grammars]:
             assert gram_string in structures.compatible_poot_grammars
@@ -238,7 +238,7 @@ class TestDataset(object):
         assert self.d.grammars == []
 
     def test_grammar_to_string(self):
-        self.d.sort_by('size')
+        self.d.sort_by = 'size'
         self.d.calculate_compatible_grammars()
         gram_str = self.d.grammar_to_string(0)
         print gram_str
@@ -336,17 +336,20 @@ class TestDataset(object):
                 self.grammar_format_str % i))
 
     def test_get_cot_stats_by_cand(self):
-        self.d.sort_by('size')
+        self.d.sort_by = 'size'
         self.d.calculate_compatible_grammars()
         stats = self.d.get_cot_stats_by_cand(self.d.raw_grammars[0])
         assert stats == structures.cot_stats_by_cand
 
     def test_sort_by(self):
-        assert self.d.sort_by() == 'rank_volume'
-        self.d.sort_by('size')
-        assert self.d.sort_by() == 'size'
-        self.d.sort_by('size')
-        assert self.d.sort_by() == 'size'
+        assert self.d.sort_by == 'rank_volume'
+        self.d.calculate_compatible_grammars()
+        assert self.d.grammars
+        self.d.sort_by = 'size'
+        assert not self.d.grammars
+        assert self.d.sort_by == 'size'
+        self.d.sort_by = 'size'
+        assert self.d.sort_by == 'size'
 
     @raises(gridfs.NoFile)
     def test_remove_old_files(self):
