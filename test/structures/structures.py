@@ -150,3 +150,47 @@ grammar_info = [
         }
     }
 ]
+
+entailments_no_cycles = {
+    'cost, cost]]': ['cost, cost]]'],
+    'cost again, cost][again': ['cost again, cost][again',
+                                'cost me, cost][me', 'cost, cost]]'],
+    'cost me, cost][me': ['cost me, cost][me', 'cost, cost]]'],
+    'cost, cos]t]': ['cost me, cos]t[me', 'cost, cos]t]'],
+    'cost again, cos][tagain': ['cost again, cos][tagain'],
+    'cost me, cos]t[me': ['cost me, cos]t[me'],
+    'cost me, *cos][tme': [
+        'cost again, cos][tagain', 'cost again, cos]t[again',
+        'cost again, cost][again', 'cost me, *cos][tme',
+        'cost me, cos]t[me', 'cost me, cost][me', 'cost, cos]t]',
+        'cost, cost]]'],
+    'cost again, cos]t[again': ['cost again, cos]t[again',
+                                'cost me, cos]t[me']
+}
+
+entailments_no_cycles_graph_string = (
+    u'strict digraph {\n\t"cost, cos]t]"\t [shape=rect];\n\t"cost me, cos]'
+    't[me"\t [shape=rect];\n\t"cost, cos]t]" -> "cost me, cos]t[me";\n\t"c'
+    'ost again, cos][tagain"\t [shape=rect];\n\t"cost, cost]]"\t [shape=re'
+    'ct];\n\t"cost again, cost][again"\t [shape=rect];\n\t"cost me, cost]['
+    'me"\t [shape=rect];\n\t"cost again, cost][again" -> "cost me, cost][m'
+    'e";\n\t"cost me, cost][me" -> "cost, cost]]";\n\t"cost me, *cos][tme"'
+    '\t [shape=rect];\n\t"cost me, *cos][tme" -> "cost, cos]t]";\n\t"cost '
+    'me, *cos][tme" -> "cost again, cos][tagain";\n\t"cost me, *cos][tme" '
+    '-> "cost again, cost][again";\n\t"cost again, cos]t[again"\t [shape=r'
+    'ect];\n\t"cost me, *cos][tme" -> "cost again, cos]t[again";\n\t"cost '
+    'again, cos]t[again" -> "cost me, cos]t[me";\n}\n'
+)
+
+graph_testing_grammar = [
+    [u'PARSE', u'ALIGN-R-PHRASE'], [u'*COMPLEX', u'ALIGN-L-WORD'],
+    [u'*COMPLEX', u'ONSET'], [u'ALIGN-L-WORD', u'ONSET'],
+    [u'ALIGN-L-WORD', u'ALIGN-R-PHRASE'], [u'PARSE', u'ONSET'],
+    [u'*COMPLEX', u'ALIGN-R-PHRASE'], [u'ALIGN-R-PHRASE', u'ONSET']
+]
+
+grammar_graph_string = (
+    u'strict digraph {\n\tgraph [rankdir=LR];\n\tPARSE -> "ALIGN-R-PHRASE"'
+    ';\n\t"ALIGN-R-PHRASE" -> ONSET;\n\t"*COMPLEX" -> "ALIGN-L-WORD";\n\t"'
+    'ALIGN-L-WORD" -> "ALIGN-R-PHRASE";\n}\n'
+)

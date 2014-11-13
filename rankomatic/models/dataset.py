@@ -6,7 +6,8 @@ from candidate import Candidate
 from grammar import Grammar
 from rankomatic import db
 from ot.poot import OTStats
-from util import DatasetConverter, EntailmentGraph
+from util import DatasetConverter, pair_to_string
+from graphs import EntailmentGraph
 
 
 class Dataset(db.Document):
@@ -102,10 +103,6 @@ class Dataset(db.Document):
         """Convert an ugly grammar into a pretty set-like string"""
         return self.grammars[index].string
 
-    def double_to_string(self, d):
-        l = [d[0], ', ', d[1]]
-        return "".join(l)
-
     def calculate_global_entailments(self):
         if not self.entailments_calculated:
             print "recalculating entailments"
@@ -124,11 +121,11 @@ class Dataset(db.Document):
         return processed
 
     def _frozenset_to_string(self, fset):
-        return self.double_to_string(tuple(fset)[0])
+        return pair_to_string(tuple(fset)[0])
 
     def visualize_and_store_entailments(self):
         graph = EntailmentGraph(self.entailments, self.name)
-        graph.visualize_to_gridfs()
+        graph.visualize()
         self.entailments_visualized = True
         self.save()
 
