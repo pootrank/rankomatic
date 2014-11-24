@@ -1,3 +1,4 @@
+import mock
 import gridfs
 from nose.tools import raises
 import ot.data
@@ -7,6 +8,7 @@ from test.test_tools import delete_bad_datasets
 
 
 class TestDataset(object):
+
     def setUp(self):
         self.data = {
             'constraints': ['c1', 'c2', 'c3', 'c4'],
@@ -225,11 +227,28 @@ class TestDataset(object):
                                   frozenset([(1, 2), (3, 2), (3, 1)]),
                                   frozenset([(1, 2), (3, 2)])]
 
-    def test_calculate_compatible_poot_grammars(self):
+    compatible_poot_grammars = set([
+        frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
+        frozenset([(3, 2), (3, 1), (2, 1)]),
+        frozenset([(3, 1), (2, 4), (2, 1)]),
+        frozenset([(4, 1), (3, 1), (2, 3), (2, 1)]),
+        frozenset([(3, 1), (2, 1)]),
+        frozenset([(3, 1), (4, 1), (2, 1)]), frozenset([(3, 1), (2, 4)]),
+        frozenset([(3, 1), (2, 3), (2, 1)]),
+        frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
+        frozenset([(4, 1), (3, 1), (2, 3), (2, 4), (2, 1)]),
+        frozenset([(3, 2), (3, 1), (4, 1), (2, 1)])
+    ])
+
+    @mock.patch('ot.poot.PoOT.get_grammars',
+                return_value=compatible_poot_grammars)
+    def test_calculate_compatible_poot_grammars(self, mock_get_grammars):
         self.d.sort_by = 'size'
         self.d.calculate_compatible_grammars()
         for gram_string in [gram.string for gram in self.d.grammars]:
             assert gram_string in structures.compatible_poot_grammars
+        assert len(structures.compatible_poot_grammars) == len(self.d.grammars)
+        assert mock_get_grammars.called_with(False)
 
     def test_calculate_compatible_grammars_no_grammars(self):
         self.data['candidates'] = ot.data.no_rankings
@@ -245,23 +264,24 @@ class TestDataset(object):
         assert gram_str == '{(c1, c3), (c1, c2)}'
 
     def test_grammar_to_string_empty_grammar(self):
-        data = {'name': 'blank',
-                'constraints': ['c1', 'c2', 'c3'],
-                'candidates': [
-                    {
-                        'input': 'a',
-                        'output': 'b',
-                        'optimal': True,
-                        'vvector': {1: 0, 2: 0, 3: 0}
-                    },
-                    {
-                        'input': 'a',
-                        'output': 'c',
-                        'optimal': False,
-                        'vvector': {1: 1, 2: 1, 3: 1}
-                    }
-                ]
-            }
+        data = {
+            'name': 'blank',
+            'constraints': ['c1', 'c2', 'c3'],
+            'candidates': [
+                {
+                    'input': 'a',
+                    'output': 'b',
+                    'optimal': True,
+                    'vvector': {1: 0, 2: 0, 3: 0}
+                },
+                {
+                    'input': 'a',
+                    'output': 'c',
+                    'optimal': False,
+                    'vvector': {1: 1, 2: 1, 3: 1}
+                }
+            ]
+        }
         d = models.Dataset(data=data, data_is_from_form=False)
         d.calculate_compatible_grammars()
         gram_str = d.grammar_to_string(-1)
@@ -312,28 +332,47 @@ class TestDataset(object):
         self.d.visualize_and_store_grammars([])
         self.fs.get_last_version(filename=(self.grammar_format_str % 0))
 
-    def test_visualize_and_store_grammars_cot(self):
+    lat4 = set([
+        frozenset([(4, 2), (1, 3), (4, 3)]), frozenset([(1, 2), (3, 2), (3, 1), (3, 4), (1, 4)]), frozenset([(3, 1), (2, 1), (2, 3), (4, 3), (4, 2), (4, 1)]), frozenset([(3, 1), (3, 4), (2, 1)]), frozenset([(4, 2), (3, 1), (4, 1), (2, 1)]), frozenset([(1, 2), (4, 3)]), frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]), frozenset([(3, 1), (3, 4), (2, 4), (2, 1)]), frozenset([(2, 3), (4, 2), (4, 1), (2, 1), (4, 3)]), frozenset([(1, 3), (2, 1), (2, 3), (4, 3), (4, 2), (4, 1)]), frozenset([(1, 2), (1, 3), (1, 4), (4, 3)]), frozenset([(1, 2), (1, 3), (1, 4), (2, 3), (4, 3), (4, 2)]), frozenset([(3, 1), (4, 1), (4, 3)]), frozenset([(3, 4), (1, 4)]), frozenset([(1, 3)]), frozenset([(2, 3), (3, 4), (2, 1), (1, 4), (2, 4)]), frozenset([(1, 2), (4, 2), (1, 3), (1, 4)]), frozenset([(3, 1), (2, 1)]), frozenset([(1, 3), (2, 3), (1, 4), (4, 3), (2, 4)]), frozenset([(1, 2), (4, 2), (1, 3), (2, 3), (4, 3)]), frozenset([(1, 2), (2, 4), (1, 4)]), frozenset([(4, 2), (3, 2), (3, 1)]), frozenset([(2, 3), (2, 1), (1, 4), (2, 4)]), frozenset([(2, 3), (4, 1), (2, 1), (4, 3)]), frozenset([(1, 2), (4, 2), (1, 3), (1, 4), (4, 3)]), frozenset([(1, 2), (3, 2), (1, 3)]), frozenset([(1, 2), (3, 2), (1, 3), (1, 4), (3, 4), (2, 4)]), frozenset([(4, 1)]), frozenset([(1, 2), (3, 2), (3, 1), (4, 3), (4, 2), (4, 1)]), frozenset([(4, 2)]), frozenset([(1, 3), (2, 4)]), frozenset([(2, 3), (1, 3), (4, 1), (2, 1), (4, 3)]), frozenset([(1, 3), (2, 3), (2, 1), (1, 4), (2, 4)]), frozenset([(1, 2), (1, 3), (2, 3), (1, 4), (4, 3)]), frozenset([(2, 3), (4, 2), (4, 1), (4, 3)]), frozenset([(4, 2), (3, 1), (4, 1), (2, 1), (4, 3)]), frozenset([(2, 1), (1, 4), (2, 4)]), frozenset([(1, 2), (4, 2)]), frozenset([(1, 3), (2, 1), (2, 3), (4, 3), (4, 1), (2, 4)]), frozenset([(2, 4), (1, 4)]), frozenset([(3, 4), (2, 4), (1, 4)]), frozenset([(1, 2), (3, 4)]), frozenset([(2, 3), (2, 4)]), frozenset([(3, 1), (2, 1), (2, 3), (1, 4), (3, 4), (2, 4)]), frozenset([(1, 2), (4, 2), (3, 2), (1, 4)]), frozenset([(4, 2), (4, 1)]), frozenset([(3, 2)]), frozenset([(3, 4), (4, 2), (3, 2), (3, 1), (4, 1)]), frozenset([(1, 2), (4, 2), (3, 2), (4, 1)]), frozenset([(1, 3), (2, 3), (4, 3)]), frozenset([(1, 2), (4, 2), (3, 2)]), frozenset([(4, 2), (1, 3), (2, 3), (4, 3)]), frozenset([(2, 1), (4, 3)]), frozenset([(4, 2), (4, 1), (2, 1), (4, 3)]), frozenset([(4, 2), (3, 1), (4, 1)]), frozenset([(3, 2), (3, 1), (3, 4), (2, 4), (1, 4)]), frozenset([(3, 1), (2, 3), (2, 1)]), frozenset([(1, 2), (4, 2), (3, 2), (3, 1), (3, 4)]), frozenset([(1, 2), (3, 2), (3, 4)]), frozenset([(1, 2), (1, 3), (2, 3), (2, 4), (1, 4)]), frozenset([(2, 4)]), frozenset([(3, 2), (3, 1), (4, 1)]), frozenset([(4, 2), (1, 3)]), frozenset([(1, 2), (3, 2), (3, 1), (1, 4), (4, 2), (3, 4)]), frozenset([(3, 4), (2, 4), (2, 1)]), frozenset([(1, 2), (4, 2), (4, 1)]), frozenset([(1, 2), (3, 2), (3, 4), (2, 4), (1, 4)]), frozenset([(4, 2), (3, 2)]), frozenset([(4, 2), (4, 1), (2, 1)]), frozenset([(3, 4), (2, 1), (1, 4), (2, 4)]), frozenset([(2, 4), (2, 1)]), frozenset([(2, 3), (1, 4)]), frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]), frozenset([(3, 1), (3, 4), (2, 1), (1, 4), (2, 4)]), frozenset([(2, 3), (3, 1), (3, 4), (2, 4), (2, 1)]), frozenset([(2, 3), (2, 4), (1, 4)]), frozenset([(3, 1), (3, 4)]), frozenset([(2, 3), (3, 4), (2, 4), (2, 1)]), frozenset([(4, 1), (2, 1), (4, 3)]), frozenset([(1, 2)]), frozenset([(3, 2), (3, 4), (2, 4)]), frozenset([(4, 1), (4, 3)]), frozenset([(4, 1), (3, 1), (3, 4), (2, 1)]), frozenset([(1, 2), (4, 2), (1, 3)]), frozenset([(4, 2), (4, 3)]), frozenset([(1, 3), (2, 3), (2, 4), (4, 3)]), frozenset([(1, 2), (1, 3), (1, 4), (2, 3), (4, 3), (2, 4)]), frozenset([(3, 4), (3, 2), (3, 1), (4, 1), (2, 1)]), frozenset([(4, 1), (2, 1)]), frozenset([(1, 2), (1, 3), (2, 3), (4, 3), (4, 2), (4, 1)]), frozenset([(1, 3), (2, 3), (1, 4), (4, 3)]), frozenset([(1, 2), (1, 3), (2, 4), (1, 4)]), frozenset([(1, 2), (1, 3), (4, 3)]), frozenset([(2, 3), (4, 1), (2, 1), (4, 3), (2, 4)]),
+        frozenset([(4, 1), (3, 1), (2, 3), (2, 1)]), frozenset([(3, 2), (3, 4), (1, 4)]), frozenset([(2, 1)]), frozenset([(4, 2), (3, 1), (4, 1), (4, 3)]), frozenset([(4, 2), (3, 2), (4, 1), (4, 3)]), frozenset([(2, 3), (2, 1), (4, 3)]), frozenset([(4, 2), (3, 2), (3, 1), (4, 1), (4, 3)]), frozenset([(3, 4), (2, 4)]), frozenset([(3, 2), (3, 4), (2, 4), (1, 4)]), frozenset([(4, 1), (3, 1), (2, 3), (2, 4), (2, 1)]), frozenset([(1, 2), (1, 4)]), frozenset([(4, 2), (3, 2), (3, 4)]), frozenset([(4, 2), (3, 2), (3, 1), (4, 1)]), frozenset([(2, 3)]), frozenset([(1, 2), (4, 2), (4, 3)]), frozenset([(3, 2), (3, 1), (2, 1), (4, 3), (4, 2), (4, 1)]), frozenset([(1, 3), (4, 3)]), frozenset([(1, 4)]), frozenset([(2, 3), (3, 4), (2, 4), (1, 4)]), frozenset([(1, 2), (3, 2), (3, 1)]), frozenset([(4, 2), (3, 1)]), frozenset([(1, 2), (3, 2), (3, 4), (3, 1), (4, 2), (4, 1)]),
+        frozenset([(3, 2), (3, 1), (3, 4), (1, 4)]), frozenset([(1, 3), (2, 3)]), frozenset([(4, 2), (2, 3), (4, 3)]), frozenset([(1, 2), (4, 2), (3, 2), (1, 3)]), frozenset([(2, 3), (2, 1), (4, 3), (2, 4)]), frozenset([(3, 2), (3, 4)]), frozenset([(2, 3), (2, 1)]), frozenset([(1, 2), (3, 4), (1, 4)]), frozenset([(3, 2), (3, 4), (3, 1), (2, 1), (4, 1), (2, 4)]), frozenset([(1, 3), (2, 3), (2, 4)]), frozenset([(1, 2), (1, 3), (1, 4), (2, 3), (3, 4), (2, 4)]), frozenset([(3, 1), (4, 1), (2, 1), (4, 3)]), frozenset([(4, 2), (1, 3), (4, 1), (4, 3)]), frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]), frozenset([(1, 3), (3, 4), (2, 4), (1, 4)]), frozenset([(4, 2), (3, 2), (3, 1), (4, 1), (2, 1)]), frozenset([(2, 3), (3, 1), (4, 1), (2, 1), (4, 3)]), frozenset([(1, 2), (4, 2), (3, 2), (1, 3), (4, 3)]), frozenset([(3, 1), (4, 1), (2, 1)]), frozenset([(4, 1), (3, 1), (3, 4)]), frozenset([(3, 2), (3, 1), (3, 4), (2, 4), (2, 1)]), frozenset([(4, 2), (3, 2), (4, 3)]), frozenset([(1, 2), (4, 2), (3, 2), (3, 1), (4, 1)]), frozenset([(3, 2), (3, 1), (2, 1)]), frozenset([(1, 2), (3, 2), (1, 4)]), frozenset([(2, 3), (1, 3), (4, 1), (4, 3)]), frozenset([(3, 1), (3, 4), (2, 4), (1, 4)]), frozenset([(3, 4), (2, 1)]), frozenset([(1, 3), (1, 4), (4, 3)]), frozenset([(1, 2), (4, 2), (3, 2), (1, 3), (1, 4)]), frozenset([(1, 3), (2, 1), (2, 3), (1, 4), (4, 3), (2, 4)]),
+        frozenset([(1, 2), (3, 2), (1, 3), (1, 4)]), frozenset([(3, 2), (3, 1), (2, 1), (1, 4), (3, 4), (2, 4)]), frozenset([(1, 2), (4, 2), (3, 2), (4, 3)]), frozenset([(1, 2), (1, 3)]), frozenset([(1, 3), (2, 3), (2, 1), (4, 3), (2, 4)]), frozenset([(4, 1), (3, 1), (3, 4), (2, 4), (2, 1)]), frozenset([(3, 2), (3, 4), (3, 1), (2, 1), (4, 2), (4, 1)]), frozenset([(2, 3), (3, 4), (2, 4)]), frozenset([(2, 3), (4, 2), (1, 3), (4, 1), (4, 3)]), frozenset([(1, 2), (4, 2), (3, 2), (3, 1)]), frozenset([(1, 2), (4, 2), (1, 3), (4, 1), (4, 3)]), frozenset([(2, 3), (2, 4), (2, 1)]), frozenset([(4, 2), (3, 2), (3, 1), (3, 4)]), frozenset([(4, 1), (2, 3), (2, 4), (2, 1)]), frozenset([(4, 1), (2, 3)]), frozenset([(3, 4)]), frozenset([]), frozenset([(1, 2), (3, 2), (1, 3), (1, 4), (4, 3), (4, 2)]), frozenset([(1, 2), (3, 2)]), frozenset([(1, 3), (4, 1), (4, 3)]), frozenset([(1, 3), (2, 3), (2, 1), (4, 3)]), frozenset([(1, 3), (2, 4), (1, 4)]), frozenset([(1, 3), (1, 4)]), frozenset([(1, 2), (3, 2), (3, 4), (1, 4)]), frozenset([(1, 2), (4, 2), (4, 1), (4, 3)]), frozenset([(4, 2), (3, 2), (4, 1)]), frozenset([(1, 3), (3, 4), (1, 4)]), frozenset([(1, 3), (2, 3), (2, 1)]), frozenset([(3, 2), (3, 1)]), frozenset([(3, 1)]), frozenset([(1, 2), (3, 2), (3, 1), (3, 4)]), frozenset([(1, 2), (1, 3), (3, 4), (1, 4)]), frozenset([(4, 1), (3, 1), (2, 1), (2, 3), (3, 4), (2, 4)]), frozenset([(1, 2), (1, 3), (2, 3)]), frozenset([(2, 3), (4, 3)]), frozenset([(3, 1), (3, 4), (1, 4)]), frozenset([(1, 3), (2, 3), (2, 4), (1, 4)]), frozenset([(1, 2), (3, 2), (1, 3), (3, 4), (1, 4)]), frozenset([(1, 2), (4, 2), (3, 2), (3, 4)]), frozenset([(1, 3), (2, 1), (2, 3), (1, 4), (3, 4), (2, 4)]), frozenset([(1, 2), (1, 3), (2, 3), (4, 3)]),
+        frozenset([(3, 1), (2, 4), (2, 1)]), frozenset([(1, 2), (1, 3), (1, 4)]), frozenset([(3, 1), (2, 4)]), frozenset([(4, 1), (2, 3), (2, 1)]), frozenset([(3, 1), (4, 1)]), frozenset([(1, 3), (2, 3), (2, 4), (2, 1)]), frozenset([(1, 2), (4, 2), (3, 2), (4, 1), (4, 3)]), frozenset([(1, 2), (3, 2), (1, 3), (4, 3), (4, 2), (4, 1)]), frozenset([(2, 3), (1, 3), (3, 4), (2, 4), (1, 4)]), frozenset([(2, 3), (2, 4), (4, 3)]), frozenset([(3, 4), (3, 2), (3, 1), (4, 1)]), frozenset([(3, 2), (3, 1), (3, 4), (2, 1)]), frozenset([(4, 2), (4, 1), (4, 3)]), frozenset([(3, 2), (3, 1), (3, 4)]), frozenset([(3, 1), (2, 1), (2, 3), (4, 3), (4, 1), (2, 4)]), frozenset([(3, 2), (1, 4)]), frozenset([(4, 1), (2, 4), (2, 1)]), frozenset([(1, 3), (2, 3), (1, 4)]), frozenset([(3, 2), (4, 1)]), frozenset([(1, 2), (4, 2), (1, 3), (4, 3)]), frozenset([(1, 2), (3, 4), (2, 4), (1, 4)]), frozenset([(1, 2), (4, 2), (1, 4)]), frozenset([(1, 2), (3, 2), (3, 1), (1, 4), (3, 4), (2, 4)]), frozenset([(1, 2), (1, 3), (3, 4), (2, 4), (1, 4)]), frozenset([(3, 2), (3, 1), (3, 4), (2, 4)]), frozenset([(2, 3), (4, 1), (4, 3)]), frozenset([(1, 2), (1, 3), (2, 3), (1, 4)]), frozenset([(4, 3)]), frozenset([(1, 2), (4, 2), (3, 2), (3, 4), (1, 4)]), frozenset([(1, 2), (3, 2), (1, 3), (1, 4), (4, 2), (3, 4)]), frozenset([(3, 1), (3, 4), (2, 4)])
+    ])
+
+    @mock.patch('ot.poot.PoOT.get_grammars', return_value=lat4)
+    def test_visualize_and_store_grammars_cot(self, mock_get_grammars):
         self.data['candidates'] = ot.data.hbounded
         self.d.set_dset(self.data)
         self.d.poot = self.d.build_poot()
         self.d.calculate_compatible_grammars()
+        assert mock_get_grammars.called_with(False)
         self.d.visualize_and_store_grammars(range(5))
         for i in range(5):
             assert self.fs.get_last_version(filename=(
                 self.grammar_format_str % i))
 
-        # should be faster
-        self.d.visualize_and_store_grammars(range(5))
-        for i in range(5):
-            assert self.fs.get_last_version(filename=(
-                self.grammar_format_str % i))
+    visualized_poot_grammars = set([
+        frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
+        frozenset([(3, 2), (3, 1), (2, 1)]),
+        frozenset([(3, 1), (2, 4), (2, 1)]),
+        frozenset([(4, 1), (3, 1), (2, 3), (2, 1)]),
+        frozenset([(3, 1), (2, 1)]), frozenset([(3, 1), (4, 1), (2, 1)]),
+        frozenset([(3, 1), (2, 4)]), frozenset([(3, 1), (2, 3), (2, 1)]),
+        frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
+        frozenset([(4, 1), (3, 1), (2, 3), (2, 4), (2, 1)]),
+        frozenset([(3, 2), (3, 1), (4, 1), (2, 1)])
+    ])
 
-    def test_visualize_and_store_grammars_poot(self):
+    @mock.patch('ot.poot.PoOT.get_grammars',
+                return_value=visualized_poot_grammars)
+    def test_visualize_and_store_grammars_poot(self, mock_get_grammars):
         self.d.calculate_compatible_grammars()
         self.d.visualize_and_store_grammars(range(5))
         for i in range(5):
             assert self.fs.get_last_version(filename=(
                 self.grammar_format_str % i))
+        assert mock_get_grammars.called_with(False)
 
     def test_get_cot_stats_by_cand(self):
         self.d.sort_by = 'size'
@@ -351,17 +390,32 @@ class TestDataset(object):
         self.d.sort_by = 'size'
         assert self.d.sort_by == 'size'
 
-    def test_changing_sort_by_changes_graph_images(self):
+    change_sort_grammars = set([
+        frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
+        frozenset([(3, 2), (3, 1), (2, 1)]),
+        frozenset([(3, 1), (2, 4), (2, 1)]),
+        frozenset([(4, 1), (3, 1), (2, 3), (2, 1)]),
+        frozenset([(3, 1), (2, 1)]), frozenset([(3, 1), (4, 1), (2, 1)]),
+        frozenset([(3, 1), (2, 4)]), frozenset([(3, 1), (2, 3), (2, 1)]),
+        frozenset([(3, 1), (4, 1), (2, 4), (2, 1)]),
+        frozenset([(4, 1), (3, 1), (2, 3), (2, 4), (2, 1)]),
+        frozenset([(3, 2), (3, 1), (4, 1), (2, 1)])
+    ])
+
+    @mock.patch('ot.poot.PoOT.get_grammars', return_value=change_sort_grammars)
+    def test_changing_sort_by_changes_graph_images(self, mock_get_grammars):
         assert self.d.sort_by == 'rank_volume'
         self.d.calculate_compatible_grammars()
+        assert mock_get_grammars.called_with(False)
         self.d.visualize_and_store_grammars([0])
-        old_image_hash = self.fs.get_last_version(filename='voweldset/grammar0.png').md5
+        fname = 'voweldset/grammar0.png'
+        old_image_hash = self.fs.get_last_version(filename=fname).md5
         self.d.sort_by = 'size'
         self.d.calculate_compatible_grammars()
+        assert mock_get_grammars.called_with(False)
         self.d.visualize_and_store_grammars([0])
-        new_image_hash = self.fs.get_last_version(filename='voweldset/grammar0.png').md5
+        new_image_hash = self.fs.get_last_version(filename=fname).md5
         assert not old_image_hash == new_image_hash
-
 
     @raises(gridfs.NoFile)
     def test_remove_old_files(self):
@@ -379,11 +433,37 @@ class TestDataset(object):
     def test_num_total_poots(self):
         assert self.d.num_total_poots() == 219
 
-    def test_num_compatible_cots(self):
+    num_compatible_cot_grammars = set([
+        frozenset([(4, 2), (3, 2), (3, 1), (4, 1)]),
+        frozenset([(1, 2), (4, 2), (3, 2), (4, 1), (4, 3)]),
+        frozenset([(4, 2), (3, 2), (3, 1), (4, 1), (2, 1)]),
+        frozenset([(4, 2), (3, 2), (4, 1), (4, 3)]),
+        frozenset([(3, 2), (3, 4), (3, 1), (2, 1), (4, 1), (2, 4)]),
+        frozenset([(3, 2), (4, 1)]),
+        frozenset([(1, 2), (3, 2), (3, 1), (4, 3), (4, 2), (4, 1)]),
+        frozenset([(3, 2), (3, 1), (2, 1), (4, 3), (4, 2), (4, 1)]),
+        frozenset([(4, 2), (3, 2), (3, 1), (4, 1), (4, 3)]),
+        frozenset([(1, 2), (4, 2), (3, 2), (3, 1), (4, 1)]),
+        frozenset([(1, 2), (3, 2), (3, 4), (3, 1), (4, 2), (4, 1)]),
+        frozenset([(4, 2), (3, 2), (4, 1)]),
+        frozenset([(1, 2), (3, 2), (1, 3), (4, 3), (4, 2), (4, 1)]),
+        frozenset([(3, 4), (3, 2), (3, 1), (4, 1), (2, 1)]),
+        frozenset([(3, 2), (3, 4), (3, 1), (2, 1), (4, 2), (4, 1)]),
+        frozenset([(3, 4), (3, 2), (3, 1), (4, 1)]),
+        frozenset([(3, 2), (3, 1), (4, 1), (2, 1)]),
+        frozenset([(3, 2), (3, 1), (4, 1)]),
+        frozenset([(3, 4), (4, 2), (3, 2), (3, 1), (4, 1)]),
+        frozenset([(1, 2), (4, 2), (3, 2), (4, 1)])
+    ])
+
+    @mock.patch('ot.poot.PoOT.get_grammars',
+                return_value=num_compatible_cot_grammars)
+    def test_num_compatible_cots(self, mock_get_grammars):
         data = {'name': 'cv_dset'}
         data.update(ot.data.cv_dset)
         d = models.Dataset(data=data, data_is_from_form=False)
         assert d.num_compatible_cots() == 6
+        assert mock_get_grammars.called_with(False)
 
     def test_num_total_cots(self):
         data = {'name': 'cv_dset'}
