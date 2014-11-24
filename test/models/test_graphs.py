@@ -65,8 +65,12 @@ def test_gridfs_graph_visualize_already_vizualized(mock_draw):
 
 
 def test_entailment_graph():
-    graph = EntailmentGraph(structs.entailments_no_cycles, 'temp')
-    graph_str = structs.entailments_no_cycles_graph_string
+    ents = [structs.entailments_no_cycles, structs.entailments_with_cycles]
+    graph_strings = [structs.entailments_no_cycles_graph_string,
+                     structs.entailments_with_cycles_graph_string]
+    for i in range(len(ents)):
+        graph = EntailmentGraph(ents[i], 'temp')
+        graph_str = graph_strings[i]
     yield (check_graph_works, graph, graph_str, 'temp/entailments.png')
 
 

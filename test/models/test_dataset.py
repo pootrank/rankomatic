@@ -351,6 +351,18 @@ class TestDataset(object):
         self.d.sort_by = 'size'
         assert self.d.sort_by == 'size'
 
+    def test_changing_sort_by_changes_graph_images(self):
+        assert self.d.sort_by == 'rank_volume'
+        self.d.calculate_compatible_grammars()
+        self.d.visualize_and_store_grammars([0])
+        old_image_hash = self.fs.get_last_version(filename='voweldset/grammar0.png').md5
+        self.d.sort_by = 'size'
+        self.d.calculate_compatible_grammars()
+        self.d.visualize_and_store_grammars([0])
+        new_image_hash = self.fs.get_last_version(filename='voweldset/grammar0.png').md5
+        assert not old_image_hash == new_image_hash
+
+
     @raises(gridfs.NoFile)
     def test_remove_old_files(self):
         self.d.calculate_global_entailments()

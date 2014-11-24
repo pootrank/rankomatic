@@ -25,7 +25,7 @@ class GridFSGraph(pygraphviz.AGraph):
 
     def _check_arg(self, keyword, value):
         msg = "GridFSGraph.__init__ expects %s to be a non-empty string"
-        if not value or type(value) is not str:
+        if not value or type(value) not in [str, unicode]:
             raise TypeError(msg % keyword)
 
     def visualize(self):

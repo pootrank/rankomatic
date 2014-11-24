@@ -1,6 +1,5 @@
 from rq import Queue
 from redis import Redis
-from flask import abort
 
 from rankomatic.util import get_dset, get_username, get_url_args
 
@@ -57,20 +56,23 @@ class GrammarCalculator():
     def _get_initial_data(self):
         self.dset = get_dset(self.dset_name, self.username)
         self.dset.classical = self.classical
-        if self.classical:
-            self.sort_value = sum(range(len(self.dset.constraints)))
         self.grams = self._get_correct_grammars()
         self.dset.global_stats = {}
 
     def _get_correct_grammars(self):
         if self.classical:
-            self.sort_value = self._classical_grammar_length()
+            self._set_classical_sort_value()
         self.dset.sort_by = self.sort_by
         self.dset.calculate_compatible_grammars()
-
         raw_grammars = enumerate(self.dset.raw_grammars)
         sorter = self.dset.get_grammar_sorter()
         return [(i, g) for i, g in raw_grammars if sorter(g) == self.sort_value]
+
+    def _set_classical_sort_value(self):
+        if self.sort_by == 'size':
+            self.sort_value = self._classical_grammar_length()
+        else:
+            self.sort_value = 1
 
     def _classical_grammar_length(self):
         return sum(range(len(self.dset.constraints)))
@@ -98,22 +100,18 @@ class GrammarCalculator():
                 self.dset.num_total_cots()) * 100
 
     def _calculate_navbar_info(self):
-        grammar_lengths = self._get_grammar_lengths()
-        if self.classical:
-            self.sort_value = self._classical_grammar_length()
-        elif self.sort_value not in grammar_lengths and self.sort_value != 0:
-            abort(404)
+        sort_values = self._get_possible_sort_values()
         num_rank_grams = len(self.grams)
         self.dset.grammar_navbar = self._get_min_max_indices(num_rank_grams)
         self.dset.grammar_navbar.update({
-            'lengths': grammar_lengths,
+            'lengths': sort_values,
             'num_rank_grams': num_rank_grams,
         })
 
-    def _get_grammar_lengths(self):
+    def _get_possible_sort_values(self):
         if self.sort_by == 'size':
             reverse = True
-        elif self.sort_by == 'rank_volume':
+        else:  # default 'rank_volume'
             reverse = False
         return sorted(set(map(self.dset.get_grammar_sorter(), self.dset.raw_grammars)), reverse=reverse)
 

@@ -51,6 +51,7 @@ class Dataset(db.Document):
     def sort_by(self, value):
         if value and self._sort_by != value:
             self.grammars = None
+            self.remove_old_files()
             self._sort_by = value
 
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
