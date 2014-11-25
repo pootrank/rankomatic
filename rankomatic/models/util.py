@@ -5,18 +5,10 @@ class DatasetConverter():
 
     @classmethod
     def form_data_to_ot_data(cls, form_data):
-        processed = cls._initialize_ot_data_from(form_data)
+        cands = []
         for ig in form_data['input_groups']:
-            for cand in ig['candidates']:
-                processed['candidates'].append(cls._process_candidate(cand))
-        return processed
-
-    @classmethod
-    def _initialize_ot_data_from(cls, form_data):
-        return {
-            'name': form_data['name'],
-            'constraints': form_data['constraints'],
-            'candidates': []}
+            cands.extend([cls._process_candidate(c) for c in ig['candidates']])
+        return cls._ot_data_from_form_and_cands(form_data, cands)
 
     @classmethod
     def _process_candidate(cls, form_cand):
@@ -25,6 +17,14 @@ class DatasetConverter():
             'input': form_cand['inp'],
             'optimal': form_cand['optimal'],
             'vvector': cls._make_violation_vector_dict(form_cand['vvector'])}
+
+    @classmethod
+    def _ot_data_from_form_and_cands(cls, form_data, candidates):
+        return {
+            'name': form_data['name'],
+            'constraints': form_data['constraints'],
+            'candidates': candidates
+        }
 
     @classmethod
     def _make_violation_vector_dict(cls, list_vvect):
@@ -55,14 +55,11 @@ class DatasetConverter():
 
     @classmethod
     def _create_input_group_for(cls, inp, dset):
-        input_group = {'candidates': []}
-        for cand in dset.candidates:
-            if cand.input == inp:
-                input_group['candidates'].append(cls._make_cand_dict(cand))
-        return input_group
+        cands = [cls._cand_dict(c) for c in dset.candidates if c.input == inp]
+        return {'candidates': cands}
 
     @classmethod
-    def _make_cand_dict(self, old_cand):
+    def _cand_dict(self, old_cand):
         return {
             'inp': old_cand.input,
             'outp': old_cand.output,
@@ -72,12 +69,14 @@ class DatasetConverter():
 
     @classmethod
     def create_ot_compatible_candidates(cls, dset):
-        return [{
+        return [
+            {
                 'input': c.input,
                 'output': c.output,
                 'optimal': c.optimal,
                 'vvector': cls._make_violation_vector_dict(c.vvector)
-                } for c in dset.candidates]
+            } for c in dset.candidates
+        ]
 
 
 def pair_to_string(p):

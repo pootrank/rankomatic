@@ -10,6 +10,7 @@ from rankomatic import db
 class GridFSGraph(pygraphviz.AGraph):
 
     FILETYPE = 'png'
+    FS_COLL = 'tmp'
 
     def __init__(self, dset_name=None, basename=None, *args, **kwargs):
         super(GridFSGraph, self).__init__(*args, **kwargs)
@@ -17,7 +18,7 @@ class GridFSGraph(pygraphviz.AGraph):
         self.dset_name = dset_name
         self.basename = basename
         self.filename = self._make_filename()
-        self.fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
+        self.fs = gridfs.GridFS(db.get_pymongo_db(), collection=self.FS_COLL)
 
     def _check_args(self, **kwargs):
         for keyword in kwargs:
@@ -36,7 +37,7 @@ class GridFSGraph(pygraphviz.AGraph):
     def store_graph(self):
         with tempfile.TemporaryFile() as tf:
             self.draw(tf, format=GridFSGraph.FILETYPE)
-            tf.seek(0)
+            tf.seek(0)  # reset file object to beginnning
             self.fs.put(tf, filename=self.filename)
 
     def is_visualized(self):
@@ -49,8 +50,9 @@ class GridFSGraph(pygraphviz.AGraph):
 
     def _make_filename(self):
         encode_name = urllib.quote(self.dset_name)
-        return "".join([encode_name, '/', self.basename,
-                        '.', GridFSGraph.FILETYPE])
+        return "".join([
+            encode_name, '/', self.basename, '.', GridFSGraph.FILETYPE
+        ])
 
     def make_graph(self):
         raise NotImplementedError("Define this in subclass")
@@ -73,8 +75,7 @@ class EntailmentGraph(GridFSGraph):
 
     def _add_edges(self):
         for k, v in self.entailments.iteritems():
-            for entailed in v:
-                self.add_edge(k, entailed)
+            [self.add_edge(k, entailed) for entailed in v]
 
     def _collapse_cycles(self):
         self._get_equivalent_nodes()
@@ -83,22 +84,20 @@ class EntailmentGraph(GridFSGraph):
 
     def _get_equivalent_nodes(self):
         self.equivalent_nodes = defaultdict(lambda: set([]))
-        edges = set(self.edges())  # for determining membership later
-        for edge in edges:
-            endpoints_are_same = edge[0] == edge[1]
-            reverse_edge = (edge[1], edge[0])
-            if reverse_edge in edges and not endpoints_are_same:
-                self._add_equivalent_node_for_both_endpoints(edge)
+        self._edges = set(self.edges())  # for determining membership later
+        [self._add_equiv_nodes(e) for e in self._edges if self._nodes_equiv(e)]
 
-    def _add_equivalent_node_for_both_endpoints(self, edge):
+    def _add_equiv_nodes(self, edge):
         self.equivalent_nodes[edge[0]].add(edge[1])
         self.equivalent_nodes[edge[1]].add(edge[0])
 
+    def _nodes_equiv(self, edge):
+        reverse_edge = (edge[1], edge[0])
+        return reverse_edge in self._edges
+
     def _get_cycles_from_equivalent_nodes(self):
-        self.cycles = set([])
-        for node, equivalent in self.equivalent_nodes.iteritems():
-            equivalent.add(node)
-            self.cycles.add(frozenset(equivalent))
+        cycles = [frozenset(v) for k, v in self.equivalent_nodes.iteritems()]
+        self.cycles = set(cycles)
 
     def _remove_cycles_from_graph(self):
         for cycle in self.cycles:  # collapse the cycles
@@ -114,12 +113,12 @@ class EntailmentGraph(GridFSGraph):
         self._add_edges_to_and_from_collapsed_cycle(cycle, node_label)
 
     def _make_node_label(self, cycle):
-        chunks = list(self._chunk_list(cycle))
+        chunks = list(self._chunks(cycle))
         return ''.join([self._pretty_chunk_string(chunk) for chunk in chunks])
 
-    def _chunk_list(self, to_chunk, size_of_chunks=1):
-        for i in xrange(0, len(to_chunk), size_of_chunks):
-            yield to_chunk[i:i+size_of_chunks]
+    def _chunks(self, to_chunk, chunk_size=1):
+        for i in xrange(0, len(to_chunk), chunk_size):
+            yield to_chunk[i:i+chunk_size]
 
     def _pretty_chunk_string(self, chunk):
         return "(" + "), (".join(chunk) + ")\n"

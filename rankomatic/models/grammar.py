@@ -21,9 +21,10 @@ class Grammar(db.EmbeddedDocument):
             self._raw_grammar_str = RawGrammar.objects.get(
                 grammar=str(frozenset_gram)
             )
+            self.dset = dataset
             self._raw_grammar = frozenset_gram
-            self._make_list_grammar(dataset)
-            self._make_string(dataset)
+            self._make_list_grammar()
+            self._make_string()
 
     @property
     def raw_grammar(self):
@@ -33,23 +34,30 @@ class Grammar(db.EmbeddedDocument):
             self._raw_grammar = eval(self._raw_grammar_str.grammar)
         return self._raw_grammar
 
-    def _make_list_grammar(self, dataset):
-        self.list_grammar = [
-            [dataset.constraints[rel[1] - 1], dataset.constraints[rel[0] - 1]]
-            for rel in self.raw_grammar
+    def _make_list_grammar(self):
+        self.list_grammar = [self._list_rel(rel) for rel in self.raw_grammar]
+
+    def _list_rel(self, rel):
+        return [  # swap order, -1 to change from 1 to 0 index
+            self.dset.constraints[rel[1] - 1],
+            self.dset.constraints[rel[0] - 1]
         ]
 
-    def _make_string(self, dataset):
-        if self.list_grammar:
-            to_join = ['{']
-            for rel in self.list_grammar[:-1]:
-                to_join.extend(['(', pair_to_string(rel), '), '])
-            to_join.extend(['(',
-                            pair_to_string(self.list_grammar[-1]),
-                            ')}'])
-        else:
-            to_join = ['{', ' }']
+    def _make_string(self):
+        to_join = ['{']
+        inners = [self._inner_pair_str(rel) for rel in self.list_grammar[:-1]]
+        inners.extend([self._final_pair_str()])
+        to_join.extend(inners)
         self.string = "".join(to_join)
+
+    def _inner_pair_str(self, rel):
+        return '(' + pair_to_string(rel) + '), '
+
+    def _final_pair_str(self):
+        if self.list_grammar:
+            return '(' + pair_to_string(self.list_grammar[-1]) + ')}'
+        else:
+            return ' }'
 
     def visualize(self, dset_name, index):
         """Create an AGraph version of the given grammar."""
