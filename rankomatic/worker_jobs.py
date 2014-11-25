@@ -7,18 +7,21 @@ redis_conn = Redis()
 q = Queue(connection=redis_conn)
 GRAMS_PER_PAGE = 20
 
+
 def calculate_grammars_and_statistics(dset_name, sort_value):
     classical, page, sort_by = get_url_args()
     username = get_username()
-    q.enqueue(_calculate_grammars_and_statistics, args=(dset_name, sort_value,
-                                                        classical, page,
-                                                        username, sort_by))
+    q.enqueue(
+        _calculate_grammars_and_statistics,
+        args=(dset_name, sort_value, classical, page, username, sort_by)
+    )
 
 
-def _calculate_grammars_and_statistics(dset_name, sort_value,
-                                       classical, page, username, sort_by):
-    gc = GrammarCalculator(dset_name, sort_value, classical,
-                           page, username, sort_by)
+def _calculate_grammars_and_statistics(dset_name, sort_value, classical,
+                                       page, username, sort_by):
+    gc = GrammarCalculator(
+        dset_name, sort_value, classical, page, username, sort_by
+    )
     gc._get_initial_data()
     gc._calculate_global_stats()
     gc._calculate_navbar_info()
@@ -56,22 +59,22 @@ class GrammarCalculator():
     def _get_initial_data(self):
         self.dset = get_dset(self.dset_name, self.username)
         self.dset.classical = self.classical
+        self.dset.sort_by = self.sort_by
         self.grams = self._get_correct_grammars()
         self.dset.global_stats = {}
-
-    def _get_correct_grammars(self):
         if self.classical:
             self._set_classical_sort_value()
-        self.dset.sort_by = self.sort_by
+
+    def _get_correct_grammars(self):
         self.dset.calculate_compatible_grammars()
-        raw_grammars = enumerate(self.dset.raw_grammars)
         sorter = self.dset.get_grammar_sorter()
-        return [(i, g) for i, g in raw_grammars if sorter(g) == self.sort_value]
+        raw_grams = enumerate(self.dset.raw_grammars)
+        return [(i, g) for i, g in raw_grams if sorter(g) == self.sort_value]
 
     def _set_classical_sort_value(self):
         if self.sort_by == 'size':
             self.sort_value = self._classical_grammar_length()
-        else:
+        else:  # default is 'rank_volume'
             self.sort_value = 1
 
     def _classical_grammar_length(self):
@@ -79,21 +82,26 @@ class GrammarCalculator():
 
     def _calculate_global_stats(self):
         if not self.classical:
-            self.dset.global_stats.update({
-                'num_poots': self.dset.num_compatible_poots(),
-                'num_total_poots': self.dset.num_total_poots(),
-                'percent_poots': self._make_percent_poots()
-            })
+            self._get_global_poot_stats()
+        self._get_global_cot_stats()
 
+    def _get_global_poot_stats(self):
         self.dset.global_stats.update({
-            'num_cots': self.dset.num_compatible_cots(),
-            'num_total_cots': self.dset.num_total_cots(),
-            'percent_cots': self._make_percent_cots()
+            'num_poots': self.dset.num_compatible_poots(),
+            'num_total_poots': self.dset.num_total_poots(),
+            'percent_poots': self._make_percent_poots()
         })
 
     def _make_percent_poots(self):
         return (float(self.dset.num_compatible_poots()) /
                 self.dset.num_total_poots()) * 100
+
+    def _get_global_cot_stats(self):
+        self.dset.global_stats.update({
+            'num_cots': self.dset.num_compatible_cots(),
+            'num_total_cots': self.dset.num_total_cots(),
+            'percent_cots': self._make_percent_cots()
+        })
 
     def _make_percent_cots(self):
         return (float(self.dset.num_compatible_cots()) /
@@ -109,24 +117,23 @@ class GrammarCalculator():
         })
 
     def _get_possible_sort_values(self):
-        if self.sort_by == 'size':
-            reverse = True
-        else:  # default 'rank_volume'
-            reverse = False
-        return sorted(set(map(self.dset.get_grammar_sorter(), self.dset.raw_grammars)), reverse=reverse)
+        values = map(self.dset.get_grammar_sorter(), self.dset.raw_grammars)
+        return sorted(set(values), reverse=self._is_sort_order_reversed())
+
+    def _is_sort_order_reversed(self):
+        return self.sort_by == 'size'  # default is 'rank_volume'
 
     def _get_min_max_indices(self, num_rank_grams):
         min_ind = self.page * GRAMS_PER_PAGE
-        max_ind = min_ind + GRAMS_PER_PAGE - 1
+        max_ind = min_ind + GRAMS_PER_PAGE
         if max_ind > num_rank_grams:
-            max_ind = num_rank_grams - 1
-        return {'min_ind': min_ind,
-                'max_ind': max_ind}
+            max_ind = num_rank_grams
+        return {'min_ind': min_ind, 'max_ind': max_ind - 1}  # -1 b/c  0-index
 
     def _truncate_grams_for_pagination(self):
         min_ind = self.dset.grammar_navbar['min_ind']
         max_ind = self.dset.grammar_navbar['max_ind']
-        self.grams = self.grams[min_ind:max_ind + 1]
+        self.grams = self.grams[min_ind:max_ind + 1]  # +1 b/c slice syntax
         self.dset.global_stats['grams'] = str(self.grams)
 
 
@@ -137,21 +144,27 @@ class GrammarInfoMaker():
         self.username = username
 
     def make_grammar_info(self):
-        self.dset = get_dset(self.dset_name, self.username)
-        self.grams = eval(self.dset.global_stats['grams'])
-        self.dset.visualize_and_store_grammars([x[0] for x in self.grams])
-        grammar_info = []
-        for gram in self.grams:
-            cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
-            input_totals = self._sum_all_cot_stats(cot_stats_by_cand)
-            grammar_info.append({
-                'grammar': self._make_grammar_string(gram[0]),
-                'filename': self._make_grammar_filename(gram[0]),
-                'cots_by_cand': cot_stats_by_cand,
-                'input_totals': input_totals})
-        self.dset.grammar_info = grammar_info
+        self._setup_for_making_info()
+        self.dset.grammar_info = self._grammar_info()
         self.dset.grammar_stats_calculated = True
         self.dset.save()
+
+    def _setup_for_making_info(self):
+        self.dset = get_dset(self.dset_name, self.username)
+        self.grams = eval(self.dset.global_stats['grams'])
+        self.dset.visualize_and_store_grammars([g[0] for g in self.grams])
+
+    def _grammar_info(self):
+        return [self._single_grammar_info(gram) for gram in self.grams]
+
+    def _single_grammar_info(self, gram):
+        cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
+        return {
+            'grammar': self._make_grammar_string(gram[0]),
+            'filename': self._make_grammar_filename(gram[0]),
+            'cots_by_cand': cot_stats_by_cand,
+            'input_totals': self._sum_all_cot_stats(cot_stats_by_cand)
+        }
 
     def _sum_all_cot_stats(self, cot_stats_by_cand):
         input_totals = {}
@@ -166,14 +179,10 @@ class GrammarInfoMaker():
         for cot_stat in cot_stats:
             raw_sum += cot_stat['num_cot']
             percent_sum += cot_stat['per_cot']
-        return {
-            'raw_sum': raw_sum,
-            'per_sum': percent_sum}
+        return {'raw_sum': raw_sum, 'per_sum': percent_sum}
 
     def _make_grammar_string(self, index):
-        #sorted_grammars = sorted(self.dset.grammars, key=self.dset.get_grammar_sorter())
         return self.dset.grammar_to_string(index)
 
     def _make_grammar_filename(self, index):
         return 'grammar%d.png' % index
-

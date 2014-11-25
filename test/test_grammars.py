@@ -285,7 +285,7 @@ class TestGrammarStatsCalculated(OTOrderBaseCase):
         dset.save()
         response = self.client.get(url_for(
             'grammars.grammar_stats_calculated', dset_name='blank',
-            sort_value=0
+            sort_value=0, page=0, classical=False, sort_by='rank_volume'
         ))
         self.assert_200(response)
         data = json.loads(response.data)

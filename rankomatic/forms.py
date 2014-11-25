@@ -39,18 +39,30 @@ class ZeroIntegerField(IntegerField):
     #     something more generic
 
     def process_formdata(self, valuelist):
-        if valuelist[0] is None or len(valuelist[0]) == 0:
+        if self._should_be_zero(valuelist):
             self.data = 0
         else:
-            try:
-                self.data = int(valuelist[0])
-                if self.data < 0:
-                    raise ValueError
-            except ValueError:
-                self.data = None
-                raise ValueError("Violation vectors must consist of"
-                                 " non-negative integers")
-            # TODO refactor this so the error can be handled someplace else
+            self._set_data(valuelist)
+
+    def _should_be_zero(self, valuelist):
+        return valuelist[0] is None or len(valuelist[0]) == 0
+
+    def _set_data(self, valuelist):
+        try:
+            self.data = self._get_value(valuelist)
+        except ValueError:
+            self._handle_value_error()
+
+    def _get_value(self, valuelist):
+        val = int(valuelist[0])
+        if val < 0:
+            raise ValueError
+        return val
+
+    def _handle_value_error(self):
+        self.data = None
+        raise ValueError("Violation vectors must consist of non-negative "
+                         "integers")
 
 
 class CandidateForm(Form):
@@ -136,6 +148,8 @@ class OutputsUnique(object):
 class NoSpecialChars(object):
     """Raise an error if inputs or outputs contain special chars"""
 
+    special_chars = ['.', '$']
+
     def __init__(self, message=None):
         if not message:
             message = ("Inputs and outputs cannot contain the "
@@ -143,13 +157,11 @@ class NoSpecialChars(object):
         self.message = message
 
     def __call__(self, form, field):
-        special_chars = ['.', '$']
-        inps = [c['inp'] for c in field.data]
-        outps = [c['outp'] for c in field.data]
-        for (inp, outp) in zip(inps, outps):
-            for special_char in special_chars:
-                if special_char in inp or special_char in outp:
-                    raise ValidationError(self.message)
+        input_output_strings = [c['inp'] + c['outp'] for c in field.data]
+        chars_to_check = set("".join(input_output_strings))
+        for special_char in self.special_chars:
+            if special_char in chars_to_check:
+                raise ValidationError(self.message)
 
 
 class InputGroupForm(Form):

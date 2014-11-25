@@ -59,16 +59,18 @@ class Dataset(db.Document):
 
         # stores candidates in ot-compatible form
         self._ot_candidates = None
-
-        if data is not None:
-            if data_is_from_form:
-                data = self.process_form_data(data)
-            self.set_dset(data)
+        self._initialize_dset(data, data_is_from_form)
 
         # self.candidates is non-empty if retrieved from DB
         if self.candidates and self._ot_candidates is None:
             self._ot_candidates = self.create_ot_compatible_candidates()
         self.poot = self.build_poot()
+
+    def _initialize_dset(self, data, data_is_from_form):
+        if data is not None:
+            if data_is_from_form:
+                data = self.process_form_data(data)
+            self.set_dset(data)
 
     def process_form_data(self, form_data):
         """Convert raw form data into the stuff used by the ot library."""
@@ -113,13 +115,14 @@ class Dataset(db.Document):
             self.save()
 
     def _process_entailments(self, entailments):
-        processed = {}
+        return {k: v for (k, v) in self._entailment_strings(entailments)}
+
+    def _entailment_strings(self, entailments):
         for old in entailments:
-            new = self._frozenset_to_string(old)
+            key = self._frozenset_to_string(old)
             entailed = entailments[old]['up']
-            processed[new] = sorted(
-                [self._frozenset_to_string(e) for e in entailed])
-        return processed
+            val = sorted([self._frozenset_to_string(e) for e in entailed])
+            yield key, val
 
     def _frozenset_to_string(self, fset):
         return pair_to_string(tuple(fset)[0])
@@ -156,9 +159,7 @@ class Dataset(db.Document):
 
     def visualize_and_store_grammars(self, inds):
         """Generate visualization images and store them in GridFS"""
-        if inds:
-            for i in inds:
-                self.grammars[i].visualize(self.name, i)
+        [self.grammars[i].visualize(self.name, i) for i in inds]
         self.save()
 
     def remove_old_files(self):

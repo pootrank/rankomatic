@@ -23,11 +23,9 @@ def get_dset(name_to_find, username=None):
     if username is None:
         username = get_username()
     try:
-        dset = Dataset.objects.get(name=name_to_find, user=username)
+        return Dataset.objects.get(name=name_to_find, user=username)
     except Dataset.DoesNotExist:
-        dset = Dataset.objects.get_or_404(name=name_to_find, user="guest")
-    return dset
-
+        return Dataset.objects.get_or_404(name=name_to_find, user="guest")
 
 def get_url_args():
     classical = json.loads(request.args.get('classical').lower())

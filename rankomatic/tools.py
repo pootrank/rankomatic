@@ -38,20 +38,20 @@ def validates_tableaux_form(func):
 
     def wrapper(*args, **kwargs):
 
-        obj = args[0]
-        if obj.form.validate():
+        view = args[0]
+        if view.form.validate():
             return func(*args, **kwargs)
         else:
-            return obj.redisplay_form()
+            return view.redisplay_form()
 
     return wrapper
 
 
 def init_tableaux_form_on_self(func):
     def wrapper(*args, **kwargs):
-        obj = args[0]
-        obj.form = TableauxForm(request.form)
-        obj.submit = request.form['submit_button']
+        view = args[0]
+        view.form = TableauxForm(request.form)
+        view.submit = request.form['submit_button']
         return func(*args, **kwargs)
     return wrapper
 
@@ -111,12 +111,14 @@ class CalculatorView(MethodView):
         return self.submit == "All grammars"
 
     def get_redisplay_html(self):
-        return render_template('tableaux.html', form=self.form,
-                               active='calculator')
+        return render_template(
+            'tableaux.html', form=self.form, active='calculator'
+        )
 
     def _initialize_dset(self):
-        self.dset = Dataset(data=self.form.data, data_is_from_form=True,
-                            user=get_username())
+        self.dset = Dataset(
+            data=self.form.data, data_is_from_form=True, user=get_username()
+        )
         if not self.dset.name:
             self.dset.name = self.make_unique_random_dset_name()
 
@@ -152,11 +154,7 @@ class EditView(CalculatorView):
         self.dset_name = dset_name
         if self._need_to_change_dset_user():
             self._change_dset_user()
-        return render_template(
-            'tableaux.html', dset_name=dset_name,
-            form=get_form_from_dset_name(dset_name), active='calculator',
-            t_order=False, edit=True
-        )
+        return self._edit_get_html()
 
     def _need_to_change_dset_user(self):
         try:
@@ -169,6 +167,13 @@ class EditView(CalculatorView):
             dset.user = get_username()
             dset.save()
             flash("Saved %s as %s!" % (dset.name, dset.user))
+
+    def _edit_get_html(self):
+        return render_template(
+            'tableaux.html', dset_name=self.dset_name,
+            form=get_form_from_dset_name(self.dset_name), active='calculator',
+            t_order=False, edit=True
+        )
 
     @init_tableaux_form_on_self
     @validates_tableaux_form

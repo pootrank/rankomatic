@@ -20,12 +20,8 @@ class GrammarView(MethodView):
             return redirect(url_for('.grammars', dset_name=dset_name,
                                     classical=False, sort_value=sort_value,
                                     page=0, sort_by='rank_volume'))
-
         classical, page, sort_by = get_url_args()
-        dset = get_dset(dset_name)
-        dset.global_stats_calculated = False
-        dset.grammar_stats_calculated = False
-        dset.save()
+        self._initialize_dset(dset_name)
         worker_jobs.calculate_grammars_and_statistics(dset_name, sort_value)
         return(render_template('grammars.html', page=page,
                                sort_value=sort_value, dset_name=dset_name))
@@ -58,32 +54,38 @@ class GrammarView(MethodView):
         except (ValueError, AttributeError):
             return False
         else:
-            if to_check is True or to_check is False:
-                return True
-            else:
-                return False
+            return to_check is True or to_check is False
 
     def _check_sort_by(self):
         sort_by = request.args.get('sort_by')
         return sort_by in ['rank_volume', 'size']
 
+    def _initialize_dset(self, dset_name):
+        dset = get_dset(dset_name)
+        dset.global_stats_calculated = False
+        dset.grammar_stats_calculated = False
+        dset.save()
+
 
 class GraphView(MethodView):
 
+    @property
+    def fs(self):
+        return gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
+
     def get(self, dset_name, filename):
         dset_name = urllib.quote(dset_name)
-        fs = gridfs.GridFS(db.get_pymongo_db(), collection='tmp')
         filename = self._make_graph_filename(dset_name, filename)
         try:
-            return self._build_image_response(fs, filename)
+            return self._build_image_response(filename)
         except gridfs.NoFile:
             abort(404)
 
     def _make_graph_filename(self, dset_name, filename):
         return "".join([dset_name, '/', filename])
 
-    def _build_image_response(self, fs, filename):
-        f = fs.get_last_version(filename=filename)
+    def _build_image_response(self, filename):
+        f = self.fs.get_last_version(filename=filename)
         response = make_response(f.read())
         response.mimetype = 'image/png'
         return response
@@ -111,70 +113,111 @@ class EntailmentsCalculatedView(MethodView):
 class GlobalStatsCalculatedView(MethodView):
 
     def get(self, dset_name, sort_value):
+        self._setup_for_get(dset_name, sort_value)
+        if not self.dset.global_stats_calculated:
+            self.return_dict['retry'] = True
+        else:
+            self.return_dict['retry'] = False
+            self._determine_values_to_return()
+        return jsonify(**self.return_dict)
+
+    def _setup_for_get(self, dset_name, sort_value):
         self.dset = get_dset(dset_name)
         self.dset_name = dset_name
-        classical, page, sort_by = get_url_args()
-        to_return = {'finished': False}
-        if not self.dset.global_stats_calculated:
-            to_return['retry'] = True
+        self.sort_value = sort_value
+        self.classical, self.page, self.sort_by = get_url_args()
+        self.return_dict = {'finished': False}
+
+    def _determine_values_to_return(self):
+        self._get_grams()
+        if self._need_redirect():
+            self._display_redirect()
+        elif self._grammars_selected():
+            worker_jobs.make_grammar_info(self.dset_name)
+            self._display_global_stats()
         else:
-            to_return['retry'] = False
-            self.grams = eval(self.dset.global_stats['grams'])
+            self._display_no_grammars_exist()
 
-            need_redirect = ((self.dset.classical and sort_value == 0) or not
-                             self.grams)
-            if need_redirect and self.dset.grammar_navbar['lengths']:
-                to_return['need_redirect'] = True
-                new_sort_value = self.dset.grammar_navbar['lengths'][-1]
-                to_return['redirect_url'] = url_for(
-                    '.grammars', dset_name=dset_name, classical=classical,
-                    sort_value=new_sort_value, page=0, sort_by=sort_by
-                )
-            elif self.grams and self.dset.grammar_navbar['lengths']:
-                self.username = get_username()
-                worker_jobs.make_grammar_info(dset_name)
-                to_return.update({
-                    'need_redirect': False,
-                    'finished': True,
-                    'grammars_exist': True,
-                    'grammar_stat_url': url_for(
-                        'grammars.grammar_stats_calculated',
-                        dset_name=dset_name, classical=classical, page=page,
-                        sort_by=sort_by, sort_value=sort_value
-                    ),
-                    'html_str': render_template('display_global_stats.html',
-                                                dset_name=dset_name,
-                                                classical=self.dset.classical,
-                                                **self.dset.global_stats)
-                })
-            else:
-                to_return.update({
-                    'grammars_exist': False,
-                    'need_redirect': False,
-                    'finished': True
-                })
+    def _get_grams(self):
+        self.grams = eval(self.dset.global_stats['grams'])
 
-        return jsonify(**to_return)
+    def _need_redirect(self):
+        no_classical_sort_value = self.dset.classical and self.sort_value == 0
+        return self._grammars_exist() and (no_classical_sort_value or
+                                           not self._grammars_selected())
+
+    def _grammars_selected(self):
+        return self.grams
+
+    def _grammars_exist(self):
+        return self.dset.grammar_navbar['lengths'] != []
+
+    def _display_redirect(self):
+        self.return_dict['need_redirect'] = True
+        self.return_dict['redirect_url'] = self._redirect_url()
+
+    def _redirect_url(self):
+        return url_for(
+            '.grammars', dset_name=self.dset_name, classical=self.classical,
+            sort_value=self._new_sort_value(), page=0, sort_by=self.sort_by
+        )
+
+    def _new_sort_value(self):
+        return self.dset.grammar_navbar['lengths'][-1]
+
+    def _display_global_stats(self):
+        self.username = get_username()
+        self.return_dict.update({
+            'need_redirect': False,
+            'finished': True,
+            'grammars_exist': True,
+            'grammar_stat_url': self._grammar_stat_url(),
+            'html_str': self._global_stats_html()
+        })
+
+    def _grammar_stat_url(self):
+        return url_for(
+            'grammars.grammar_stats_calculated', dset_name=self.dset_name,
+            classical=self.classical, page=self.page, sort_by=self.sort_by,
+            sort_value=self.sort_value
+        )
+
+    def _global_stats_html(self):
+        return render_template(
+            'display_global_stats.html', dset_name=self.dset_name,
+            classical=self.dset.classical, **self.dset.global_stats
+        )
+
+    def _display_no_grammars_exist(self):
+        self.return_dict.update({
+            'grammars_exist': False,
+            'need_redirect': False,
+            'finished': True
+        })
 
 
 class GrammarStatsCalculated(MethodView):
 
     def get(self, dset_name, sort_value):
-        dset = get_dset(dset_name)
-        if not dset.grammar_stats_calculated:
+        self._setup_for_get(dset_name, sort_value)
+        if not self.dset.grammar_stats_calculated:
             return jsonify(retry=True)
         else:
-            classical, page, sort_by = get_url_args()
-            dset = get_dset(dset_name)
-            grammar_info = dset.grammar_info
-            html_str = render_template('display_grammars.html',
-                                       dset_name=dset_name,
-                                       grammar_info=grammar_info,
-                                       classical=classical, page=page,
-                                       sort_by=sort_by,
-                                       sort_value=sort_value,
-                                       **dset.grammar_navbar)
-            return jsonify(retry=False, html_str=html_str)
+            return jsonify(retry=False, html_str=self._grammar_stats_html())
+
+    def _setup_for_get(self, dset_name, sort_value):
+        self.dset_name = dset_name
+        self.dset = get_dset(dset_name)
+        self.sort_value = sort_value
+        self.classical, self.page, self.sort_by = get_url_args()
+
+    def _grammar_stats_html(self):
+        return render_template(
+            'display_grammars.html', dset_name=self.dset_name, page=self.page,
+            grammar_info=self.dset.grammar_info, sort_by=self.sort_by,
+            sort_value=self.sort_value, classical=self.classical,
+            **self.dset.grammar_navbar
+        )
 
 
 class StatProfileView(MethodView):

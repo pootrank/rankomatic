@@ -62,6 +62,8 @@ class LoginView(MethodView):
 
 class SignupView(MethodView):
 
+    MIN_PASSWORD_LENGTH = 6
+
     def get(self):
         return render_template('signup.html', form=SignupForm(),
                                bodyclass='simple-form')
@@ -104,7 +106,7 @@ class SignupView(MethodView):
             return True
 
     def _password_is_long_enough(self):
-        if len(self.password) < 6:
+        if len(self.password) < self.MIN_PASSWORD_LENGTH:
             flash("The password is too short.")
             return False
         else:
@@ -124,7 +126,7 @@ class SignupView(MethodView):
         dset_names = ['CV Syllabification', 'Kiparsky']
         for dset_name in dset_names:
             dset = Dataset.objects.get(user='guest', name=dset_name)
-            dset.id = None
+            dset.id = None  # saving it will generate a new id
             dset.user = username
             dset.save()
 
