@@ -3,7 +3,7 @@ import gridfs
 import urllib
 
 from candidate import Candidate
-from grammar import Grammar
+from grammar import Grammar, GrammarList
 from rankomatic import db
 from ot.poot import OTStats
 from util import DatasetConverter, pair_to_string
@@ -25,7 +25,7 @@ class Dataset(db.Document):
     entailments = db.DictField()
     classical = db.BooleanField(default=False)
     _sort_by = db.StringField(default="rank_volume")
-    grammars = db.ListField(db.EmbeddedDocumentField(Grammar), default=None)
+    _grammars = db.ReferenceField(GrammarList, default=None)
     user = db.StringField(default="guest")
 
     grammar_navbar = db.DictField()
@@ -42,6 +42,21 @@ class Dataset(db.Document):
         if self.grammars is None:
             self.calculate_compatible_grammars()
         return [gram.raw_grammar for gram in self.grammars]
+
+    @property
+    def grammars(self):
+        try:
+            return self._grammars.grammars
+        except AttributeError:
+            return None
+
+    @grammars.setter
+    def grammars(self, value):
+        try:
+            self._grammars.grammars = value
+        except AttributeError:
+            grammar_list = GrammarList(grammars=value).save()
+            self._grammars = grammar_list
 
     @property
     def sort_by(self):
