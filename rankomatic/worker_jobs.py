@@ -1,11 +1,6 @@
-#from rq import Queue
-#from redis import Redis
 from rankomatic import get_job_queue
-from rankomatic.util import get_dset, get_username, get_url_args
+from rankomatic.util import get_username, get_url_args
 import json
-
-#redis_conn = Redis()
-#job_queue = get_job_queue()
 
 
 def calculate_grammars_and_statistics(dset_name, sort_value):
@@ -17,7 +12,6 @@ def calculate_grammars_and_statistics(dset_name, sort_value):
     }))
 
 
-
 def calculate_entailments(dset_name):
     get_job_queue().put(json.dumps({
         'func': 'calculate_entailments',
@@ -25,11 +19,8 @@ def calculate_entailments(dset_name):
     }))
 
 
-
 def make_grammar_info(dset_name):
     get_job_queue().put(json.dumps({
         'func': 'make_grammar_info',
         'args': (dset_name, get_username())
     }))
-
-

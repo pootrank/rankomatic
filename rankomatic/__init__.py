@@ -10,11 +10,12 @@ available for import from the rankomatic module.
 
 """
 # TODO make sure documentation is up to date
-from multiprocessing.managers import SyncManager
 from flask import Flask
 from flask.ext.mongoengine import MongoEngine
 from flask.ext.rq import RQ
+from multiprocessing.managers import SyncManager
 import config.default_config
+import json
 
 app = Flask(__name__)
 app.config.from_object(config.default_config)
@@ -28,22 +29,26 @@ def get_db(self):
     )
 
 
-MongoEngine.get_pymongo_db = get_db
-
-db = MongoEngine(app)
-
-
 def get_job_queue():
 
     class QueueManager(SyncManager):
         pass
 
     QueueManager.register('get_queue')
+
     manager = QueueManager(address=(app.config['WORKER_HOST'],
                                     app.config['WORKER_PORT']),
                            authkey=app.config['SECRET_KEY'])
     manager.connect()
     return manager.get_queue()
+
+
+def shutdown_worker():
+    get_job_queue().put(json.dumps({'func': ''}))
+
+MongoEngine.get_pymongo_db = get_db
+
+db = MongoEngine(app)
 
 
 def register_blueprints(app):
@@ -56,6 +61,7 @@ def register_blueprints(app):
     app.register_blueprint(tools)
     app.register_blueprint(content)
     app.register_blueprint(grammars)
+
 
 try:
     app.logger.addHandler(app.config['LOG_FILE_HANDLER'])

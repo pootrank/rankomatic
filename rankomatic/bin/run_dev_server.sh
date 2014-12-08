@@ -6,4 +6,5 @@ workon otorder
 export APP_CONFIG=config/dev-config.py
 
 # hit the gas
+#python -m rankomatic.otorderd &
 python runserver.py

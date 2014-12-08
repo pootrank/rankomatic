@@ -4,7 +4,7 @@
     python -m rankomatic.bin.install_raw_grammars <max number of constraints>
 """
 from ot.ordertheory import StrictOrders
-from rankomatic.models import RawGrammar
+from rankomatic.models.grammar import RawGrammar
 from mongoengine import OperationError
 import sys
 
