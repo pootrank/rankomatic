@@ -2,3 +2,5 @@
 *.ropeproject
 .coverage
 stats/
+gspace_6cons.p
+otorderd.log

@@ -13,7 +13,7 @@ class GridFSGraph(pygraphviz.AGraph):
     FS_COLL = 'tmp'
 
     def __init__(self, dset_name=None, basename=None, *args, **kwargs):
-        super(GridFSGraph, self).__init__(*args, **kwargs)
+        super(GridFSGraph, self).__init__(encoding='UTF-8', *args, **kwargs)
         self._check_args(dset_name=dset_name, basename=basename)
         self.dset_name = dset_name
         self.basename = basename

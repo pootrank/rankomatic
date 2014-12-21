@@ -12,7 +12,6 @@ available for import from the rankomatic module.
 # TODO make sure documentation is up to date
 from flask import Flask
 from flask.ext.mongoengine import MongoEngine
-from flask.ext.rq import RQ
 from multiprocessing.managers import SyncManager
 import config.default_config
 import json
@@ -20,7 +19,6 @@ import json
 app = Flask(__name__)
 app.config.from_object(config.default_config)
 app.config.from_envvar('APP_CONFIG', silent=True)
-RQ(app)
 
 
 def get_db(self):
@@ -29,22 +27,19 @@ def get_db(self):
     )
 
 
-def get_job_queue():
+def get_queue():
 
     class QueueManager(SyncManager):
         pass
 
-    QueueManager.register('get_queue')
+    QueueManager.register('control_queue')
 
     manager = QueueManager(address=(app.config['WORKER_HOST'],
                                     app.config['WORKER_PORT']),
                            authkey=app.config['SECRET_KEY'])
     manager.connect()
-    return manager.get_queue()
+    return manager.control_queue()
 
-
-def shutdown_worker():
-    get_job_queue().put(json.dumps({'func': ''}))
 
 MongoEngine.get_pymongo_db = get_db
 

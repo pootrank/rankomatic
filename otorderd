@@ -1,47 +1,110 @@
 #! /usr/bin/env python
-from multiprocessing import Queue, Process
-from multiprocessing.managers import SyncManager
-from rankomatic import app
-from rankomatic.util import get_dset
 
-import json
+import argparse
 import cPickle
+import errno
+import json
+import logging
+import logging.handlers
+import os
 import sys
 import socket
-import errno
-import os
-import time
+
+from multiprocessing import Queue, Process, Event
+from multiprocessing.managers import SyncManager
+from otorderd_logd import initialize_queue_logger
+from rankomatic import app
+from rankomatic.util import get_dset
+from rankomatic.worker_jobs import (_calculate_entailments,
+                                    _make_grammar_info,
+                                    _calculate_grammars_and_statistics)
 
 GRAMS_PER_PAGE = 20
-MAX_CONSTRAINTS = 5
+MAX_CONSTRAINTS = 6
+DEFAULT_NUM_CONSTRAINTS = 5
+DEFAULT_NUM_WORKERS = 5
 
-command_options = sys.argv[1:]
-if len(command_options) > 1:
-    raise ValueError("only one argument at a time."
-                     "any of '--start', '--stop', '--restart'")
-starting = False
-stopping = False
-restarting = False
-if "--start" in command_options:
-    starting = True
-if "--stop" in command_options:
-    stopping = True
-if "--restart" in command_options:
-    restarting = True
+ADDRESS = (app.config['WORKER_HOST'], app.config['WORKER_PORT'])
+
+
+initialize_queue_logger()
+
+
+job_queue = Queue()
+control_queue = Queue()
+logger = logging.getLogger(os.path.basename(__file__))
+
+START = "start"
+STOP = "stop"
+RESTART = "restart"
+OPTIONS = [START, STOP, RESTART]
+
+def exit(msg="unknown error", status=1):
+    logger.critical("otorderd: %s", msg)
+    print "otorderd: %s" % msg
+    sys.exit(status)
+
+
+def daemon_is_running():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(ADDRESS)
+    sock.close()
+    return result == 0
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "cmd", choices=OPTIONS,
+        help="stop, start, or restart the otorderd process"
+    )
+    parser.add_argument(
+        "-v", action='count', dest='verbosity',
+        help="set output verbosity. Increase by adding more 'v's to the short "
+        "form -- -vvv corresponds to verbosity level 3."
+    )
+    parser.add_argument(
+        "-l", "--loglevel", choices=[0, 1, 2, 3], type=int,
+        help="set logging level, 0-3, corresponding to debug, info "
+        "warning, and critical respectively. This is separate from "
+        "printed output, and is written to a socket log (typically listening "
+        "on one port higher than otorderd)."
+    )
+    parser.add_argument(
+        "-w", "--num-workers", choices=range(1, 11), type=int,
+        help="set the number of worker processes to spawn, default is 5"
+    )
+    parser.add_argument(
+        "-c", "--num-constraints", choices=range(3, MAX_CONSTRAINTS+1),
+        type=int, help="set the max number of constraints that the "
+        "workers can process. Increasing this corresponds to much "
+        "higher memory usage. Default is 5."
+    )
+    return parser.parse_args()
+
 
 def load_lattice(num_constraints):
     with open('lattices/gspace_%dcons.p' % num_constraints) as f:
         lat = cPickle.load(f)
-    print "    %d-constraint lattice loaded" % num_constraints
+    msg =  "%d-constraint lattice loaded" % num_constraints
+    logger.info(msg)
     return lat
 
 
-if starting:
-    print "loading lattices"
-    lattices = [load_lattice(i) for i in range(3, MAX_CONSTRAINTS+1)]
+args = get_args()
+
+if args.cmd == START:
+    if not daemon_is_running():
+        if args.num_constraints:
+            num_constraints = args.num_constraints
+        else:
+            num_constraints = DEFAULT_NUM_CONSTRAINTS
+        msg = "loading lattices 3-{}".format(num_constraints)
+        logger.info(msg)
+        print msg
+        lattices = [load_lattice(i) for i in xrange(3, num_constraints + 1)]
 
 def get_fast_dset(dset_name, username):
-    dset = get_dset(dset_name, username)
     dset = get_dset(dset_name, username=username)
     index = dset.poot.set_n - 3
     dset.poot._mongo_db = None
@@ -49,203 +112,106 @@ def get_fast_dset(dset_name, username):
     return dset
 
 
-job_queue = Queue()
-
 class QueueManager(SyncManager):
     pass
 
 
-QueueManager.register('get_queue', callable=lambda: job_queue)
-
-
-def _calculate_grammars_and_statistics(dset_name, sort_value, classical,
-                                    page, username, sort_by):
-    gc = GrammarCalculator(
-        dset_name, sort_value, classical, page, username, sort_by
-    )
-    gc._get_initial_data()
-    gc._calculate_global_stats()
-    gc._calculate_navbar_info()
-    gc._truncate_grams_for_pagination()
-    gc.dset.global_stats_calculated = True
-    gc.dset.save()
-
-
-def _make_grammar_info(dset_name, username):
-    info_maker = GrammarInfoMaker(dset_name, username)
-    info_maker.make_grammar_info()
-
-
-def _calculate_entailments(dset_name, username):
-    dset = get_fast_dset(dset_name, username)
-    dset.calculate_global_entailments()
-    dset.visualize_and_store_entailments()
-
-
-class GrammarCalculator():
-
-    def __init__(self, dset_name, sort_value, classical,
-                page, username, sort_by='rank_volume'):
-        self.dset_name = dset_name
-        self.sort_value = sort_value
-        self.classical = classical
-        self.page = page
-        self.username = username
-        self.sort_by = sort_by
-
-    def _get_initial_data(self):
-        self.dset = get_fast_dset(self.dset_name, self.username)
-        self.dset.classical = self.classical
-        self.dset.sort_by = self.sort_by
-        self.grams = self._get_correct_grammars()
-        self.dset.global_stats = {}
-        if self.classical:
-            self._set_classical_sort_value()
-
-    def _get_correct_grammars(self):
-        self.dset.calculate_compatible_grammars()
-        sorter = self.dset.get_grammar_sorter()
-        raw_grams = enumerate(self.dset.raw_grammars)
-        return [(i, g) for i, g in raw_grams if sorter(g) == self.sort_value]
-
-    def _set_classical_sort_value(self):
-        if self.sort_by == 'size':
-            self.sort_value = self._classical_grammar_length()
-        else:  # default is 'rank_volume'
-            self.sort_value = 1
-
-    def _classical_grammar_length(self):
-        return sum(range(len(self.dset.constraints)))
-
-    def _calculate_global_stats(self):
-        if not self.classical:
-            self._get_global_poot_stats()
-        self._get_global_cot_stats()
-
-    def _get_global_poot_stats(self):
-        self.dset.global_stats.update({
-            'num_poots': self.dset.num_compatible_poots(),
-            'num_total_poots': self.dset.num_total_poots(),
-            'percent_poots': self._make_percent_poots()
-        })
-
-    def _make_percent_poots(self):
-        return (float(self.dset.num_compatible_poots()) /
-                self.dset.num_total_poots()) * 100
-
-    def _get_global_cot_stats(self):
-        self.dset.global_stats.update({
-            'num_cots': self.dset.num_compatible_cots(),
-            'num_total_cots': self.dset.num_total_cots(),
-            'percent_cots': self._make_percent_cots()
-        })
-
-    def _make_percent_cots(self):
-        return (float(self.dset.num_compatible_cots()) /
-                self.dset.num_total_cots()) * 100
-
-    def _calculate_navbar_info(self):
-        sort_values = self._get_possible_sort_values()
-        num_rank_grams = len(self.grams)
-        self.dset.grammar_navbar = self._get_min_max_indices(num_rank_grams)
-        self.dset.grammar_navbar.update({
-            'lengths': sort_values,
-            'num_rank_grams': num_rank_grams,
-        })
-
-    def _get_possible_sort_values(self):
-        values = map(self.dset.get_grammar_sorter(), self.dset.raw_grammars)
-        return sorted(set(values), reverse=self._is_sort_order_reversed())
-
-    def _is_sort_order_reversed(self):
-        return self.sort_by == 'size'  # default is 'rank_volume'
-
-    def _get_min_max_indices(self, num_rank_grams):
-        min_ind = self.page * GRAMS_PER_PAGE
-        max_ind = min_ind + GRAMS_PER_PAGE
-        if max_ind > num_rank_grams:
-            max_ind = num_rank_grams
-        return {'min_ind': min_ind, 'max_ind': max_ind - 1}  # -1 b/c  0-index
-
-    def _truncate_grams_for_pagination(self):
-        min_ind = self.dset.grammar_navbar['min_ind']
-        max_ind = self.dset.grammar_navbar['max_ind']
-        self.grams = self.grams[min_ind:max_ind + 1]  # +1 b/c slice syntax
-        self.dset.global_stats['grams'] = str(self.grams)
-
-
-class GrammarInfoMaker():
-
-    def __init__(self, dset_name, username):
-        self.dset_name = dset_name
-        self.username = username
-
-    def make_grammar_info(self):
-        self._setup_for_making_info()
-        self.dset.grammar_info = self._grammar_info()
-        self.dset.grammar_stats_calculated = True
-        self.dset.save()
-
-    def _setup_for_making_info(self):
-        self.dset = get_fast_dset(self.dset_name, self.username)
-        self.grams = eval(self.dset.global_stats['grams'])
-        self.dset.visualize_and_store_grammars([g[0] for g in self.grams])
-
-    def _grammar_info(self):
-        return [self._single_grammar_info(gram) for gram in self.grams]
-
-    def _single_grammar_info(self, gram):
-        cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
-        return {
-            'grammar': self._make_grammar_string(gram[0]),
-            'filename': self._make_grammar_filename(gram[0]),
-            'cots_by_cand': cot_stats_by_cand,
-            'input_totals': self._sum_all_cot_stats(cot_stats_by_cand)
-        }
-
-    def _sum_all_cot_stats(self, cot_stats_by_cand):
-        input_totals = {}
-        for cand in cot_stats_by_cand:
-            cand_stats = cot_stats_by_cand[cand]
-            input_totals[cand] = self._sum_cot_stats_for_cand(cand_stats)
-        return input_totals
-
-    def _sum_cot_stats_for_cand(self, cot_stats):
-        raw_sum = 0
-        percent_sum = 0.0
-        for cot_stat in cot_stats:
-            raw_sum += cot_stat['num_cot']
-            percent_sum += cot_stat['per_cot']
-        return {'raw_sum': raw_sum, 'per_sum': percent_sum}
-
-    def _make_grammar_string(self, index):
-        return self.dset.grammar_to_string(index)
-
-    def _make_grammar_filename(self, index):
-        return 'grammar%d.png' % index
+QueueManager.register('job_queue', callable=lambda: job_queue)
+QueueManager.register('control_queue', callable=lambda: control_queue)
 
 
 def queue_manager():
-    return QueueManager(address=(app.config['WORKER_HOST'],
-                                 app.config['WORKER_PORT']),
-                        authkey=app.config['SECRET_KEY'])
+    return QueueManager(address=ADDRESS, authkey=app.config['SECRET_KEY'])
 
 
-def join_processes(procs):
-    print "waiting for jobs to finish"
-    for p in procs:
-        p.join()
+class OtorderDaemon(object):
+
+    def __init__(self):
+        self.exit = Event()
+        self.manager = queue_manager()
+
+    def start_manager(self):
+        self.manager.start()
+        msg = ("queue manager listening at: %s" % str(self.manager.address))
+        logger.info(msg)
+        print msg
+
+    def _spawn_workers(self):
+        if args.num_workers:
+            num_workers = args.num_workers
+        else:
+            num_workers = DEFAULT_NUM_WORKERS
+        self.workers = [Worker() for i in range(num_workers)]
+        for worker in self.workers:
+            worker.start()
+        msg = "{} workers successfully spawned".format(num_workers)
+        logger.info(msg)
+        print msg
+
+    def run(self):
+        self.job_queue = self.manager.job_queue()
+        self.control_queue = self.manager.control_queue()
+        self._spawn_workers()
+        while not self.exit.is_set():
+            msg = json.loads(self.control_queue.get())
+            request = msg.pop('request')
+            if request == "calculate":
+                job_queue.put(json.dumps(msg))
+            elif request == "command":
+                self.perform_command(msg['command'])
+            else:
+                raise NameError('request %s not supported' % request)
+
+    def perform_command(self, cmd):
+        if cmd == "stop":
+            self.stop()
+            self.exit.set()
+        elif cmd == "restart":
+            self.restart()
+
+    def stop(self):
+        for worker in self.workers:
+            job_queue.put(json.dumps({'func': 'stop'}))
+        for worker in self.workers:
+            worker.join()
+
+    def restart(self):
+        self.stop()
+        self.manager.shutdown()
+        logger.info('restarting')
+        print "restarting"
+        filename = os.path.abspath(__file__)
+        args = [sys.executable, filename, "--start"]
+        os.execl(sys.executable, *args)
 
 
-def run_daemon():
-    manager = queue_manager()
-    manager.start()
-    print "queue manager started..."
-    procs = []
+class Worker(Process):
 
-    while True:
-        msg = json.loads(job_queue.get())
-        func = msg.pop('func')
+    def __init__(self, *args, **kwargs):
+        super(Worker, self).__init__(*args, **kwargs)
+        self.manager = queue_manager()
+        self.exit = Event()
+
+    def run(self):
+        self.name = "Work-%d" % os.getpid()
+        self.manager.connect()
+        self.logger = logging.getLogger("otorderd-w%d" % os.getpid())
+        msg = "worker starting"
+        self.logger.info(msg)
+
+        self.job_queue = self.manager.job_queue()
+        while not self.exit.is_set():
+            self.msg = json.loads(self.job_queue.get())
+            self.run_calculation()
+
+        msg = "Worker-%d shutting down" % os.getpid()
+        self.logger.info(msg)
+
+    def shutdown(self):
+        self.exit.set()
+
+    def run_calculation(self):
+        func = self.msg['func']
         if func == "calculate_grammars_and_statistics":
             target = _calculate_grammars_and_statistics
         elif func == "make_grammar_info":
@@ -253,41 +219,59 @@ def run_daemon():
         elif func == "calculate_entailments":
             target = _calculate_entailments
         elif func == "stop":
-            join_processes(procs)
-            print "shutting down"
-            break
-        elif func == "restart":
-            join_processes(procs)
-            manager.shutdown()
-            print "restarting"
-            filename = os.path.abspath(__file__)
-            args = [sys.executable, filename, "--start"]
-            os.execl(sys.executable, *args)
+            target = None
+            self.shutdown()
         else:
-            join_processes(procs)
-            raise NameError("desired function not found."
-                            "waiting for current jobs to finish.")
+            raise NameError("desired function not found")
 
-        p = Process(target=target, args=(msg['args']))
-        p.start()
-        procs.append(p)
+        if target:
+            msg = "Worker-%d: %s(%s)" % (os.getpid(), func, self.msg['args'])
+            self.logger.info(msg)
+            self.msg['args'].append(get_fast_dset)
+            target(*self.msg['args'])
 
 
-def send_request(request):
-    manager = queue_manager()
-    manager.connect()
-    manager.get_queue().put(json.dumps({
-        "func": request
-    }))
+class Client(object):
+
+    def __init__(self):
+        self.manager = queue_manager()
+        if daemon_is_running():
+            self.manager.connect()
+            self.queue = self.manager.control_queue()
+
+    def send_command(self, command):
+        self.queue.put(json.dumps({
+            'request': 'command',
+            'command': command
+        }))
+
+    def start_daemon(self):
+        if not daemon_is_running():
+            daemon = OtorderDaemon()
+            daemon.start_manager()
+            daemon.run()
+        else:
+            exit("daemon already running")
+
+    def send_stop(self):
+        if daemon_is_running():
+            self.send_command('stop')
+        else:
+            exit("no daemon running")
+
+    def send_restart(self):
+        if daemon_is_running():
+            self.send_command('restart')
+        else:
+            exit("no deameon running")
+
 
 
 if __name__ == "__main__":
-    if starting:
-        run_daemon()
-    elif stopping:
-        send_request('stop')
-    elif restarting:
-        send_request('restart')
-    else:
-        print sys.argv
-        print "not stopping or starting"
+    client = Client()
+    if args.cmd == START:
+        client.start_daemon()
+    elif args.cmd == STOP:
+        client.send_stop()
+    elif args.cmd == RESTART:
+        client.send_restart()
