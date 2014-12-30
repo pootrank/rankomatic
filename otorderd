@@ -12,7 +12,7 @@ import socket
 
 from multiprocessing import Queue, Process, Event
 from multiprocessing.managers import SyncManager
-from otorderd_logd import initialize_queue_logger
+from otorderd_logd import initialize_queue_logger, get_formatter
 from rankomatic import app
 from rankomatic.util import get_dset
 from rankomatic.worker_jobs import (_calculate_entailments,
@@ -21,23 +21,91 @@ from rankomatic.worker_jobs import (_calculate_entailments,
 
 GRAMS_PER_PAGE = 20
 MAX_CONSTRAINTS = 6
-DEFAULT_NUM_CONSTRAINTS = 5
+DEFAULT_NUM_CONSTRAINTS = 4
 DEFAULT_NUM_WORKERS = 5
 
 ADDRESS = (app.config['WORKER_HOST'], app.config['WORKER_PORT'])
 
 
-initialize_queue_logger()
-
-
-job_queue = Queue()
-control_queue = Queue()
-logger = logging.getLogger(os.path.basename(__file__))
-
 START = "start"
 STOP = "stop"
 RESTART = "restart"
 OPTIONS = [START, STOP, RESTART]
+
+def set_log_level(level, log):
+    if not level:
+        log.setLevel(logging.CRITICAL)
+    elif level == 1:
+        log.setLevel(logging.WARNING)
+    elif level == 2:
+        log.setLevel(logging.INFO)
+    else:
+        log.setLevel(logging.DEBUG)
+
+
+def configure_stderr_output(args, print_logger):
+    handler = logging.StreamHandler()
+    print_logger.addHandler(handler)
+    print_logger.propagate = False
+    set_log_level(args.verbosity, print_logger)
+
+
+def configure_logging(args, queue_logger, print_logger):
+    initialize_queue_logger()
+    set_log_level(args.loglevel, queue_logger)
+    configure_stderr_output(args, print_logger)
+
+
+def get_args(queue_logger, print_logger):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "cmd", choices=OPTIONS,
+        help="stop, start, or restart the otorderd process"
+    )
+    parser.add_argument(
+        "-v", action='count', dest='verbosity', default=2,
+        help="set output verbosity. Increase by adding more 'v's to the short "
+        "form -- -vvv corresponds to verbosity level 3. Default value is 2."
+    )
+    parser.add_argument(
+        "--verbosity", choices=[0, 1, 2, 3], type=int
+    )
+    parser.add_argument(
+        "-l", "--loglevel", choices=[0, 1, 2, 3], type=int, default=3,
+        help="set logging level, 0-3, corresponding to critical, warning, "
+        "info, and debug respectively. This is separate from "
+        "printed output, and is written to a socket log. Default value is 3"
+    )
+    parser.add_argument(
+        "-w", "--num-workers", choices=range(1, 11), type=int,
+        help="set the number of worker processes to spawn, default is 5"
+    )
+    parser.add_argument(
+        "-c", "--num-constraints", choices=range(3, MAX_CONSTRAINTS+1),
+        type=int, help="set the max number of constraints that the "
+        "workers can process. Increasing this corresponds to much "
+        "higher memory usage. Default is 5."
+    )
+    args = parser.parse_args()
+    configure_logging(args, queue_logger, print_logger)
+    return args
+
+
+logger = logging.getLogger("otorderd")
+printer = logging.getLogger("stderr")
+args = get_args(logger, printer)
+job_queue = Queue()
+control_queue = Queue()
+
+def log_info(msg):
+    logger.info(msg)
+    printer.info(msg)
+
+
+def log_debug(msg):
+    logger.debug(msg)
+    printer.debug(msg)
+
 
 def exit(msg="unknown error", status=1):
     logger.critical("otorderd: %s", msg)
@@ -52,46 +120,13 @@ def daemon_is_running():
     return result == 0
 
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "cmd", choices=OPTIONS,
-        help="stop, start, or restart the otorderd process"
-    )
-    parser.add_argument(
-        "-v", action='count', dest='verbosity',
-        help="set output verbosity. Increase by adding more 'v's to the short "
-        "form -- -vvv corresponds to verbosity level 3."
-    )
-    parser.add_argument(
-        "-l", "--loglevel", choices=[0, 1, 2, 3], type=int,
-        help="set logging level, 0-3, corresponding to debug, info "
-        "warning, and critical respectively. This is separate from "
-        "printed output, and is written to a socket log (typically listening "
-        "on one port higher than otorderd)."
-    )
-    parser.add_argument(
-        "-w", "--num-workers", choices=range(1, 11), type=int,
-        help="set the number of worker processes to spawn, default is 5"
-    )
-    parser.add_argument(
-        "-c", "--num-constraints", choices=range(3, MAX_CONSTRAINTS+1),
-        type=int, help="set the max number of constraints that the "
-        "workers can process. Increasing this corresponds to much "
-        "higher memory usage. Default is 5."
-    )
-    return parser.parse_args()
-
-
 def load_lattice(num_constraints):
     with open('lattices/gspace_%dcons.p' % num_constraints) as f:
         lat = cPickle.load(f)
     msg =  "%d-constraint lattice loaded" % num_constraints
-    logger.info(msg)
+    log_debug(msg)
     return lat
 
-
-args = get_args()
 
 if args.cmd == START:
     if not daemon_is_running():
@@ -100,8 +135,7 @@ if args.cmd == START:
         else:
             num_constraints = DEFAULT_NUM_CONSTRAINTS
         msg = "loading lattices 3-{}".format(num_constraints)
-        logger.info(msg)
-        print msg
+        log_info(msg)
         lattices = [load_lattice(i) for i in xrange(3, num_constraints + 1)]
 
 def get_fast_dset(dset_name, username):
@@ -133,8 +167,7 @@ class OtorderDaemon(object):
     def start_manager(self):
         self.manager.start()
         msg = ("queue manager listening at: %s" % str(self.manager.address))
-        logger.info(msg)
-        print msg
+        log_info(msg)
 
     def _spawn_workers(self):
         if args.num_workers:
@@ -145,8 +178,7 @@ class OtorderDaemon(object):
         for worker in self.workers:
             worker.start()
         msg = "{} workers successfully spawned".format(num_workers)
-        logger.info(msg)
-        print msg
+        log_debug(msg)
 
     def run(self):
         self.job_queue = self.manager.job_queue()
@@ -178,8 +210,7 @@ class OtorderDaemon(object):
     def restart(self):
         self.stop()
         self.manager.shutdown()
-        logger.info('restarting')
-        print "restarting"
+        log_info('restarting')
         filename = os.path.abspath(__file__)
         args = [sys.executable, filename, "--start"]
         os.execl(sys.executable, *args)
@@ -195,9 +226,9 @@ class Worker(Process):
     def run(self):
         self.name = "Work-%d" % os.getpid()
         self.manager.connect()
-        self.logger = logging.getLogger("otorderd-w%d" % os.getpid())
+        self.logger = logging.getLogger("otorderd.w%d" % os.getpid())
         msg = "worker starting"
-        self.logger.info(msg)
+        self.log_debug(msg)
 
         self.job_queue = self.manager.job_queue()
         while not self.exit.is_set():
@@ -205,7 +236,15 @@ class Worker(Process):
             self.run_calculation()
 
         msg = "Worker-%d shutting down" % os.getpid()
+        self.log_debug(msg)
+
+    def log_info(self, msg):
         self.logger.info(msg)
+        printer.info(msg)
+
+    def log_debug(self, msg):
+        self.logger.debug(msg)
+        printer.debug(msg)
 
     def shutdown(self):
         self.exit.set()
@@ -226,7 +265,7 @@ class Worker(Process):
 
         if target:
             msg = "Worker-%d: %s(%s)" % (os.getpid(), func, self.msg['args'])
-            self.logger.info(msg)
+            self.log_info(msg)
             self.msg['args'].append(get_fast_dset)
             target(*self.msg['args'])
 

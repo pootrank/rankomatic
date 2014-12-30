@@ -46,6 +46,13 @@ def log_queue_manager():
     return LogQueueManager(address=ADDRESS, authkey='')
 
 
+def get_formatter():
+    return logging.Formatter(
+        '%(asctime)s %(processName)-10s %(name)s '
+        '%(levelname)-8s %(message)s'
+    )
+
+
 def log_worker_configurer(log_queue):
     handler = QueueLogHandler(log_queue)
     root = logging.getLogger()
@@ -118,17 +125,11 @@ class OtorderdLogListener(object):
         root = logging.getLogger()
         handler = RotatingFileHandler(self.logpath, maxBytes=LOGFILE_MAX_BYTES,
                                       backupCount=BACKUP_COUNT)
-        self.make_formatter()
+        self.formatter = get_formatter()
         handler.setFormatter(self.formatter)
         root.addHandler(handler)
         if self.debug:
             self.configure_stderr_output()
-
-    def make_formatter(self):
-        self.formatter = logging.Formatter(
-            '%(asctime)s %(processName)-10s %(name)s '
-            '%(levelname)-8s %(message)s'
-        )
 
     def configure_stderr_output(self):
         root = logging.getLogger()
