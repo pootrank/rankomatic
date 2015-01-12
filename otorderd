@@ -12,7 +12,8 @@ import socket
 
 from multiprocessing import Queue, Process, Event
 from multiprocessing.managers import SyncManager
-from otorderd_logd import initialize_queue_logger, get_formatter
+from otorderd_logd import (initialize_queue_logger, get_formatter,
+                           daemon_is_running)
 from rankomatic import app
 from rankomatic.util import get_dset
 from rankomatic.worker_jobs import (_calculate_entailments,
@@ -21,10 +22,10 @@ from rankomatic.worker_jobs import (_calculate_entailments,
 
 GRAMS_PER_PAGE = 20
 MAX_CONSTRAINTS = 6
-DEFAULT_NUM_CONSTRAINTS = 4
+DEFAULT_NUM_CONSTRAINTS = 5
 DEFAULT_NUM_WORKERS = 5
 
-ADDRESS = (app.config['WORKER_HOST'], app.config['WORKER_PORT'])
+ADDRESS = app.config['WORKER_ADDRESS']
 
 
 START = "start"
@@ -113,11 +114,8 @@ def exit(msg="unknown error", status=1):
     sys.exit(status)
 
 
-def daemon_is_running():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(ADDRESS)
-    sock.close()
-    return result == 0
+def address_is_busy():
+    return daemon_is_running(address=ADDRESS)
 
 
 def load_lattice(num_constraints):
@@ -129,7 +127,7 @@ def load_lattice(num_constraints):
 
 
 if args.cmd == START:
-    if not daemon_is_running():
+    if not address_is_busy():
         if args.num_constraints:
             num_constraints = args.num_constraints
         else:
@@ -212,7 +210,7 @@ class OtorderDaemon(object):
         self.manager.shutdown()
         log_info('restarting')
         filename = os.path.abspath(__file__)
-        args = [sys.executable, filename, "--start"]
+        args = [sys.executable, filename, "start"]
         os.execl(sys.executable, *args)
 
 
@@ -274,7 +272,7 @@ class Client(object):
 
     def __init__(self):
         self.manager = queue_manager()
-        if daemon_is_running():
+        if address_is_busy():
             self.manager.connect()
             self.queue = self.manager.control_queue()
 
@@ -285,7 +283,7 @@ class Client(object):
         }))
 
     def start_daemon(self):
-        if not daemon_is_running():
+        if not address_is_busy():
             daemon = OtorderDaemon()
             daemon.start_manager()
             daemon.run()
@@ -293,13 +291,13 @@ class Client(object):
             exit("daemon already running")
 
     def send_stop(self):
-        if daemon_is_running():
+        if address_is_busy():
             self.send_command('stop')
         else:
             exit("no daemon running")
 
     def send_restart(self):
-        if daemon_is_running():
+        if address_is_busy():
             self.send_command('restart')
         else:
             exit("no deameon running")

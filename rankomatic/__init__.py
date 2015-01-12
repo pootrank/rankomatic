@@ -11,6 +11,7 @@ available for import from the rankomatic module.
 """
 # TODO make sure documentation is up to date
 from flask import Flask
+from otorderd_logd import daemon_is_running
 from flask.ext.mongoengine import MongoEngine
 from multiprocessing.managers import SyncManager
 import config.default_config
@@ -19,7 +20,6 @@ import json
 app = Flask(__name__)
 app.config.from_object(config.default_config)
 app.config.from_envvar('APP_CONFIG', silent=True)
-
 
 def get_db(self):
     return getattr(
@@ -34,8 +34,7 @@ def get_queue():
 
     QueueManager.register('control_queue')
 
-    manager = QueueManager(address=(app.config['WORKER_HOST'],
-                                    app.config['WORKER_PORT']),
+    manager = QueueManager(address=app.config['WORKER_ADDRESS'],
                            authkey=app.config['SECRET_KEY'])
     manager.connect()
     return manager.control_queue()
@@ -62,5 +61,6 @@ try:
     app.logger.addHandler(app.config['LOG_FILE_HANDLER'])
 except KeyError:
     pass
+
 
 register_blueprints(app)

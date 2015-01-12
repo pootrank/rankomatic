@@ -35,9 +35,9 @@ class LogQueueManager(SyncManager):
 LogQueueManager.register('log_queue', callable=lambda: log_queue)
 
 
-def daemon_is_running():
+def daemon_is_running(address=ADDRESS):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(ADDRESS)
+    result = sock.connect_ex(address)
     sock.close()
     return result == 0
 
@@ -48,7 +48,7 @@ def log_queue_manager():
 
 def get_formatter():
     return logging.Formatter(
-        '%(asctime)s %(processName)-10s %(name)s '
+        '%(asctime)s %(name)s '
         '%(levelname)-8s %(message)s'
     )
 
