@@ -190,9 +190,9 @@ graph_testing_grammar = [
 ]
 
 grammar_graph_string = (
-    u'strict digraph {\n\tgraph [rankdir=LR];\n\tPARSE -> "ALIGN-R-PHRASE"'
-    ';\n\t"ALIGN-R-PHRASE" -> ONSET;\n\t"*COMPLEX" -> "ALIGN-L-WORD";\n\t"'
-    'ALIGN-L-WORD" -> "ALIGN-R-PHRASE";\n}\n'
+    u'strict digraph {\n\tgraph [encoding="UTF-8",\n\t\trankdir=LR\n\t];\n\tPA'
+    'RSE -> "ALIGN-R-PHRASE";\n\t"ALIGN-R-PHRASE" -> ONSET;\n\t"*COMPLEX" -> '
+    '"ALIGN-L-WORD";\n\t"ALIGN-L-WORD" -> "ALIGN-R-PHRASE";\n}\n'
 )
 
 entailments_with_cycles = {'I1, O1': ['I1, O1', 'I2, O4', 'I3, O2', 'I4, O3'],
@@ -205,9 +205,9 @@ entailments_with_cycles = {'I1, O1': ['I1, O1', 'I2, O4', 'I3, O2', 'I4, O3'],
                            'I4, O5': ['I1, O2', 'I2, O5', 'I3, O4', 'I4, O5']}
 
 entailments_with_cycles_graph_string = (
-    u'strict digraph {\n\t"(I4, O5)\n(I2, O5)\n"\t [shape=rect];\n\t"(I1, O2)'
-    '\n(I3, O4)\n"\t [shape=rect];\n\t"(I4, O5)\n(I2, O5)\n" -> "(I1, O2)\n(I'
-    '3, O4)\n";\n\t"(I1, O1)\n(I3, O2)\n"\t [shape=rect];\n\t"(I2, O4)\n(I4, O'
-    '3)\n"\t [shape=rect];\n\t"(I1, O1)\n(I3, O2)\n" -> "(I2, O4)\n(I4, O3)\n"'
-    ';\n}\n'
+    u'strict digraph {\n\tgraph [encoding="UTF-8"];\n\t"(I4, O5)\n(I2, O5)\n"'
+    '\t [shape=rect];\n\t"(I1, O2)\n(I3, O4)\n"\t [shape=rect];\n\t"(I4, O5)\n'
+    '(I2, O5)\n" -> "(I1, O2)\n(I3, O4)\n";\n\t"(I1, O1)\n(I3, O2)\n"\t [shape'
+    '=rect];\n\t"(I2, O4)\n(I4, O3)\n"\t [shape=rect];\n\t"(I1, O1)\n(I3, O2)'
+    '\n" -> "(I2, O4)\n(I4, O3)\n";\n}\n'
 )

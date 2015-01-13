@@ -27,13 +27,7 @@ class TestDataset(object):
         pymongodb.tmp.chunks.drop()
         delete_bad_datasets()
 
-    def test_constructor(self):
-        self.check_bare_constructor()
-        self.check_constructor_data_not_from_form()
-        self.check_constructor_no_data_not_from_form()
-        self.check_constructor_data_from_form()
-
-    def check_bare_constructor(self):
+    def test_bare_constructor(self):
         d = models.Dataset()
         assert d.upload_date
         assert not d.name
@@ -44,7 +38,7 @@ class TestDataset(object):
         assert d.poot
         assert d.user == "guest"
 
-    def check_constructor_no_data_not_from_form(self):
+    def test_constructor_no_data_not_from_form(self):
         d = models.Dataset(data_is_from_form=False)
         assert d.upload_date
         assert not d.name
@@ -55,12 +49,12 @@ class TestDataset(object):
         assert d.poot
         assert d.user == "guest"
 
-    def check_constructor_data_not_from_form(self):
+    def test_constructor_data_not_from_form(self):
         assert self.candidates_are_set_correctly(self.d, self.data)
         assert self.d.user == "guest"
         assert self.d.name == "voweldset"
 
-    def check_constructor_data_from_form(self):
+    def test_constructor_data_from_form(self):
         form_data = self.d.create_form_data()
         form_dset = models.Dataset(data=form_data)
         assert self.candidates_are_set_correctly(form_dset, self.data)
@@ -132,6 +126,7 @@ class TestDataset(object):
         }
 
     def test_raw_grammars(self):
+        #import pdb; pdb.set_trace()
         self.d.sort_by = 'size'
         # calculate once
         assert self.d.raw_grammars == [

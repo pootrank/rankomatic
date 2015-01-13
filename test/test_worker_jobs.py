@@ -1,5 +1,7 @@
 import mock
 import ot.data
+import json
+from Queue import Queue
 
 from nose import with_setup
 from test import OTOrderBaseCase
@@ -196,25 +198,41 @@ def test_make_grammar_info(mock_get_grammars):
 
 class TestEnqueuingFunctions(OTOrderBaseCase):
 
-    @mock.patch('rq.Queue.enqueue')
-    def test_calculate_grammars_and_statistics(self, mock_enqueue):
+    def make_request(self, func, args):
+        return json.dumps({
+            'request': 'calculate',
+            'func': func,
+            'args': args
+        })
+
+    @mock.patch('Queue.Queue.put')
+    @mock.patch('rankomatic.worker_jobs.get_queue', return_value=Queue())
+    def test_calculate_grammars_and_statistics(self, mock_get_queue, mock_put):
         path = "/?classical=False&page=0&sort_by=size"
         with self.app.test_request_context(path=path):
             calculate_grammars_and_statistics('blank', 0)
-        mock_enqueue.assert_called_with(
-            worker_jobs._calculate_grammars_and_statistics,
-            args=('blank', 0, False, 0, 'guest', 'size')
+        assert mock_get_queue.called
+        mock_put.assert_called_with(
+            self.make_request('calculate_grammars_and_statistics',
+                              ('blank', 0, False, 0, 'guest', 'size'))
         )
 
-    @mock.patch('rq.Queue.enqueue')
-    def test_calculate_entailments(self, mock_enqueue):
+    @mock.patch('Queue.Queue.put')
+    @mock.patch('rankomatic.worker_jobs.get_queue', return_value=Queue())
+    def test_calculate_entailments(self, mock_get_queue, mock_put):
         with self.app.test_request_context():
             calculate_entailments('blank')
-        mock_enqueue.assert_called_with(worker_jobs._calculate_entailments,
-                                        args=('blank', 'guest'))
+        assert mock_get_queue.called
+        mock_put.assert_called_with(self.make_request(
+            'calculate_entailments', ('blank', 'guest')
+        ))
 
-    @mock.patch('rq.Queue.enqueue')
-    def test_make_grammar_info(self, mock_enqueue):
+    @mock.patch('Queue.Queue.put')
+    @mock.patch('rankomatic.worker_jobs.get_queue', return_value=Queue())
+    def test_make_grammar_info(self, mock_get_queue, mock_put):
         with self.app.test_request_context():
             make_grammar_info('blank')
-        assert mock_enqueue.called_with(worker_jobs.GrammarInfoMaker.__init__)
+        assert mock_get_queue.called
+        mock_put.assert_called_with(self.make_request(
+            'make_grammar_info', ('blank', 'guest')
+        ))

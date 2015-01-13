@@ -79,4 +79,4 @@ class Grammar(db.EmbeddedDocument):
 
 class GrammarList(db.Document):
     grammars = db.ListField(db.EmbeddedDocumentField(Grammar, default=None),
-                            default=[])
+                            default=None)

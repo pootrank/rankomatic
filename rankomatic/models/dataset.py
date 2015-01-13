@@ -48,15 +48,18 @@ class Dataset(db.Document):
         try:
             return self._grammars.grammars
         except AttributeError:
-            return None
+            if self.id:
+                self.calculate_compatible_grammars()
+                return self._grammars.grammars
+            else:
+                return None
 
     @grammars.setter
     def grammars(self, value):
-        try:
-            self._grammars.grammars = value
-        except AttributeError:
-            grammar_list = GrammarList(grammars=value).save()
-            self._grammars = grammar_list
+        grammar_list = GrammarList(grammars=value)
+        grammar_list.save()
+        self._grammars = grammar_list
+        self.save()
 
     @property
     def sort_by(self):
@@ -154,6 +157,8 @@ class Dataset(db.Document):
         If any are found, put them in the grammars list.
 
         """
+        if not self.id:
+            self.save()
         grammars = list(self.poot.get_grammars(classical=self.classical))
         grammars.sort(key=self.get_grammar_sorter())
         self.grammars = [Grammar(gram, self) for gram in grammars]
