@@ -146,10 +146,16 @@ class Dataset(db.Document):
         return pair_to_string(tuple(fset)[0])
 
     def visualize_and_store_entailments(self):
-        graph = EntailmentGraph(self.entailments, self.name)
+        num_cots_by_cand = self._process_num_cots_by_cand()
+        graph = EntailmentGraph(self.entailments, self.name,
+                                num_cots_by_cand)
         graph.visualize()
         self.entailments_visualized = True
         self.save()
+
+    def _process_num_cots_by_cand(self):
+        num_cots_by_cand = self.poot.num_cots_by_cand(frozenset([]))
+        return {pair_to_string(k): v for k, v in num_cots_by_cand.iteritems()}
 
     def calculate_compatible_grammars(self):
         """Calculate the compatible grammars for the dataset.

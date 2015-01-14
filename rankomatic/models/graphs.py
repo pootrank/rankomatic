@@ -60,18 +60,28 @@ class GridFSGraph(pygraphviz.AGraph):
 
 class EntailmentGraph(GridFSGraph):
 
-    def __init__(self, entailments, dset_name):
+    def __init__(self, entailments, dset_name, num_cots_by_cand):
         super(EntailmentGraph, self).__init__(dset_name=dset_name,
                                               basename='entailments',
                                               directed=True)
         self.entailments = entailments
+        self.num_cots_by_cand = num_cots_by_cand
 
     def make_graph(self):
         self._add_edges()
         self._collapse_cycles()
-        self._make_nodes_rectangular()
+        self.node_attr['shape'] = 'rect'
+        self._add_annotations()
         self.tred()
         self.layout('dot')
+
+    def _add_annotations(self):
+        for k, v in self.num_cots_by_cand.iteritems():
+            if k in self.nodes():
+                self.get_node(k).attr['label'] = k + self._rank_volume_annotation(v)
+
+    def _rank_volume_annotation(self, value):
+        return '<<FONT POINT-SIZE="10">RV: {}</FONT>>'.format(value)
 
     def _add_edges(self):
         for k, v in self.entailments.iteritems():
@@ -111,17 +121,20 @@ class EntailmentGraph(GridFSGraph):
         cycle = list(cycle)
         node_label = self._make_node_label(cycle)
         self._add_edges_to_and_from_collapsed_cycle(cycle, node_label)
+        self.get_node(node_label).attr['label'] = node_label
 
     def _make_node_label(self, cycle):
         chunks = list(self._chunks(cycle))
-        return ''.join([self._pretty_chunk_string(chunk) for chunk in chunks])
+        label = ''.join([self._pretty_chunk_string(chunk) for chunk in chunks])[:-5]
+        ann = self.num_cots_by_cand[cycle[0]]
+        return '<<FONT POINT-SIZE="14">{}</FONT><BR/><FONT POINT-SIZE="10"><B>RV: {}</B></FONT>>'.format(label, ann)
 
     def _chunks(self, to_chunk, chunk_size=1):
         for i in xrange(0, len(to_chunk), chunk_size):
             yield to_chunk[i:i+chunk_size]
 
     def _pretty_chunk_string(self, chunk):
-        return "(" + "), (".join(chunk) + ")\n"
+        return "(" + "), (".join(chunk) + ")<BR/>"  # html-like label
 
     def _add_edges_to_and_from_collapsed_cycle(self, cycle, node_label):
         for edge in self.edges():
