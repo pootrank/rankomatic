@@ -11,15 +11,14 @@ available for import from the rankomatic module.
 """
 # TODO make sure documentation is up to date
 from flask import Flask
-from otorderd_logd import daemon_is_running
 from flask.ext.mongoengine import MongoEngine
 from multiprocessing.managers import SyncManager
 import config.default_config
-import json
 
 app = Flask(__name__)
 app.config.from_object(config.default_config)
 app.config.from_envvar('APP_CONFIG', silent=True)
+
 
 def get_db(self):
     return getattr(
