@@ -107,7 +107,9 @@ class OtorderdLogListener(object):
         self.manager = log_queue_manager()
         self.debug = user_args.debug
         self.exit = Event()
-        self.logpath = os.path.abspath(DEFAULT_LOGPATH)
+        logpath = user_args.file if user_args.file else DEFAULT_LOGPATH
+        self.logpath = os.path.abspath(logpath)
+        print "LOGGING TO:", self.logpath
 
     def run(self):
         self.manager.start()

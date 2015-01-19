@@ -69,7 +69,7 @@ def get_args(queue_logger, print_logger):
         "form -- -vvv corresponds to verbosity level 3. Default value is 2."
     )
     parser.add_argument(
-        "--verbosity", choices=[0, 1, 2, 3], type=int
+        "--verbosity", choices=[0, 1, 2, 3], type=int, default=0
     )
     parser.add_argument(
         "-l", "--loglevel", choices=[0, 1, 2, 3], type=int, default=3,
