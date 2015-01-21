@@ -68,8 +68,11 @@ def test_entailment_graph():
     ents = [structs.entailments_no_cycles, structs.entailments_with_cycles]
     graph_strings = [structs.entailments_no_cycles_graph_string,
                      structs.entailments_with_cycles_graph_string]
+    cots_by_cand = [structs.cots_by_cand_no_cycles,
+                    structs.cots_by_cand_with_cycles]
     for i in range(len(ents)):
-        graph = EntailmentGraph(ents[i], 'temp')
+        graph = EntailmentGraph(ents[i], 'temp',
+                                cots_by_cand[i])
         graph_str = graph_strings[i]
     yield (check_graph_works, graph, graph_str, 'temp/entailments.png')
 

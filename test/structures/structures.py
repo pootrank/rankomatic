@@ -168,6 +168,17 @@ entailments_no_cycles = {
                                 'cost me, cos]t[me']
 }
 
+cots_by_cand_no_cycles = {
+    'cost, cost]]': 0,
+    'cost again, cost][again': 0,
+    'cost me, cost][me': 0,
+    'cost, cos]t]': 0,
+    'cost again, cos][tagain': 0,
+    'cost me, cos]t[me': 0,
+    'cost me, *cos][tme': 0,
+    'cost again, cos]t[again': 0
+}
+
 entailments_no_cycles_graph_string = (
     u'strict digraph {\n\t"cost, cos]t]"\t [shape=rect];\n\t"cost me, cos]'
     't[me"\t [shape=rect];\n\t"cost, cos]t]" -> "cost me, cos]t[me";\n\t"c'
@@ -204,10 +215,37 @@ entailments_with_cycles = {'I1, O1': ['I1, O1', 'I2, O4', 'I3, O2', 'I4, O3'],
                            'I4, O3': ['I2, O4', 'I4, O3'],
                            'I4, O5': ['I1, O2', 'I2, O5', 'I3, O4', 'I4, O5']}
 
+cots_by_cand_with_cycles = {
+    'I1, O1': 0,
+    'I1, O2': 0,
+    'I2, O4': 0,
+    'I2, O5': 0,
+    'I3, O2': 0,
+    'I3, O4': 0,
+    'I4, O3': 0,
+    'I4, O5': 0
+}
+
 entailments_with_cycles_graph_string = (
-    u'strict digraph {\n\tgraph [encoding="UTF-8"];\n\t"(I4, O5)\n(I2, O5)\n"'
-    '\t [shape=rect];\n\t"(I1, O2)\n(I3, O4)\n"\t [shape=rect];\n\t"(I4, O5)\n'
-    '(I2, O5)\n" -> "(I1, O2)\n(I3, O4)\n";\n\t"(I1, O1)\n(I3, O2)\n"\t [shape'
-    '=rect];\n\t"(I2, O4)\n(I4, O3)\n"\t [shape=rect];\n\t"(I1, O1)\n(I3, O2)'
-    '\n" -> "(I2, O4)\n(I4, O3)\n";\n}\n'
+    u'strict digraph {\n\tgraph [encoding="UTF-8"];\n\tnode [label="\\N",\n'
+    '\t\tshape=rect\n\t];\n\t"<<FONT POINT-SIZE=\\"14\\">(I4, O5)<BR/>(I2, O'
+    '5)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 0</B></FONT>>"\t [label='
+    '<<FONT POINT-SIZE="14">(I4, O5)<BR/>(I2, O5)</FONT><BR/><FONT POINT-SIZ'
+    'E="10"><B>RV: 0</B></FONT>>];\n\t"<<FONT POINT-SIZE=\\"14\\">(I1, O2)<B'
+    'R/>(I3, O4)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 0</B></FONT>>"'
+    '\t [label=<<FONT POINT-SIZE="14">(I1, O2)<BR/>(I3, O4)</FONT><BR/><FONT '
+    'POINT-SIZE="10"><B>RV: 0</B></FONT>>];\n\t"<<FONT POINT-SIZE=\\"14\\">('
+    'I4, O5)<BR/>(I2, O5)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 0</B><'
+    '/FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(I1, O2)<BR/>(I3, O4)</FONT><BR'
+    '/><FONT POINT-SIZE=\\"10\\"><B>RV: 0</B></FONT>>";\n\t"<<FONT POINT-SIZ'
+    'E=\\"14\\">(I1, O1)<BR/>(I3, O2)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><'
+    'B>RV: 0</B></FONT>>"\t [label=<<FONT POINT-SIZE="14">(I1, O1)<BR/>(I3, '
+    'O2)</FONT><BR/><FONT POINT-SIZE="10"><B>RV: 0</B></FONT>>];\n\t"<<FONT '
+    'POINT-SIZE=\\"14\\">(I2, O4)<BR/>(I4, O3)</FONT><BR/><FONT POINT-SIZE='
+    '\\"10\\"><B>RV: 0</B></FONT>>"\t [label=<<FONT POINT-SIZE="14">(I2, O4)'
+    '<BR/>(I4, O3)</FONT><BR/><FONT POINT-SIZE="10"><B>RV: 0</B></FONT>>];\n'
+    '\t"<<FONT POINT-SIZE=\\"14\\">(I1, O1)<BR/>(I3, O2)</FONT><BR/><FONT PO'
+    'INT-SIZE=\\"10\\"><B>RV: 0</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">'
+    '(I2, O4)<BR/>(I4, O3)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 0</B>'
+    '</FONT>>";\n}\n'
 )
