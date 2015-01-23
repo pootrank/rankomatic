@@ -7,7 +7,7 @@ import socket
 import sys
 import time
 
-from daemon import daemonize
+from ezdaemon import daemonize
 from logging.handlers import RotatingFileHandler, DEFAULT_TCP_LOGGING_PORT
 from multiprocessing import Event, Queue
 from multiprocessing.managers import SyncManager
