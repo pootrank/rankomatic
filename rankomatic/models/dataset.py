@@ -126,7 +126,6 @@ class Dataset(db.Document):
 
     def calculate_global_entailments(self):
         if not self.entailments_calculated:
-            print "recalculating entailments"
             entailments = self.poot.get_entailments(atomic=True)
             self.entailments = self._process_entailments(entailments)
             self.entailments_calculated = True

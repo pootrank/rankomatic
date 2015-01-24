@@ -1,6 +1,14 @@
 {%- extends 'layout.html' -%}
 {%- block content %}
-<form action="
+<ul class="nav nav-tabs" id="edit_tabs">
+  <li id="edit_tab" class="active">
+    <a href="#">Edit dataset</a>
+  </li>
+  <li id="apriori_tab">
+    <a href="#">Specify ranking</a>
+  </li>
+</ul>
+<form id="dataset" action="
   {%- if example -%}
     {{ url_for('tools.example_edit') }}
   {%- elif edit -%}
@@ -105,7 +113,7 @@
               </th>
               {%- set i = 1 %}
               {%- for constraint in form.constraints %}
-              <th>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="C" ~ i) }}{% endif %}</th>
+              <th class="constraint">{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="C" ~ i) }}{% endif %}</th>
                 {%- set i = i + 1 %}
               {%- endfor %}
               <th class="borderless"></th>
@@ -158,7 +166,25 @@
         </div>
     </div>
   </form>
+  <div class="row" class="initially_hidden" id="apriori_page">
+    <h2>Specify an apriori ranking</h2>
+    <div class="span3"></div>
+    <div class="span9" id="apriori_table_container">
+    </div>
+  </div>
+  {% raw %}
+  <script type="text/x-handlebars-template" id="apriori_table">
+    <table>
+      <tr>
+        {{#each constraints}}
+          <td class="constraint">{{this}}</td>
+        {{/each}}
+      </tr>
+    </table>
+  </script>
+  {% endraw %}
 {%- endblock -%}
 {%- block js_footer -%}
 <script type="text/javascript" src="{{ url_for('static', filename='tableaux.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='apriori_ranking.js') }}"></script>
 {%- endblock -%}
