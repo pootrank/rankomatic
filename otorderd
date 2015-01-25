@@ -12,6 +12,7 @@ import socket
 
 from multiprocessing import Queue, Process, Event
 from multiprocessing.managers import SyncManager
+from ezdaemon import daemonize
 from otorderd_logd import (initialize_queue_logger, get_formatter,
                            daemon_is_running)
 from rankomatic import app
@@ -86,6 +87,9 @@ def get_args(queue_logger, print_logger):
         type=int, help="set the max number of constraints that the "
         "workers can process. Increasing this corresponds to much "
         "higher memory usage. Default is 5."
+    )
+    parser.add_argument(
+        "-d", "--daemonic", help="run as actual daemon", action="store_true"
     )
     args = parser.parse_args()
     configure_logging(args, queue_logger, print_logger)
@@ -284,6 +288,8 @@ class Client(object):
 
     def start_daemon(self):
         if not address_is_busy():
+            if args.daemonic:
+                daemonize()
             daemon = OtorderDaemon()
             daemon.start_manager()
             daemon.run()
