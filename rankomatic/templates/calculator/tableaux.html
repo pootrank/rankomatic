@@ -166,20 +166,31 @@
         </div>
     </div>
   </form>
-  <div class="row" class="initially_hidden" id="apriori_page">
     <h2>Specify an apriori ranking</h2>
-    <div class="span3"></div>
-    <div class="span9" id="apriori_table_container">
-    </div>
-  </div>
+    <div id="apriori_table_container"></div>
   {% raw %}
-  <script type="text/x-handlebars-template" id="apriori_table">
-    <table>
+  <script type="text/x-handlebars-template" id="apriori_table_template">
+    <table class="table" id="apriori_table">
+        <thead class="no_top_border">
+        <tr>
+            <th class="center_contents">This constraint...</th>
+            <th id="header_label" class="center_contents">is ranked above these constraints</th>
+        </tr>
+        </thead>
       <tr>
-        {{#each constraints}}
-          <td class="constraint">{{this}}</td>
-        {{/each}}
+        <td class="empty_cell"></td>
+        {{#constraints}}
+          <td class="constraint center_contents">{{constraint}}</td>
+        {{/constraints}}
       </tr>
+      {{#constraints}}
+        <tr class="constraint_row" id="row_{{constraint}}">
+          <td class="constraint row_header center_contents">{{constraint}}</td>
+          {{#dominates}}
+          <td class="center_contents checkbox_container"><input type="checkbox" name="{{this}}" class="apriori_check"></input></td>
+          {{/dominates}}
+        </tr>
+      {{/constraints}}
     </table>
   </script>
   {% endraw %}
