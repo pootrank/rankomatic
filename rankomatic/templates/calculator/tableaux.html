@@ -166,8 +166,10 @@
         </div>
     </div>
   </form>
+  <div id="apriori_page" class="initially_hidden">
     <h2>Specify an apriori ranking</h2>
     <div id="apriori_table_container"></div>
+  </div>
   {% raw %}
   <script type="text/x-handlebars-template" id="apriori_table_template">
     <table class="table" id="apriori_table">
@@ -192,10 +194,12 @@
         </tr>
       {{/constraints}}
     </table>
+    <div class="alert" id="ranking_required_alert">That ranking is required by transitivity. In order to remove it, you'll have to adjust the other rankings.</div>
   </script>
   {% endraw %}
 {%- endblock -%}
 {%- block js_footer -%}
-<script type="text/javascript" src="{{ url_for('static', filename='tableaux.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='apriori_ranking.js') }}"></script>
+<script type="text/javascript" src="/javascript/tableaux.js"></script>
+<script type="text/javascript" src="/javascript/transitive_set.js"></script>
+<script type="text/javascript" src="/javascript/apriori_ranking.js"></script>
 {%- endblock -%}

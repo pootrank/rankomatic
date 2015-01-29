@@ -15,7 +15,7 @@ from flask.ext.mongoengine import MongoEngine
 from multiprocessing.managers import SyncManager
 import config.default_config
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config.from_object(config.default_config)
 app.config.from_envvar('APP_CONFIG', silent=True)
 
