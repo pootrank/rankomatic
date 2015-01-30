@@ -7,9 +7,29 @@
   </head>
   <body>
     <div id="qunit"></div>
-    <div id="qunit-fixture"></div>
+
+    <!--Put DOM elements to manipulate here-->
+    <div id="qunit-fixture">
+      <ul id="tab-list">
+        <li id="tab-first" class="navtab active"></li>
+        <li id="tab-second" class="navtab"></li>
+        <li id="tab-third" class="navtab"></li>
+      </ul>
+      <div class="navtab-content tab-first-content"></div>
+      <div class="navtab-content tab-second-content"></div>
+      <div class="navtab-content tab-third-content"></div>
+    </div>
+
+    <!--Library JS-->
     <script src="http://code.jquery.com/qunit/qunit-1.17.1.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+    <!--scripts that are under test-->
     <script src="../transitive_set.js"></script>
+    <script src="../tabs.js"></script>
+
+    <!--scripts with QUnit tests in them-->
+    <script src="test_tabs.js"></script>
     <script src="test_transitive_set.js"></script>
   </body>
 </html>

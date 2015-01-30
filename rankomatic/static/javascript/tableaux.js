@@ -353,4 +353,5 @@
     equalize_column_widths();
     $('.has-popover').popover();
     $('.has-tooltip').tooltip();
+    tablist = new TabList($("#edit_tabs"));  // activate tabs
 })(this, this.document);
