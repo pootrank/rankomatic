@@ -10,6 +10,8 @@
 
     <!--Put DOM elements to manipulate here-->
     <div id="qunit-fixture">
+
+      <!--TabList-->
       <ul id="tab-list">
         <li id="tab-first" class="navtab active"></li>
         <li id="tab-second" class="navtab"></li>
@@ -18,6 +20,26 @@
       <div class="navtab-content tab-first-content"></div>
       <div class="navtab-content tab-second-content"></div>
       <div class="navtab-content tab-third-content"></div>
+
+      <!--Relation-->
+      <table id="ranking">
+        <tr id="row_a">
+          <td name="a"></td>
+          <td id="relation" name="b"></td>
+          <td name="c"></td>
+        </tr>
+        <tr id="row_b">
+          <td name="a"></td>
+          <td name="b"></td>
+          <td name="c"></td>
+        </tr>
+        <tr id="row_c">
+          <td name="a"></td>
+          <td name="b"></td>
+          <td name="c"></td>
+        </tr>
+      </table>
+
     </div>
 
     <!--Library JS-->
@@ -25,11 +47,15 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
     <!--scripts that are under test-->
+    <script src="../util.js"></script>
     <script src="../transitive_set.js"></script>
+    <script src="../ranking.js"></script>
     <script src="../tabs.js"></script>
 
     <!--scripts with QUnit tests in them-->
     <script src="test_tabs.js"></script>
     <script src="test_transitive_set.js"></script>
+    <script src="test_relation.js"></script>
+    <script src="test_ranking.js"></script>
   </body>
 </html>

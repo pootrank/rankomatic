@@ -56,6 +56,12 @@ RankingTable.prototype.draw = function() {
     this.ranking.check_appropriate_cells();
 }
 
+/* function: initialize_blank
+ * ==========================
+ * The first step of drawing the table is initializing it into a blank state.
+ *
+ * This deactivates the diagonal, activates and unchecks all non-diagonal cells.
+ */
 RankingTable.prototype.initialize_blank = function() {
     this.table.find("td.checkbox_container").each(function() {
         var relation = new Relation($(this));
@@ -68,7 +74,13 @@ RankingTable.prototype.initialize_blank = function() {
     });
 }
 
-
+/* function: modify_ranking
+ * usage: ranking_table.modify_ranking(relation);
+ * ==============================================
+ * Modify the ranking based on the given relation.
+ *
+ * If the ranking contains the relation, try to remove it, otherwise add it.
+ */
 RankingTable.prototype.modify_ranking = function(relation) {
     if (this.ranking.contains(relation)) {
         this.try_removal(relation);  // wrap with transitivity alert
@@ -77,80 +89,13 @@ RankingTable.prototype.modify_ranking = function(relation) {
     }
 }
 
+/* function: try_removal
+ * =====================
+ * Try to remove the given relation, otherwise show the transitivity alert.
+ */
 RankingTable.prototype.try_removal = function(relation) {
     removable = this.ranking.remove(relation);
     if (!removable) {
         this.transitive_alert.show();
     }
-}
-
-function Ranking() {
-    this.set = new TransitiveSet();
-}
-
-Ranking.prototype.add = function(relation) {
-    this.set.add(relation.sup, relation.inf);
-}
-
-Ranking.prototype.contains = function(relation) {
-    return this.set.contains(relation.sup, relation.inf);
-}
-
-Ranking.prototype.remove = function(relation) {
-    return this.set.remove(relation.sup, relation.inf);
-}
-
-Ranking.prototype.check_appropriate_cells = function() {
-    this.set.forEach(function(a, b) {
-        var relation = new Relation({sup: a, inf: b});
-        var inverse = new Relation({sup: b, inf: a});
-        relation.check();
-        inverse.deactivate();
-     });
-}
-
-function Relation(obj) {
-    if (obj instanceof jQuery) {
-        this.cell = obj;
-        this.sup = obj.closest("tr").attr('id').slice(4);
-        this.inf = obj.attr('name');
-    } else {
-        this.sup = obj.sup;
-        this.inf = obj.inf;
-        this.cell = this._get_cell(this.sup, this.inf);
-    }
-}
-
-Relation.prototype._get_cell = function(row, col) {
-    row = Util.escape_selector(row);
-    col = Util.escape_selector(col);
-    var row_selector = "tr#" + "row_" + row;
-    var cell_selector = "td[name=" + col + "]";
-    var $row = $(row_selector);
-    return $row.find(cell_selector);
-}
-
-Relation.prototype.is_active = function() {
-    return !this.cell.hasClass("deactivated");
-}
-
-Relation.prototype.deactivate = function() {
-    this.cell.removeClass("checked unchecked");
-    this.cell.addClass("deactivated");
-}
-
-Relation.prototype.activate = function() {
-    this.cell.removeClass("checked unchecked deactivated");
-}
-
-Relation.prototype.uncheck = function() {
-    this.cell.removeClass("checked");
-    this.cell.addClass("unchecked");
-    this.cell.html("");
-}
-
-Relation.prototype.check = function() {
-    this.cell.removeClass("unchecked");
-    this.cell.addClass("checked");
-    this.cell.html("&#10003;")
 }
