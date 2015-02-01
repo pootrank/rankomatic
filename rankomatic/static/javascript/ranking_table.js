@@ -9,12 +9,14 @@
  * column. Their parent TR needs to have id 'row_*', where * is the name of the
  * row constraint.
  */
-function RankingTable($table) {
+function RankingTable($table, $input) {
     this.table = $table;
+    this.input = $input;
     this.ranking = new Ranking();
     this.transitive_alert = $("#ranking_required_alert");
     this.table.click($.proxy(this.check_or_uncheck, this));
     $("#clear").click($.proxy(this.clear, this));
+    this.transitive_alert.hide();
     this.draw();
 }
 
@@ -38,6 +40,7 @@ RankingTable.prototype.check_or_uncheck = function(event) {
  * Remove all relations, and redraw the table to reflect the empty state.
  */
 RankingTable.prototype.clear = function() {
+    this.transitive_alert.hide();
     this.ranking = new Ranking();
     this.draw();
 }
@@ -54,6 +57,7 @@ RankingTable.prototype.clear = function() {
 RankingTable.prototype.draw = function() {
     this.initialize_blank();
     this.ranking.check_appropriate_cells();
+    this.input.val(ranking_string);
 }
 
 /* function: initialize_blank

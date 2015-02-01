@@ -55,6 +55,16 @@ Ranking.prototype.check_appropriate_cells = function() {
     });
 }
 
+/* function: string
+ * ================
+ * Return a string representation of the ranking.
+ *
+ * The string is formatted as a JSON array of length-two arrays.
+ */
+Ranking.prototype.string = function() {
+    return JSON.stringify(this.set.to_array());
+}
+
 /* constructor: Relation
  * usage: var rel = new Relation($("td.reln"));
  * usage: var rel = new Relation({sup: 'a', inf: 'b'});
@@ -76,7 +86,6 @@ function Relation(obj) {
         this.sup = obj.closest("tr").attr('id').slice(4);
         this.inf = obj.attr('name');
     } else {
-        console.log(obj);
         this.sup = obj.sup;
         this.inf = obj.inf;
         this.cell = this._get_cell();
@@ -88,7 +97,6 @@ function Relation(obj) {
  * Return a jQuery object corresponding to this relation's table cell.
  */
 Relation.prototype._get_cell = function() {
-    console.log(this);
     var row = Util.escape_selector(this.sup);  // these are user-provided
     var col = Util.escape_selector(this.inf);
     var row_selector = "tr#row_" + row;

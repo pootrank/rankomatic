@@ -21,24 +21,27 @@
       <div class="navtab-content tab-second-content"></div>
       <div class="navtab-content tab-third-content"></div>
 
-      <!--Relation-->
+      <!--Relation/Ranking/RankingTable-->
       <table id="ranking">
         <tr id="row_a">
-          <td name="a"></td>
-          <td id="relation" name="b"></td>
-          <td name="c"></td>
+          <td name="a" class="checkbox_container"></td>
+          <td id="relation" name="b" class="checkbox_container"></td>
+          <td name="c" class="checkbox_container"></td>
         </tr>
         <tr id="row_b">
-          <td name="a"></td>
-          <td name="b"></td>
-          <td name="c"></td>
+          <td name="a" class="checkbox_container"></td>
+          <td name="b" class="checkbox_container"></td>
+          <td name="c" class="checkbox_container"></td>
         </tr>
         <tr id="row_c">
-          <td name="a"></td>
-          <td name="b"></td>
-          <td name="c"></td>
+          <td name="a" class="checkbox_container"></td>
+          <td name="b" class="checkbox_container"></td>
+          <td name="c" class="checkbox_container"></td>
         </tr>
       </table>
+      <div id="ranking_required_alert"></div>
+      <div id="clear"></div>
+      <input type="text" id="ranking-string" value="[]" />
 
     </div>
 
@@ -50,6 +53,7 @@
     <script src="../util.js"></script>
     <script src="../transitive_set.js"></script>
     <script src="../ranking.js"></script>
+    <script src="../ranking_table.js"></script>
     <script src="../tabs.js"></script>
 
     <!--scripts with QUnit tests in them-->
@@ -57,5 +61,6 @@
     <script src="test_transitive_set.js"></script>
     <script src="test_relation.js"></script>
     <script src="test_ranking.js"></script>
+    <script src="test_ranking_table.js"></script>
   </body>
 </html>

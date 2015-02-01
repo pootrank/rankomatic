@@ -19,15 +19,15 @@ TransitiveSet.prototype.forEach = function(callback) {
     }
 }
 
-/* Method: toArray
- * Usage: var arr = tset.toArray()
+/* Method: to_array
+ * Usage: var arr = tset.to_array()
  * ===============================
  * Get an Array version of the transitive set.
  *
  * Returns an Array of all the relations, where each relation in the order is
  * an ordered pair (Array r of length two).
  */
-TransitiveSet.prototype.toArray = function() {
+TransitiveSet.prototype.to_array = function() {
     arr = [];
     this.forEach(function(a, b) {
         arr.push([a, b]);

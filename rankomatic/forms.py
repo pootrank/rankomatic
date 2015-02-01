@@ -10,7 +10,7 @@ the Optimality Theory ranking application.
 import itertools
 from flask.ext.wtf import Form
 from wtforms import (TextField, PasswordField, FieldList, FormField,
-                     BooleanField, IntegerField, validators)
+                     BooleanField, IntegerField,HiddenField, validators)
 from wtforms.validators import ValidationError
 
 
@@ -211,6 +211,7 @@ class TableauxForm(Form):
                              validators=[AtLeastOneOptimal()])
 
     name = TextField()
+    apriori_ranking = HiddenField(default="[]")
 
     def __init__(self, from_db=False, *args, **kwargs):
         super(TableauxForm, self).__init__(*args, **kwargs)

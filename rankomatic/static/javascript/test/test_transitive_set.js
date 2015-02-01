@@ -40,13 +40,13 @@ QUnit.test('forEach', function(assert) {
     assert.deepEqual(objs.sort(), ['a', 'a', 'b', 'b', 'c', 'c']);
 });
 
-QUnit.test('toArray', function(assert) {
-    assert.deepEqual(this.tset.toArray(), [], "should be nothing here");
+QUnit.test('to_array', function(assert) {
+    assert.deepEqual(this.tset.to_array(), [], "should be nothing here");
     this.tset.relations = {
         a: {b: true, c: true},
         b: {c: true}
     };
-    assert.deepEqual(this.tset.toArray(),
+    assert.deepEqual(this.tset.to_array(),
                      [['a', 'b'], ['a', 'c'], ['b', 'c']],
                     "basic list/set representations");
 });
@@ -58,7 +58,7 @@ QUnit.test('add', function(assert) {
     assert.ok(this.tset.contains('a', 'd'),
               'two members');
     this.tset.add('b', 'c');
-    assert.deepEqual(this.tset.toArray(),
+    assert.deepEqual(this.tset.to_array(),
                      [['a', 'b'], ['a', 'd'], ['a', 'c'], ['b', 'c']],
                      "closed under transitivity");
     assert.throws(function() {this.tset.add("a") },

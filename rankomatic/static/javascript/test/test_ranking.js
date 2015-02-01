@@ -53,6 +53,12 @@ QUnit.test('remove transitively required', function(assert) {
               "can't remove transitively required relation");
 });
 
+QUnit.test('string', function(assert) {
+    assert.equal(this.ranking.string(), '[["a","b"]]');
+    this.ranking.add(this.trans_reln);
+    assert.equal(this.ranking.string(), '[["a","b"],["a","c"],["b","c"]]')
+});
+
 QUnit.test('check_appropriate_cells', function(assert) {
     this.ranking.add(this.trans_reln);
     this.ranking.check_appropriate_cells();
