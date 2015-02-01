@@ -57,7 +57,7 @@ RankingTable.prototype.clear = function() {
 RankingTable.prototype.draw = function() {
     this.initialize_blank();
     this.ranking.check_appropriate_cells();
-    this.input.val(ranking_string);
+    this.input.val(this.ranking.string());
 }
 
 /* function: initialize_blank
