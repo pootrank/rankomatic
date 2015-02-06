@@ -9,6 +9,15 @@ QUnit.test('constructor', function(assert) {
                      "bare constructor should make no relations");
 });
 
+QUnit.test('constructor with ranking', function(assert) {
+    tset = new TransitiveSet([['a', 'b'], ['b', 'c'], ['b', 'd']]);
+    assert.ok(tset.contains('a', 'b'));
+    assert.ok(tset.contains('b', 'c'));
+    assert.ok(tset.contains('b', 'd'));
+    assert.ok(tset.contains('a', 'c'));
+    assert.ok(tset.contains('a', 'd'));
+});
+
 QUnit.test('keyExists', function(assert) {
     assert.ok(!this.tset.keyExists("a"), "no keys yet");
     this.tset.relations['b'] = {'a': true};

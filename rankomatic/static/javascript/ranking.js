@@ -8,8 +8,8 @@
  * membership, as well as call Relation's check and deactivate methods
  * during drawing.
  */
-function Ranking() {
-    this.set = new TransitiveSet();
+function Ranking(ranking) {
+    this.set = new TransitiveSet(ranking);
 }
 
 /* function: add

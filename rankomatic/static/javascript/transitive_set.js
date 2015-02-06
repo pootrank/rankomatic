@@ -1,5 +1,16 @@
-function TransitiveSet() {
+/* constructor: TransitiveSet
+ * ==========================
+ * creates a set which represents a transitive ranking. Adding and subtracting
+ * elmeents is always closed under transitivity.
+ */
+function TransitiveSet(ranking) {
     this.relations = {}
+    var trans_set = this;
+    if (ranking) {
+        ranking.forEach(function(val) {
+            trans_set.add(val[0], val[1]);
+        });
+    }
 }
 
 /* Method: forEach

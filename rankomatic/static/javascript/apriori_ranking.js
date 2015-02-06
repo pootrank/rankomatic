@@ -5,15 +5,13 @@ var show_apriori_table;
 
     show_apriori_table = function() {
         var new_constraints = get_constraints();
-        if (need_to_redraw_table(new_constraints, old_constraints)) {
+        if (!arrays_equal(old_constraints, new_constraints)) {
+            $("apriori_ranking").val("[]");
+            redraw_table();
+        } else if (!$("#apriori_table_container").html()) {
             redraw_table();
         }
         old_constraints = new_constraints;
-    }
-
-    function need_to_redraw_table(new_cons, old_cons) {
-        return (!$("#apriori_table_container").html().length ||
-                !arrays_equal(old_cons, new_cons))
     }
 
     function arrays_equal(arr1, arr2) {

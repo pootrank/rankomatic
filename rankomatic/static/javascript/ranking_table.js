@@ -12,7 +12,7 @@
 function RankingTable($table, $input) {
     this.table = $table;
     this.input = $input;
-    this.ranking = new Ranking();
+    this.ranking = new Ranking(JSON.parse($input.val()));
     this.transitive_alert = $("#ranking_required_alert");
     this.table.click($.proxy(this.check_or_uncheck, this));
     $("#clear").click($.proxy(this.clear, this));
