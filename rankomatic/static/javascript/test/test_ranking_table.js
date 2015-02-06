@@ -1,3 +1,4 @@
+(function(window, document, undefined) {
 QUnit.module('RankingTable');
 
 QUnit.test('constructor', function(assert) {
@@ -84,3 +85,4 @@ function is_unchecked(reln) {
 function has_first_and_not_second($elem, first, second) {
     return ($elem.hasClass(first) && !$elem.hasClass('second'));
 }
+})(this, this.document);

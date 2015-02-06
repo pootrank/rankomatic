@@ -10,17 +10,49 @@ class RawGrammar(db.Document):
 
 class Grammar(db.EmbeddedDocument):
     _raw_grammar_str = db.ReferenceField(RawGrammar, required=True)
-    dset = db.ReferenceField('Dataset')
+    _dset = db.ReferenceField('Dataset')
 
-    def __init__(self, frozenset_gram=None, dataset=None, *args, **kwargs):
+    @property
+    def dset(self):
+        try:
+            return self.dset_to_return
+        except AttributeError:
+            return self._dset
+
+    @dset.setter
+    def dset(self, value):
+        if value.id is None:
+            self.dset_to_return = value
+        else:
+            self._dset = value
+            self.dset_to_return = self._dset
+
+    def __init__(self, frozenset_gram=None, dataset=None,
+                 list_gram=None, *args, **kwargs):
         super(Grammar, self).__init__(*args, **kwargs)
-        if frozenset_gram is not None and dataset is not None:
+        if dataset is not None:  # None when coming from DB
+            self.dset = dataset
+
+        if list_gram is not None:
+            self.list_grammar = list_gram
+            frozenset_gram = self._make_frozenset_gram()
+
+        if frozenset_gram is not None:
             frozenset_gram = frozenset(sorted(list(frozenset_gram)))
+
             self._raw_grammar_str = RawGrammar.objects.get(
                 grammar=str(frozenset_gram)
             )
-            self.dset = dataset
             self._raw_grammar = frozenset_gram
+
+    def _make_frozenset_gram(self):
+        return frozenset([self._tuple_rel(rel) for rel in self.list_grammar])
+
+    def _tuple_rel(self, rel):
+        return (  # swap order, get index + 1 to change from 0 to 1 index
+            self.dset.constraints.index(rel[1]) + 1,
+            self.dset.constraints.index(rel[0]) + 1
+        )
 
     @property
     def raw_grammar(self):
@@ -54,6 +86,10 @@ class Grammar(db.EmbeddedDocument):
             self.dset.constraints[rel[1] - 1],
             self.dset.constraints[rel[0] - 1]
         ]
+
+    @list_grammar.setter
+    def list_grammar(self, value):
+        self._list_grammar = value
 
     def _make_string(self):
         to_join = ['{']

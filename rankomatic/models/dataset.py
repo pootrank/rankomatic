@@ -33,6 +33,8 @@ class Dataset(db.Document):
     global_stats_calculated = db.BooleanField(default=False)
     grammar_info = db.ListField(db.DictField())
 
+    _apriori_ranking = db.EmbeddedDocumentField(Grammar, default=None)
+
     grammar_stats_calculated = db.BooleanField(default=False)
     entailments_calculated = db.BooleanField(default=False)
     entailments_visualized = db.BooleanField(default=False)
@@ -72,6 +74,20 @@ class Dataset(db.Document):
             self.remove_old_files()
             self._sort_by = value
 
+    @property
+    def apriori_ranking(self):
+        if self._apriori_ranking is None:
+            self.apriori_ranking = []
+        return self._apriori_ranking
+
+    @apriori_ranking.setter
+    def apriori_ranking(self, value):
+        if type(value) is list:
+            self._apriori_ranking = Grammar(dataset=self, list_gram=value)
+        else:
+            raise ValueError("a priori ranking must either be of type list")
+        self.poot = self.build_poot()
+
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
         super(Dataset, self).__init__(*args, **kwargs)
 
@@ -87,7 +103,7 @@ class Dataset(db.Document):
     def _initialize_dset(self, data, data_is_from_form):
         if data is not None:
             if data_is_from_form:
-                data = self.process_form_data(data)
+                data = DatasetConverter.form_data_to_ot_data(data)
             self.set_dset(data)
 
     def process_form_data(self, form_data):
@@ -104,6 +120,10 @@ class Dataset(db.Document):
         self._ot_candidates = data['candidates']
         self.constraints = data['constraints']
         self.candidates = [Candidate(cand) for cand in data['candidates']]
+        try:
+            self.apriori_ranking = data['apriori_ranking']
+        except KeyError:
+            self.apriori_ranking = []
 
     def create_ot_compatible_candidates(self):
         return DatasetConverter.create_ot_compatible_candidates(self)
@@ -115,7 +135,8 @@ class Dataset(db.Document):
 
         """
         mongo_db = db.get_pymongo_db()
-        poot = OTStats(lat_dir=None, mongo_db=mongo_db)
+        poot = OTStats(lat_dir=None, mongo_db=mongo_db,
+                       apriori=self.apriori_ranking.raw_grammar)
         if self._ot_candidates is not None:
             poot.dset = self._ot_candidates
         return poot
@@ -246,3 +267,8 @@ class Dataset(db.Document):
 
     def num_total_cots(self):
         return self.poot.num_total_cots()
+
+    def save(self):
+        super(Dataset, self).save()
+        self.apriori_ranking.dset = self
+        super(Dataset, self).save()

@@ -69,6 +69,7 @@ base_form_data = {
     'input_groups-0-candidates-2-vvector-0': u'',
     'input_groups-0-candidates-2-vvector-1': u'',
     'input_groups-0-candidates-2-vvector-2': u'',
+    'apriori_ranking': u'[["a", "c"]]',
     'name': u'blank',
     'submit_button': u'All grammars'
 }
@@ -86,6 +87,14 @@ constraints_not_unique = change_one_value('constraints-1', 'a')
 inputs_not_same = change_one_value('input_groups-0-candidates-0-inp', 'b')
 outputs_not_unique = change_one_value('input_groups-0-candidates-1-outp', 'b')
 special_chars = change_one_value('input_groups-0-candidates-0-inp', '$')
+non_json_ranking = change_one_value('apriori_ranking',
+                                    u'[["a", "b"], ["a", "c"]')
+non_list_ranking = change_one_value('apriori_ranking', u'{"a": ["b", "c"] }')
+non_list_inner_relation = change_one_value('apriori_ranking',
+                                           u'[{"a": "b"}, ["a", "c"]]')
+inner_relation_non_constraint = change_one_value(
+    'apriori_ranking', u'[["a", "b"], ["a", "POOP"]]'
+)
 
 none_optimal = deepcopy(base_form_data)
 none_optimal.pop('input_groups-0-candidates-0-optimal')
@@ -97,7 +106,11 @@ invalid_forms = [
     inputs_not_same,
     outputs_not_unique,
     special_chars,
-    none_optimal
+    none_optimal,
+    non_json_ranking,
+    non_list_ranking,
+    non_list_inner_relation,
+    inner_relation_non_constraint
 ]
 
 grammar_info = [

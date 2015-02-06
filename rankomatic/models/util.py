@@ -1,3 +1,4 @@
+import json
 from collections import OrderedDict
 
 
@@ -19,16 +20,21 @@ class DatasetConverter():
             'vvector': cls._make_violation_vector_dict(form_cand['vvector'])}
 
     @classmethod
+    def _make_violation_vector_dict(cls, list_vvect):
+        return dict((i+1, v) for i, v in enumerate(list_vvect))
+
+    @classmethod
     def _ot_data_from_form_and_cands(cls, form_data, candidates):
         return {
             'name': form_data['name'],
             'constraints': form_data['constraints'],
-            'candidates': candidates
+            'candidates': candidates,
+            'apriori_ranking': cls._apriori_ranking_from_form(form_data)
         }
 
     @classmethod
-    def _make_violation_vector_dict(cls, list_vvect):
-        return dict((i+1, v) for i, v in enumerate(list_vvect))
+    def _apriori_ranking_from_form(cls, form_data):
+        return json.loads(form_data['apriori_ranking'])
 
     @classmethod
     def db_dataset_to_form_data(cls, dset):
@@ -44,8 +50,13 @@ class DatasetConverter():
         return {
             'name': dset.name,
             'constraints': dset.constraints,
-            'input_groups': []
+            'input_groups': [],
+            'apriori_ranking': cls._make_apriori_field(dset.apriori_ranking)
         }
+
+    @classmethod
+    def _make_apriori_field(cls, apriori_ranking):
+        return json.dumps([list(rel) for rel in apriori_ranking.list_grammar])
 
     @classmethod
     def _get_all_inputs_from_candidates(cls, dset):

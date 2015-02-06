@@ -43,11 +43,49 @@
       <div id="clear"></div>
       <input type="text" id="ranking-string" value="[]" />
 
+      <!--apriori_ranking.js (tableaux-ranking interface) stuff-->
+      <script type="text/x-handlebars-template" id="apriori_table_template">
+        <table class="table" id="apriori_table">
+            <thead class="no_top_border">
+            <tr>
+              <th class="center_contents">This constraint...</th>
+              <th id="header_label" class="center_contents">is ranked above these constraints</th>
+            </tr>
+            </thead>
+          <tr>
+              <td class="center_contents empty_cell"></td>
+            {{#constraints}}
+              <td class="constraint center_contents">{{constraint}}</td>
+            {{/constraints}}
+          </tr>
+          {{#constraints}}
+            <tr class="constraint_row" id="row_{{constraint}}">
+              <td class="constraint row_header center_contents">{{constraint}}</td>
+              {{#dominates}}
+              <td class="center_contents checkbox_container" name="{{this}}"></td>
+              {{/dominates}}
+            </tr>
+          {{/constraints}}
+        </table>
+      </script>
+      <div id="apriori_table_container"></div>
+      <div id="apriori-tab"></div>
+
+      <table id="tableaux_header">
+        <tr>
+          <th class="constraint"><input value="a" /></th>
+          <th class="constraint"><input value="b" /></th>
+          <th class="constraint"><input value="c" /></th>
+        </tr>
+      </table>
+      <input id="apriori_ranking" value="[]" />
+
     </div>
 
     <!--Library JS-->
     <script src="http://code.jquery.com/qunit/qunit-1.17.1.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="../../scripts/handlebars-v2.0.0.js"></script>
 
     <!--scripts that are under test-->
     <script src="../util.js"></script>
@@ -55,6 +93,7 @@
     <script src="../ranking.js"></script>
     <script src="../ranking_table.js"></script>
     <script src="../tabs.js"></script>
+    <script src="../apriori_ranking.js"></script>
 
     <!--scripts with QUnit tests in them-->
     <script src="test_tabs.js"></script>
@@ -62,5 +101,6 @@
     <script src="test_relation.js"></script>
     <script src="test_ranking.js"></script>
     <script src="test_ranking_table.js"></script>
+    <script src="test_apriori_ranking.js"></script>
   </body>
 </html>

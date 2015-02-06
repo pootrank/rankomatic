@@ -1,9 +1,11 @@
 import mock
 import gridfs
+from copy import deepcopy
 from nose.tools import raises
+
 import ot.data
-from rankomatic import models, db
 import test.structures.structures as structures
+from rankomatic import models, db
 from test.test_tools import delete_bad_datasets
 
 
@@ -13,7 +15,8 @@ class TestDataset(object):
         self.data = {
             'constraints': ['c1', 'c2', 'c3', 'c4'],
             'candidates': ot.data.voweldset,
-            'name': 'voweldset'
+            'name': 'voweldset',
+            'apriori_ranking': [['c1', 'c2']]
         }
         self.d = models.Dataset(data=self.data, data_is_from_form=False)
         self.d.classical = False
@@ -35,6 +38,7 @@ class TestDataset(object):
         assert not d.candidates
         assert not d.entailments
         assert not d.grammars
+        assert not d.apriori_ranking.list_grammar
         assert d.poot
         assert d.user == "guest"
 
@@ -46,6 +50,7 @@ class TestDataset(object):
         assert not d.candidates
         assert not d.entailments
         assert not d.grammars
+        assert d.apriori_ranking.list_grammar == []
         assert d.poot
         assert d.user == "guest"
 
@@ -53,12 +58,24 @@ class TestDataset(object):
         assert self.candidates_are_set_correctly(self.d, self.data)
         assert self.d.user == "guest"
         assert self.d.name == "voweldset"
+        assert self.d.apriori_ranking.list_grammar == [['c1', 'c2']]
 
     def test_constructor_data_from_form(self):
         form_data = self.d.create_form_data()
         form_dset = models.Dataset(data=form_data)
         assert self.candidates_are_set_correctly(form_dset, self.data)
-        assert self.data['name'] == form_dset.name
+        assert form_dset.name == self.data['name']
+        assert form_dset.apriori_ranking.list_grammar == [['c1', 'c2']]
+
+    def test_save_and_retrieve_apriori(self):
+        self.d.save()
+        new_dset = models.Dataset.objects.get(name=self.d.name,
+                                              user=self.d.user)
+        assert new_dset.apriori_ranking
+        assert new_dset.apriori_ranking.list_grammar == [['c1', 'c2']]
+        apriori_dset = new_dset.apriori_ranking.dset
+        assert apriori_dset.name == self.d.name
+        assert apriori_dset.user == self.d.user
 
     def test_create_form_data(self):
         form_data = self.d.create_form_data()
@@ -122,11 +139,12 @@ class TestDataset(object):
                         'optimal': False
                     }
                 ]}
-            ]
+            ],
+            'apriori_ranking': '[["c1", "c2"]]'
         }
 
     def test_raw_grammars(self):
-        #import pdb; pdb.set_trace()
+        self.d.apriori_ranking = []
         self.d.sort_by = 'size'
         # calculate once
         assert self.d.raw_grammars == [
@@ -187,7 +205,8 @@ class TestDataset(object):
         data = {
             'name': 'voweldset',
             'candidates': ot.data.voweldset,
-            'constraints': ['c1', 'c2', 'c3', 'c4']
+            'constraints': ['c1', 'c2', 'c3', 'c4'],
+            'apriori_ranking': [['c1', 'c2']]
         }
         d = models.Dataset(data=data, data_is_from_form=False)
         form_data = d.create_form_data()
@@ -214,13 +233,22 @@ class TestDataset(object):
             ],
             'name': 'blank'
         }
+        grams = [
+            frozenset([(1, 2), (3, 2), (1, 3)]),
+            frozenset([(1, 2), (3, 2), (3, 1)]),
+            frozenset([(1, 2), (3, 2)])
+        ]
+        apriori_data = deepcopy(data)
+        apriori_data.update({'apriori_ranking': [('C3', 'C1')]})
+        apriori_grams = [grams[0]]
+        yield self.check_calculate_compatible_grammars, data, grams
+        yield (self.check_calculate_compatible_grammars,
+               apriori_data, apriori_grams)
+
+    def check_calculate_compatible_grammars(self, data, grams):
         d = models.Dataset(data=data, data_is_from_form=False)
         d.calculate_compatible_grammars()
-        for g in d.grammars:
-            print g.raw_grammar
-        assert d.raw_grammars == [frozenset([(1, 2), (3, 2), (1, 3)]),
-                                  frozenset([(1, 2), (3, 2), (3, 1)]),
-                                  frozenset([(1, 2), (3, 2)])]
+        assert d.raw_grammars == grams
 
     compatible_poot_grammars = set([
         frozenset([(3, 1), (2, 3), (2, 4), (2, 1)]),
@@ -283,6 +311,7 @@ class TestDataset(object):
         assert gram_str == "{ }"
 
     def test_calculate_global_entailments(self):
+        self.d.apriori_ranking = []
         self.d.calculate_global_entailments()
         assert self.d.entailments == structures.global_entailments
 
@@ -422,6 +451,7 @@ class TestDataset(object):
         self.fs.get_last_version(filename=self.entailments_fname)
 
     def test_num_compatible_poots(self):
+        self.d.apriori_ranking = []
         self.d.calculate_compatible_grammars()
         assert self.d.num_compatible_poots() == 11
 

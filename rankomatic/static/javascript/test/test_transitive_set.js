@@ -5,8 +5,7 @@ QUnit.module("TransitiveSet", {
 });
 
 QUnit.test('constructor', function(assert) {
-    assert.ok(this.tset, "constructor makes something");
-    assert.deepEqual(this.tset.relations, {},
+    assert.ok(this.tset, "constructor makes something"); assert.deepEqual(this.tset.relations, {},
                      "bare constructor should make no relations");
 });
 

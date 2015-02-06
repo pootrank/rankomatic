@@ -8,9 +8,11 @@ the Optimality Theory ranking application.
 
 """
 import itertools
+import json
 from flask.ext.wtf import Form
-from wtforms import (TextField, PasswordField, FieldList, FormField,
-                     BooleanField, IntegerField,HiddenField, validators)
+from wtforms import (TextField, PasswordField, FieldList,
+                     FormField, BooleanField, IntegerField,
+                     HiddenField, validators)
 from wtforms.validators import ValidationError
 
 
@@ -189,6 +191,62 @@ class AtLeastOneOptimal(object):
             raise ValidationError(self.message)
 
 
+class AprioriValidator(object):
+    """Make sure the apriori field is formatted correctly.
+
+    This means being a JSON list of lists, where each inner list has length
+    two, and evey member of the inner lists is a string that matches one of
+    the constraints.
+    """
+
+    def __init__(self, message=None):
+        if not message:
+            message = "There was an error with the a priori ranking."
+        self.message = message
+
+    def __call__(self, form, field):
+        self.form = form
+        self.field = field
+        self.check_json_parseable()
+        self.check_ranking_is_list()
+        self.check_relations()
+
+    def check_json_parseable(self):
+        try:
+            self.ranking = json.loads(self.field.data)
+        except ValueError:
+            raise ValidationError(
+                "The form data must be a JSON-encoded string."
+            )
+
+    def check_ranking_is_list(self):
+        if type(self.ranking) is not list:
+            raise ValidationError(
+                "The a priori ranking must be represented as a list"
+            )
+
+    def check_relations(self):
+        self.constraints = [cons.data for cons in self.form.constraints]
+        for relation in self.ranking:
+            self.check_relation_format(relation)
+            self.check_relation_content(relation)
+
+    def check_relation_format(self, relation):
+            if type(relation) is not list or len(relation) != 2:
+                raise ValidationError(
+                    "All pairs in the a priori ranking "
+                    "must be lists with length two."
+                )
+
+    def check_relation_content(self, relation):
+            if (relation[0] not in self.constraints
+                    or relation[1] not in self.constraints):
+                raise ValidationError(
+                    "All members of pairs in the a priori "
+                    "ranking must be constraints in the dataset."
+                )
+
+
 class TableauxForm(Form):
     """Creates the Tableaux, displayed as the main calculator."""
     len_validator = validators.Length(min=1, max=255,
@@ -211,7 +269,8 @@ class TableauxForm(Form):
                              validators=[AtLeastOneOptimal()])
 
     name = TextField()
-    apriori_ranking = HiddenField(default="[]")
+    apriori_ranking = HiddenField(default="[]",
+                                  validators=[AprioriValidator()])
 
     def __init__(self, from_db=False, *args, **kwargs):
         super(TableauxForm, self).__init__(*args, **kwargs)

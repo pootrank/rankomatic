@@ -1,7 +1,8 @@
 from rankomatic import app, forms
 from rankomatic.models import Dataset
 from werkzeug import ImmutableMultiDict
-from flask.ext.wtf import Form, FieldList, TextField, FormField, BooleanField
+from flask.ext.wtf import (Form, FieldList, TextField,
+                           FormField, BooleanField, HiddenField)
 from flask import request
 from structures.structures import to_flatten, flattened
 import structures.structures as structures
@@ -74,6 +75,7 @@ class ValidatorForm(Form):
     msg = "none optimal"
     input_groups = FieldList(FormField(IGForm),
                              validators=[forms.AtLeastOneOptimal(msg)])
+    apriori_ranking = HiddenField(validators=[forms.AprioriValidator()])
 
 
 def test_all_validators_true():

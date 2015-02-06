@@ -45,7 +45,8 @@ def create_valid_empty_tableaux_data(test_case):
 def create_empty_tableaux_data(test_case):
     with test_case.client:
         to_return = {'submit_button': 'All grammars',
-                     'name': 'blank'}
+                     'name': 'blank',
+                     'apriori_ranking': '[]'}
         form = TableauxForm()
         for i, constraint in enumerate(form.constraints):
             to_return[constraint.name] = "C%d" % i

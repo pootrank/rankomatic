@@ -1,9 +1,10 @@
+var show_apriori_table;
 (function(window, document, undefined) {
     var table_template = Handlebars.compile($("#apriori_table_template").html());
-    var old_constraints = $("#tableaux_header").html();
+    var old_constraints = get_constraints();
 
-    function show_apriori_table() {
-        var new_constraints = $("#tableaux_header").html();
+    show_apriori_table = function() {
+        var new_constraints = get_constraints();
         if (need_to_redraw_table(new_constraints, old_constraints)) {
             redraw_table();
         }
@@ -11,7 +12,12 @@
     }
 
     function need_to_redraw_table(new_cons, old_cons) {
-        return !($("#apriori_table_container").html().length && old_cons === new_const)
+        return (!$("#apriori_table_container").html().length ||
+                !arrays_equal(old_cons, new_cons))
+    }
+
+    function arrays_equal(arr1, arr2) {
+        return $(arr1).not(arr2).length == 0 && $(arr2).not(arr1).length == 0
     }
 
     function redraw_table() {
@@ -20,7 +26,8 @@
             {'constraints': constraints_grid()}
         ));
         $("#header_label").attr('colspan', constraints.length);
-        var ranking_table = new RankingTable($("#apriori_table"), $("#apriori_ranking"));
+        var ranking_table = new RankingTable($("#apriori_table"),
+                                             $("#apriori_ranking"));
     }
 
     function get_constraints() {
@@ -40,6 +47,5 @@
         }
         return grid;
     }
-
     $("#apriori-tab").click(show_apriori_table);
 })(this, this.document)
