@@ -61,10 +61,10 @@ class GrammarView(MethodView):
         return sort_by in ['rank_volume', 'size']
 
     def _initialize_dset(self, dset_name):
-        dset = get_dset(dset_name)
-        dset.global_stats_calculated = False
-        dset.grammar_stats_calculated = False
-        dset.save()
+        self.dset = get_dset(dset_name)
+        self.dset.global_stats_calculated = False
+        self.dset.grammar_stats_calculated = False
+        self.dset.save()
 
 
 class GraphView(MethodView):
@@ -94,9 +94,11 @@ class GraphView(MethodView):
 class EntailmentView(MethodView):
 
     def get(self, dset_name):
-        classical = get_dset(dset_name).classical
+        dset = get_dset(dset_name)
+        classical = dset.classical
         worker_jobs.calculate_entailments(dset_name)
         return render_template('entailments.html', dset_name=dset_name,
+                               apriori=dset.apriori_ranking.string,
                                classical=classical)
 
 
@@ -199,6 +201,7 @@ class GlobalStatsCalculatedView(MethodView):
 class GrammarStatsCalculated(MethodView):
 
     def get(self, dset_name, sort_value):
+        print "GETTING GRAMMAR STATS"
         self._setup_for_get(dset_name, sort_value)
         if not self.dset.grammar_stats_calculated:
             return jsonify(retry=True)
@@ -212,8 +215,10 @@ class GrammarStatsCalculated(MethodView):
         self.classical, self.page, self.sort_by = get_url_args()
 
     def _grammar_stats_html(self):
+        print "apriori:", self.dset.apriori_ranking.string
         return render_template(
             'display_grammars.html', dset_name=self.dset_name, page=self.page,
+            apriori=self.dset.apriori_ranking.string,
             grammar_info=self.dset.grammar_info, sort_by=self.sort_by,
             sort_value=self.sort_value, classical=self.classical,
             **self.dset.grammar_navbar

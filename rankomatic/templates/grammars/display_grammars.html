@@ -1,4 +1,7 @@
 {%- if lengths -%}
+{% if apriori != "{ }" %}
+<h3 class="apriori-declaration">Only considering grammars that are compatible with this ranking: {{apriori}}</h3>
+{% endif %}
   <h4 id="sort-header">Sort grammars by:
     <select id="sort-grammars-by">
       <option value="size">size of grammar</option>
@@ -61,4 +64,7 @@
   </div>
 {%- else -%}
   <h2>No compatible grammars found.</h2>
+  {% if apriori != "{ }" %}
+  <h3 class="apriori-declaration">Only considering grammars that are compatible with this ranking: {{apriori}}</h3>
+  {%- endif -%}
 {%- endif -%}

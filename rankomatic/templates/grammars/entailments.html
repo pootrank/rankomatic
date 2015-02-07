@@ -2,6 +2,9 @@
 {%- block content -%}
 
 <h2>Global Entailments</h2>
+{% if apriori != "{ }" %}
+<h3 class="apriori-declaration">Only considering grammars that are compatible with this ranking: {{apriori}}</h3>
+{%- endif -%}
 <div class="btn-group">
   <a class="btn btn-primary" href="{{ url_for('grammars.grammars', dset_name=dset_name, sort_value=0, page=0, classical=classical, sort_by='rank_volume') }}">Grammars</a>
   <button class="btn btn-success disabled" href="#">Global entailments</button>
