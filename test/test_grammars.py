@@ -335,7 +335,7 @@ class TestEntailment(OTOrderBaseCase):
         response = self.client.get(url_for('grammars.entailments',
                                            dset_name=dset_name))
         self.assert_200(response)
-        assert "Global Entailments" in response.data
+        assert "Entailments" in response.data
         mock_calculate_entailments.assert_called_with(dset_name)
         self.assert_template_used('entailments.html')
 

@@ -92,8 +92,13 @@ class CalculatorView(MethodView):
     def _generate_redirect_url(self):
         if self.is_submitting_to_all_grammars():
             return self._get_all_grammar_url()
+        elif self.is_submitting_to_entailments():
+            return self._get_entailment_url()
         else:
             return self._get_classical_grammar_url()
+
+    def is_submitting_to_all_grammars(self):
+        return self.submit == "All grammars"
 
     def _get_all_grammar_url(self):
         return url_for(
@@ -101,14 +106,19 @@ class CalculatorView(MethodView):
             sort_value=0, page=0, classical=False, sort_by='rank_volume'
         )
 
+    def is_submitting_to_entailments(self):
+        return self.submit == "Entailments"
+
+    def _get_entailment_url(self):
+        return url_for(
+            'grammars.entailments', dset_name=urllib.quote(self.dset.name)
+        )
+
     def _get_classical_grammar_url(self):
         return url_for(
             'grammars.grammars', dset_name=self.dset.name, sort_value=0,
             page=0, classical=True, sort_by='rank_volume'
         )
-
-    def is_submitting_to_all_grammars(self):
-        return self.submit == "All grammars"
 
     def get_redisplay_html(self):
         return render_template(
@@ -208,10 +218,15 @@ class EditView(CalculatorView):
         self.dset.save()
 
     def _generate_redirect(self):
-        return redirect(url_for(
-            'grammars.grammars', dset_name=self.dset.name, sort_value=0,
-            page=0, classical=self.dset.classical, sort_by='rank_volume'
-        ))
+        if self.is_submitting_to_entailments():
+            redirect_url = url_for('grammars.entailments',
+                                   dset_name=self.dset.name)
+        else:
+            redirect_url = url_for('grammars.grammars',
+                                   dset_name=self.dset.name, sort_value=0,
+                                   page=0, classical=self.dset.classical,
+                                   sort_by='rank_volume')
+        return redirect(redirect_url)
 
     def get_redisplay_html(self):
         return render_template(

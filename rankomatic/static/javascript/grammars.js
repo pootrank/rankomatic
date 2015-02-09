@@ -15,6 +15,7 @@
               '?page=' + QueryString.page +
               '&classical=' + QueryString.classical +
               '&sort_by=' + QueryString.sort_by;
+    var no_grammars = Handlebars.compile($("#no_grammars_template").html());
 
     (function get_stats_if_calculated() {
         $.ajax({
@@ -35,7 +36,7 @@
                         }, RETRY_WAIT_TIME);
                     } else {
                         spinner.stop();
-                        $('#global-statistics').html("<h2>No compatible grammars found.</h2>");
+                        $('#global-statistics').html(no_grammars(data));
                         $('#grammars').hide();
                     }
                 }
@@ -54,7 +55,6 @@
                     }, RETRY_WAIT_TIME);
                 } else {
                     spinner.stop();
-                    console.log(data)
                     $('#grammars').html(data['html_str']);
                     register_grammar_listeners();
                     $('td.num_cot').each(toggle_closest_tr_if_zero);

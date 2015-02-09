@@ -194,8 +194,12 @@ class GlobalStatsCalculatedView(MethodView):
         self.return_dict.update({
             'grammars_exist': False,
             'need_redirect': False,
-            'finished': True
+            'finished': True,
+            'dset_name': self.dset.name,
+            'apriori': ""
         })
+        if self.dset.apriori_ranking.string != "{ }":
+            self.return_dict['apriori'] = self.dset.apriori_ranking.string
 
 
 class GrammarStatsCalculated(MethodView):

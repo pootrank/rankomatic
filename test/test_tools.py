@@ -137,6 +137,18 @@ class TestCalculator(OTOrderBaseCase):
             assert session['redirect_url']
             dset.delete()
 
+    def test_redirect_to_entailments(self):
+        data = create_valid_empty_tableaux_data(self)
+        data['submit_button'] = "Entailments"
+        with self.client:
+            response = self.client.post(url_for('tools.calculator'), data=data)
+            dset = Dataset.objects.get(name='blank')
+            self.assert_redirects(response, url_for('grammars.entailments',
+                                                    dset_name='blank'))
+            assert dset.user == "guest"
+            assert session['redirect_url']
+            dset.delete()
+
     def test_logged_in_user(self):
         data = create_valid_empty_tableaux_data(self)
         with self.client:
@@ -355,7 +367,7 @@ class TestEdit(EditCase):
             self.assert_template_used('tableaux.html')
             assert "Editing" in response.data
 
-    def test_valid_post(self, classical=False, data=None):
+    def test_valid_post(self, classical=False, data=None, redirect_url=None):
         if data is None:
             data = create_valid_empty_tableaux_data(self)
         dset = Dataset.objects.get(name='blank')
@@ -364,10 +376,12 @@ class TestEdit(EditCase):
             login(self.client)
             response = self.client.post(self.url, data=data)
         edited_dset = Dataset.objects.get(name='blank')
-        self.assert_redirects(response, url_for(
-            'grammars.grammars', dset_name='blank', sort_value=0,
-            page=0, classical=classical, sort_by='rank_volume'
-        ))
+        if redirect_url is None:
+            redirect_url = url_for(
+                'grammars.grammars', dset_name='blank', sort_value=0,
+                page=0, classical=classical, sort_by='rank_volume'
+            )
+        self.assert_redirects(response, redirect_url)
         assert edited_dset.id != dset.id
         assert edited_dset.constraints[0] == "C0"
 
@@ -375,3 +389,9 @@ class TestEdit(EditCase):
         data = create_valid_empty_tableaux_data(self)
         data['submit_button'] = "Classical grammars"
         self.test_valid_post(classical=True, data=data)
+
+    def test_entailment_post(self):
+        data = create_valid_empty_tableaux_data(self)
+        data['submit_button'] = "Entailments"
+        redirect_url = url_for('grammars.entailments', dset_name='blank')
+        self.test_valid_post(data=data, redirect_url=redirect_url)

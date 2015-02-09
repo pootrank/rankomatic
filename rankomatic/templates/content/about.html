@@ -113,7 +113,7 @@
             candidates gives an empirically falsifiable prediction of
             variation.
           </p>
-        <h3>Global entailments</h3>
+        <h3>Entailments</h3>
           <p>
             OTOrder also finds entailments between input-output pairs (candidates), i.e. implicational universals. We refer to these as <a href="#def-global-entailments">global
             entailments</a>. These are useful for exploring linguistic typologies. If a certain <a href="#def-candidate">candidate</a> wins, i.e. is present in a language, what
@@ -122,7 +122,7 @@
         <h3>Visualizing graphs</h3>
           <p>
             OTOrder visualizes graphs for every grammar calculated, as well as the
-            graph of global entailments. These graphs are displayed in PNG format
+            graph of entailments. These graphs are displayed in PNG format
             and users are encouraged to download them for use in publications.
           </p>
       </section>
@@ -144,7 +144,7 @@
             A chart with global statistics, that displays the numbers of partial and classical grammars that are compatible with your dataset, along with the total number of
             possible grammars of each type and the percentage of possible grammars that are compatible with your data.
             <p></p><p>
-            Beneath this chart is a set of links to global entailments and to edit the dataset.
+            Beneath this chart is a set of links to entailments and to edit the dataset.
             </p>
           <h4>Grammar navigation</h4>
             At the bottom of the page the compatible <a href="#def-grammar">grammars</a> will be displayed, along with some controls to navigate the set of grammars. There is a selector box to choose
@@ -161,10 +161,10 @@
           <i>C<sub>2</sub></i>. On the right is a table with statistics for that grammar. For each output in an <a href="#def-input-group">input group</a>, the number and
           percentage of that grammar's compatible total orders that cause it to win are displayed. In other words, each <a href="#def-candidate">candidate</a>'s ranking volume is
           displayed. The distribution of percentages gives an empirically falsifiable prediction of variation for that grammar.
-          <p></p><p>Click on the "Global entailments" link under the global statistics, which will redirect you to another page.</p>
+          <p></p><p>Click on the "Entailments" link under the global statistics, which will redirect you to another page.</p>
         <h3>Entailments</h3>
-          The <a href="#def-global-entailments">global entailments</a> page may take a few minutes to load, and once it has loaded it displays a few navigation links and a graph
-          of all the global entailments for your dataset. In the graph, each node represents an <a href="#def-candidate">input-output pair (candidate)</a>. If multiple candidates
+          The <a href="#def-global-entailments">entailments</a> page may take a few minutes to load, and once it has loaded it displays a few navigation links and a graph
+          of all the entailments for your dataset. In the graph, each node represents an <a href="#def-candidate">input-output pair (candidate)</a>. If multiple candidates
           are listed in one node, they are part of an entailment cycle in which each candidate entails each other candidate in the cycle. They are therefore functionally
           equivalent, and can be listed in a single node. An arrow from node <i>N<sub>1</sub></i> to <i>N<sub>2</sub></i> indicates that all the candidates listed in
           <i>N<sub>1</sub></i> entail the candidates in <i>N<sub>2</sub></i>. Entailments are transitive, so everything entailed by the candidates in <i>N<sub>2</sub></i> is also
@@ -173,7 +173,7 @@
           If you are not logged in, attempting to edit your <a href="#def-dataset">dataset</a> will redirect you to a login page. Log in, if you would like to save the work on
           your dataset and be able to edit and come back to it in the future. If you do not have an account, click on the "Create one" link at the bottom of the page. Logging in
           will automatically save the dataset to your account. After logging in, you will be able to edit your dataset as often as you would like, experimenting with how changes
-          affect changes to the compatible <a href="#def-grammar">grammars</a> and <a href="#def-global-entailments">global entailments</a>.
+          affect changes to the compatible <a href="#def-grammar">grammars</a> and <a href="#def-global-entailments">entailments</a>.
         <h3>Account</h3>
           To view the list of your <a href="#def-dataset">datasets</a>, log in and click on your username in the upper right hand corner. From the dropdown menu, click on "View
           account". This redirect you to your account page, where you can see all of your datasets. For each dataset, there are links to the <a href="#def-grammar">grammars</a>
@@ -330,7 +330,7 @@
           </p>
         </div>
         <div id="def-global-entailments">
-          <h2 class="term">Global entailments</h2>
+          <h2 class="term">Entailments</h2>
           <p class="summary">
             <h3>Summary</h3>
             One <a href="#def-candidate">candidate</a> is said to globally entail another if every <a href="#def-grammar">grammar</a> that makes the first candidate optimal also
@@ -341,7 +341,7 @@
             For every <a href="#def-candidate">candidate</a>, there are a certain number of <a href="#def-grammar">grammars</a> that will make it optimal for its input. If every
             single one of those grammars also makes a second candidate optimal for its input, then the first grammar entails the second candidate. Under classical OT, only one
             candidate per input can be optimal, so candidates can only entail candidates with different inputs. However, under Partial Order OT, candidates with the same input
-            can potentially entail or be entailed by each other. We take all of the global entailments for a <a href="#def-dataset">dataset</a> and visualize them as a graph.
+            can potentially entail or be entailed by each other. We take all of the entailments for a <a href="#def-dataset">dataset</a> and visualize them as a graph.
           </p>
         </div>
       </section>
