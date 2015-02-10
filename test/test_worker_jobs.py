@@ -148,7 +148,7 @@ def test_calculate_global_stats_adjust_grams_per_page(mock_get_grammars):
 
 @with_setup(blank_guest_dset, delete_bad_datasets)
 @mock.patch('rankomatic.models.Dataset.visualize_and_store_entailments')
-@mock.patch('rankomatic.models.Dataset.calculate_global_entailments')
+@mock.patch('rankomatic.models.Dataset.calculate_entailments')
 def test_enqueued_calculate_entailments(mock_calculate, mock_visualize):
     username = 'guest'
     dset_name = 'blank'

@@ -1,6 +1,7 @@
 import datetime
 import gridfs
 import urllib
+from collections import defaultdict
 
 from candidate import Candidate
 from grammar import Grammar, GrammarList
@@ -22,7 +23,8 @@ class Dataset(db.Document):
     constraints = db.ListField(db.StringField(max_length=255, required=True),
                                default=lambda: ["" for x in range(3)])
     candidates = db.ListField(db.EmbeddedDocumentField(Candidate))
-    entailments = db.DictField()
+    global_entailments = db.DictField()
+    apriori_entailments = db.DictField(default={})
     classical = db.BooleanField(default=False)
     _sort_by = db.StringField(default="rank_volume")
     _grammars = db.ReferenceField(GrammarList, default=None)
@@ -85,7 +87,7 @@ class Dataset(db.Document):
         if type(value) is list:
             self._apriori_ranking = Grammar(dataset=self, list_gram=value)
         else:
-            raise ValueError("a priori ranking must either be of type list")
+            raise ValueError("a priori ranking must be of type list")
         self.poot = self.build_poot()
 
     def __init__(self, data=None, data_is_from_form=True, *args, **kwargs):
@@ -145,15 +147,23 @@ class Dataset(db.Document):
         """Convert an ugly grammar into a pretty set-like string"""
         return self.grammars[index].string
 
-    def calculate_global_entailments(self):
+    def calculate_entailments(self):
         if not self.entailments_calculated:
-            entailments = self.poot.get_entailments(atomic=True)
-            self.entailments = self._process_entailments(entailments)
+            if self.apriori_ranking.list_grammar:
+                self._calculate_apriori_entailments()
+            else:
+                self._calculate_global_entailments()
             self.entailments_calculated = True
             self.save()
 
+    def _calculate_apriori_entailments(self):
+        apriori_entailments = self.poot.get_entailments()
+        apriori_entailments = self._process_entailments(apriori_entailments)
+        self._calculate_global_entailments()
+        self._subtract_global_entailments(apriori_entailments)
+
     def _process_entailments(self, entailments):
-        return {k: v for (k, v) in self._entailment_strings(entailments)}
+        return {k: v for k, v in self._entailment_strings(entailments)}
 
     def _entailment_strings(self, entailments):
         for old in entailments:
@@ -165,9 +175,23 @@ class Dataset(db.Document):
     def _frozenset_to_string(self, fset):
         return pair_to_string(tuple(fset)[0])
 
+    def _subtract_global_entailments(self, apriori_entailments):
+        apriori_only_entailments = defaultdict(lambda: [])
+        for entails, entaileds in apriori_entailments.iteritems():
+            for entailed in entaileds:
+                if entailed not in self.global_entailments[entails]:
+                    apriori_only_entailments[entails].append(entailed)
+        self.apriori_entailments = dict(apriori_only_entailments)
+
+    def _calculate_global_entailments(self):
+        global_entailments = self.poot.get_entailments(apriori=frozenset([]))
+        self.global_entailments = self._process_entailments(global_entailments)
+
     def visualize_and_store_entailments(self):
         num_cots_by_cand = self._process_num_cots_by_cand()
-        graph = EntailmentGraph(self.entailments, self.name,
+        graph = EntailmentGraph(self.global_entailments,
+                                self.apriori_entailments,
+                                self.name,
                                 num_cots_by_cand)
         graph.visualize()
         self.entailments_visualized = True

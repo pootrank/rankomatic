@@ -71,7 +71,7 @@ def test_entailment_graph():
     cots_by_cand = [structs.cots_by_cand_no_cycles,
                     structs.cots_by_cand_with_cycles]
     for i in range(len(ents)):
-        graph = EntailmentGraph(ents[i], 'temp',
+        graph = EntailmentGraph(ents[i], {}, 'temp',
                                 cots_by_cand[i])
         graph_str = graph_strings[i]
     yield (check_graph_works, graph, graph_str, 'temp/entailments.png')
@@ -90,3 +90,85 @@ def check_graph_works(graph, graph_str, filename, mock_layout):
     assert mock_layout.called
     assert graph.string() == graph_str
     assert graph.filename == filename
+
+
+def test_apriori_entailment_graph():
+    global_ents = structs.global_entailments
+    apriori_ents = {
+        'rasia, ra-si-a': ['idea, i-de-a'],
+        'lasi-a, la-si-a': ['idea, i-de-a'],
+        'idea, i-dee': ['lasi-a, la-sii', 'rasia, ra-sii']
+    }
+    cots_by_cand = {
+        'ovea, o-ve-a': 8,
+        'lasi-a, la-si-a': 12,
+        'rasia, ra-si-a': 12,
+        'idea, i-de-a': 12,
+        'ovea, o-vee': 16,
+        'lasi-a, la-sii': 12,
+        'rasia, ra-sii': 8,
+        'idea, i-dee': 8
+    }
+    graph_str = (u'strict digraph {\n\tgraph [encoding="UTF-8"];\n\tnode [label='
+    '"\\N",\n\t\tshape=rect\n\t];\n\t"<<FONT POINT-SIZE=\\"14\\">(ovea, o-ve-a'
+    ')</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 8</B></FONT>>"\t [label=<<F'
+    'ONT POINT-SIZE="14">(ovea, o-ve-a)</FONT><BR/><FONT POINT-SIZE="10"><B>RV'
+    ': 8</B></FONT>>];\n\t"<<FONT POINT-SIZE=\\"14\\">(lasi-a, la-si-a)</FONT>'
+    '<BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>"\t [label=<<FONT POI'
+    'NT-SIZE="14">(lasi-a, la-si-a)</FONT><BR/><FONT POINT-SIZE="10"><B>RV: 12'
+    '</B></FONT>>];\n\t"<<FONT POINT-SIZE=\\"14\\">(ovea, o-ve-a)</FONT><BR/><'
+    'FONT POINT-SIZE=\\"10\\"><B>RV: 8</B></FONT>>" -> "<<FONT POINT-SIZE=\\"1'
+    '4\\">(lasi-a, la-si-a)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B>'
+    '</FONT>>";\n\t"<<FONT POINT-SIZE=\\"14\\">(idea, i-de-a)</FONT><BR/><FONT'
+    ' POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>"\t [label=<<FONT POINT-SIZE="1'
+    '4">(idea, i-de-a)</FONT><BR/><FONT POINT-SIZE="10"><B>RV: 12</B></FONT>>]'
+    ';\n\t"<<FONT POINT-SIZE=\\"14\\">(ovea, o-ve-a)</FONT><BR/><FONT POINT-SI'
+    'ZE=\\"10\\"><B>RV: 8</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(idea, i'
+    '-de-a)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>";\n\t"<'
+    '<FONT POINT-SIZE=\\"14\\">(lasi-a, la-si-a)</FONT><BR/><FONT POINT-SIZE='
+    '\\"10\\"><B>RV: 12</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(idea, i-d'
+    'e-a)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>"\t [style'
+    '=dashed];\n\t"<<FONT POINT-SIZE=\\"14\\">(rasia, ra-si-a)</FONT><BR/><FON'
+    'T POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>"\t [label=<<FONT POINT-SIZE="'
+    '14">(rasia, ra-si-a)</FONT><BR/><FONT POINT-SIZE="10"><B>RV: 12</B></FONT'
+    '>>];\n\t"<<FONT POINT-SIZE=\\"14\\">(lasi-a, la-si-a)</FONT><BR/><FONT PO'
+    'INT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">('
+    'rasia, ra-si-a)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>'
+    '>";\n\t"<<FONT POINT-SIZE=\\"14\\">(idea, i-de-a)</FONT><BR/><FONT POINT-'
+    'SIZE=\\"10\\"><B>RV: 12</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(rasi'
+    'a, ra-si-a)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>";'
+    '\n\t"<<FONT POINT-SIZE=\\"14\\">(rasia, ra-si-a)</FONT><BR/><FONT POINT-SI'
+    'ZE=\\"10\\"><B>RV: 12</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(idea, '
+    'i-de-a)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>"\t [st'
+    'yle=dashed];\n\t"<<FONT POINT-SIZE=\\"14\\">(idea, i-dee)</FONT><BR/><FON'
+    'T POINT-SIZE=\\"10\\"><B>RV: 8</B></FONT>>"\t [label=<<FONT POINT-SIZE="1'
+    '4">(idea, i-dee)</FONT><BR/><FONT POINT-SIZE="10"><B>RV: 8</B></FONT>>];'
+    '\n\t"<<FONT POINT-SIZE=\\"14\\">(ovea, o-vee)</FONT><BR/><FONT POINT-SIZE'
+    '=\\"10\\"><B>RV: 16</B></FONT>>"\t [label=<<FONT POINT-SIZE="14">(ovea, o'
+    '-vee)</FONT><BR/><FONT POINT-SIZE="10"><B>RV: 16</B></FONT>>];\n\t"<<FONT'
+    ' POINT-SIZE=\\"14\\">(idea, i-dee)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><'
+    'B>RV: 8</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(ovea, o-vee)</FONT><'
+    'BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 16</B></FONT>>";\n\t"<<FONT POINT-SI'
+    'ZE=\\"14\\">(rasia, ra-sii)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 8'
+    '</B></FONT>>"\t [label=<<FONT POINT-SIZE="14">(rasia, ra-sii)</FONT><BR/>'
+    '<FONT POINT-SIZE="10"><B>RV: 8</B></FONT>>];\n\t"<<FONT POINT-SIZE=\\"14'
+    '\\">(idea, i-dee)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 8</B></FONT>'
+    '>" -> "<<FONT POINT-SIZE=\\"14\\">(rasia, ra-sii)</FONT><BR/><FONT POINT-'
+    'SIZE=\\"10\\"><B>RV: 8</B></FONT>>"\t [style=dashed];\n\t"<<FONT POINT-SI'
+    'ZE=\\"14\\">(lasi-a, la-sii)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: '
+    '12</B></FONT>>"\t [label=<<FONT POINT-SIZE="14">(lasi-a, la-sii)</FONT><B'
+    'R/><FONT POINT-SIZE="10"><B>RV: 12</B></FONT>>];\n\t"<<FONT POINT-SIZE=\\'
+    '"14\\">(idea, i-dee)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 8</B></F'
+    'ONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(lasi-a, la-sii)</FONT><BR/><FONT P'
+    'OINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>"\t [style=dashed];\n\t"<<FONT PO'
+    'INT-SIZE=\\"14\\">(rasia, ra-sii)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B'
+    '>RV: 8</B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(idea, i-dee)</FONT><B'
+    'R/><FONT POINT-SIZE=\\"10\\"><B>RV: 8</B></FONT>>";\n\t"<<FONT POINT-SIZE'
+    '=\\"14\\">(rasia, ra-sii)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 8</'
+    'B></FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(lasi-a, la-sii)</FONT><BR/><F'
+    'ONT POINT-SIZE=\\"10\\"><B>RV: 12</B></FONT>>";\n\t"<<FONT POINT-SIZE=\\"'
+    '14\\">(lasi-a, la-sii)</FONT><BR/><FONT POINT-SIZE=\\"10\\"><B>RV: 12</B>'
+    '</FONT>>" -> "<<FONT POINT-SIZE=\\"14\\">(ovea, o-vee)</FONT><BR/><FONT P'
+    'OINT-SIZE=\\"10\\"><B>RV: 16</B></FONT>>";\n}\n')
+    graph = EntailmentGraph(global_ents, apriori_ents, 'temp', cots_by_cand)
+    yield check_graph_works, graph, graph_str, 'temp/entailments.png'

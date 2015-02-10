@@ -6,6 +6,8 @@ import tempfile
 from collections import defaultdict
 from rankomatic import db
 
+APRIORI_EDGE_STYLE = 'dashed'
+
 
 class GridFSGraph(pygraphviz.AGraph):
 
@@ -60,32 +62,43 @@ class GridFSGraph(pygraphviz.AGraph):
 
 class EntailmentGraph(GridFSGraph):
 
-    def __init__(self, entailments, dset_name, num_cots_by_cand):
+    def __init__(self, global_entailments, apriori_entailments,
+                 dset_name, num_cots_by_cand):
         super(EntailmentGraph, self).__init__(dset_name=dset_name,
                                               basename='entailments',
                                               directed=True)
-        self.entailments = entailments
+        self.entailments = global_entailments
+        self.apriori_entailments = apriori_entailments
         self.num_cots_by_cand = num_cots_by_cand
 
     def make_graph(self):
         self._add_edges()
         self._collapse_cycles()
         self.node_attr['shape'] = 'rect'
-        self._add_annotations()
         self.tred()
+        self._add_apriori_edges()
         self.layout('dot')
-
-    def _add_annotations(self):
-        for k, v in self.num_cots_by_cand.iteritems():
-            if k in self.nodes():
-                self.get_node(k).attr['label'] = k + self._rank_volume_annotation(v)
-
-    def _rank_volume_annotation(self, value):
-        return '<<FONT POINT-SIZE="10">RV: {}</FONT>>'.format(value)
 
     def _add_edges(self):
         for k, v in self.entailments.iteritems():
-            [self.add_edge(k, entailed) for entailed in v]
+            for entailed in v:
+                self.add_edge(k, entailed)
+
+    def _add_apriori_edges(self):
+        for k, v in self.apriori_entailments.iteritems():
+            start_node = self._get_partial_match_node(k)
+            for entailed in v:
+                finish_node = self._get_partial_match_node(entailed)
+                self.add_edge(start_node, finish_node,
+                              style=APRIORI_EDGE_STYLE)
+
+    def _get_partial_match_node(self, partial):
+        matches = [n for n in self.nodes() if partial in n]
+        if matches:
+            return matches[0]
+        else:
+            msg = "Node matching {} not in graph".format(partial)
+            raise KeyError(msg)
 
     def _collapse_cycles(self):
         self._get_equivalent_nodes()
@@ -95,15 +108,17 @@ class EntailmentGraph(GridFSGraph):
     def _get_equivalent_nodes(self):
         self.equivalent_nodes = defaultdict(lambda: set([]))
         self._edges = set(self.edges())  # for determining membership later
-        [self._add_equiv_nodes(e) for e in self._edges if self._nodes_equiv(e)]
-
-    def _add_equiv_nodes(self, edge):
-        self.equivalent_nodes[edge[0]].add(edge[1])
-        self.equivalent_nodes[edge[1]].add(edge[0])
+        for e in self._edges:
+            if self._nodes_equiv(e):
+                self._add_equiv_nodes(e)
 
     def _nodes_equiv(self, edge):
         reverse_edge = (edge[1], edge[0])
         return reverse_edge in self._edges
+
+    def _add_equiv_nodes(self, edge):
+        self.equivalent_nodes[edge[0]].add(edge[1])
+        self.equivalent_nodes[edge[1]].add(edge[0])
 
     def _get_cycles_from_equivalent_nodes(self):
         cycles = [frozenset(v) for k, v in self.equivalent_nodes.iteritems()]
@@ -142,10 +157,6 @@ class EntailmentGraph(GridFSGraph):
                 self.add_edge(node_label, edge[1])
             if edge[1] in cycle:
                 self.add_edge(edge[0], node_label)
-
-    def _make_nodes_rectangular(self):
-        for node in self.nodes():
-            node.attr['shape'] = 'rect'
 
 
 class GrammarGraph(GridFSGraph):

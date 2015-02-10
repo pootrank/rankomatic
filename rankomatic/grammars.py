@@ -205,7 +205,6 @@ class GlobalStatsCalculatedView(MethodView):
 class GrammarStatsCalculated(MethodView):
 
     def get(self, dset_name, sort_value):
-        print "GETTING GRAMMAR STATS"
         self._setup_for_get(dset_name, sort_value)
         if not self.dset.grammar_stats_calculated:
             return jsonify(retry=True)
@@ -219,7 +218,6 @@ class GrammarStatsCalculated(MethodView):
         self.classical, self.page, self.sort_by = get_url_args()
 
     def _grammar_stats_html(self):
-        print "apriori:", self.dset.apriori_ranking.string
         return render_template(
             'display_grammars.html', dset_name=self.dset_name, page=self.page,
             apriori=self.dset.apriori_ranking.string,

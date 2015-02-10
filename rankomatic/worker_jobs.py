@@ -54,7 +54,7 @@ def _make_grammar_info(dset_name, username, dset_getter=get_dset):
 
 def _calculate_entailments(dset_name, username, dset_getter=get_dset):
     dset = dset_getter(dset_name, username)
-    dset.calculate_global_entailments()
+    dset.calculate_entailments()
     dset.visualize_and_store_entailments()
 
 

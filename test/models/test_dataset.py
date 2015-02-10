@@ -36,7 +36,8 @@ class TestDataset(object):
         assert not d.name
         assert len(d.constraints) == 3
         assert not d.candidates
-        assert not d.entailments
+        assert not d.global_entailments
+        assert not d.apriori_entailments
         assert not d.grammars
         assert not d.apriori_ranking.list_grammar
         assert d.poot
@@ -48,7 +49,8 @@ class TestDataset(object):
         assert not d.name
         assert len(d.constraints) == 3
         assert not d.candidates
-        assert not d.entailments
+        assert not d.global_entailments
+        assert not d.apriori_entailments
         assert not d.grammars
         assert d.apriori_ranking.list_grammar == []
         assert d.poot
@@ -310,14 +312,28 @@ class TestDataset(object):
         gram_str = d.grammar_to_string(-1)
         assert gram_str == "{ }"
 
-    def test_calculate_global_entailments(self):
+    def test_calculate_entailments(self):
         self.d.apriori_ranking = []
-        self.d.calculate_global_entailments()
-        assert self.d.entailments == structures.global_entailments
+        self.d.calculate_entailments()
+        assert self.d.apriori_entailments == {}
+        assert self.d.global_entailments == structures.global_entailments
 
         # recalculate for coverage
-        self.d.calculate_global_entailments()
-        assert self.d.entailments == structures.global_entailments
+        self.d.calculate_entailments()
+        assert self.d.global_entailments == structures.global_entailments
+
+    def test_calculate_entailments_with_apriori(self):
+        self.d.calculate_entailments()
+        assert self.d.global_entailments == structures.global_entailments
+        apriori_entailments = {
+            'rasia, ra-si-a': ['idea, i-de-a'],
+            'lasi-a, la-si-a': ['idea, i-de-a'],
+            'idea, i-dee': ['lasi-a, la-sii', 'rasia, ra-sii']
+        }
+        assert self.d.apriori_entailments == apriori_entailments
+        for entails, entaileds in self.d.apriori_entailments.iteritems():
+            for entailed in entaileds:
+                assert entailed not in self.d.global_entailments[entails]
 
     @raises(gridfs.NoFile)
     def test_visualize_and_store_entailments_no_entailments(self):
@@ -332,12 +348,12 @@ class TestDataset(object):
             'name': 'blank'
         }
         self.d = models.Dataset(data=data, data_is_from_form=False)
-        self.d.calculate_global_entailments()
+        self.d.calculate_entailments()
         self.d.visualize_and_store_entailments()
         self.fs.get_last_version(filename=self.entailments_fname)
 
     def test_visualize_and_store_entailments_with_entailments(self):
-        self.d.calculate_global_entailments()
+        self.d.calculate_entailments()
         self.d.visualize_and_store_entailments()
         assert self.fs.get_last_version(filename=self.entailments_fname)
 
@@ -443,7 +459,7 @@ class TestDataset(object):
 
     @raises(gridfs.NoFile)
     def test_remove_old_files(self):
-        self.d.calculate_global_entailments()
+        self.d.calculate_entailments()
         self.d.visualize_and_store_entailments()
         assert self.fs.get_last_version(filename=self.entailments_fname)
 
