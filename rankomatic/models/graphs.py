@@ -85,12 +85,20 @@ class EntailmentGraph(GridFSGraph):
                 self.add_edge(k, entailed)
 
     def _add_apriori_edges(self):
+        self._make_apriori_graph()
+        self.apriori_graph.tred()
+        self._add_remaining_apriori_edges()
+
+    def _make_apriori_graph(self):
+        self.apriori_graph = pygraphviz.AGraph(encoding="UTF-8", directed=True)
         for k, v in self.apriori_entailments.iteritems():
-            start_node = self._get_partial_match_node(k)
             for entailed in v:
-                finish_node = self._get_partial_match_node(entailed)
-                self.add_edge(start_node, finish_node,
-                              style=APRIORI_EDGE_STYLE)
+                self.apriori_graph.add_edge(k, entailed)
+
+    def _add_remaining_apriori_edges(self):
+        for edge in self.apriori_graph.edges():
+            edge = map(self._get_partial_match_node, edge)
+            self.add_edge(edge, style=APRIORI_EDGE_STYLE)
 
     def _get_partial_match_node(self, partial):
         matches = [n for n in self.nodes() if partial in n]

@@ -198,7 +198,9 @@ class Dataset(db.Document):
         self.save()
 
     def _process_num_cots_by_cand(self):
-        num_cots_by_cand = self.poot.num_cots_by_cand(frozenset([]))
+        num_cots_by_cand = self.poot.num_cots_by_cand(
+            self.apriori_ranking.raw_grammar
+        )
         return {pair_to_string(k): v for k, v in num_cots_by_cand.iteritems()}
 
     def calculate_compatible_grammars(self):
