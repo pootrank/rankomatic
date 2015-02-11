@@ -288,6 +288,12 @@ class TestDataset(object):
         print gram_str
         assert gram_str == '{(c1, c3), (c1, c2)}'
 
+    def test_grammar_to_json(self):
+        self.d.sort_by = 'size'
+        self.d.calculate_compatible_grammars()
+        gram_str = self.d.grammar_to_json(0)
+        assert gram_str == '[["c1", "c3"], ["c1", "c2"]]'
+
     def test_grammar_to_string_empty_grammar(self):
         data = {
             'name': 'blank',

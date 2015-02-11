@@ -1,5 +1,6 @@
 import datetime
 import gridfs
+import json
 import urllib
 from collections import defaultdict
 
@@ -146,6 +147,9 @@ class Dataset(db.Document):
     def grammar_to_string(self, index):
         """Convert an ugly grammar into a pretty set-like string"""
         return self.grammars[index].string
+
+    def grammar_to_json(self, index):
+        return json.dumps(self.grammars[index].list_grammar)
 
     def calculate_entailments(self):
         if not self.entailments_calculated:

@@ -227,6 +227,16 @@ class GrammarStatsCalculated(MethodView):
         )
 
 
+class AprioriEntailments(MethodView):
+
+    def post(self, dset_name):
+        dset = get_dset(dset_name)
+        dset.apriori_ranking = json.loads(request.form['apriori'])
+        dset.entailments_calculated = False
+        dset.save()
+        return redirect(url_for('.entailments', dset_name=dset_name))
+
+
 class StatProfileView(MethodView):
 
     def get(self, dset_name):
@@ -253,3 +263,7 @@ grammars.add_url_rule('/grammar_stats_calculated/<dset_name>/<int:sort_value>',
                       ))
 grammars.add_url_rule('/<dset_name>/stat_profile',
                       view_func=StatProfileView.as_view('stat_profile'))
+grammars.add_url_rule('/<dset_name>/apriori_entailments/',
+                      view_func=AprioriEntailments.as_view(
+                          'apriori_entailments'
+                      ))

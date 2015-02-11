@@ -88,6 +88,8 @@
             if ($target.attr('class') === "toggle-zero-candidates") {
                 $target.prev().find('td.num_cot').each(toggle_closest_tr_if_zero);
                 toggle_label_of_toggle_switch($target);
+            } else if ($target.hasClass('apriori-entailment-submitter')) {
+                $target.closest('form').submit();
             }
         });
 

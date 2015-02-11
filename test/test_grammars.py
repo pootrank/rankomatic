@@ -325,19 +325,44 @@ class TestGrammarStatsCalculated(OTOrderBaseCase):
 
 class TestEntailment(OTOrderBaseCase):
 
+    def tearDown(self):
+        delete_bad_datasets()
+
+    def init_dset(self):
+        self.dset_name = 'blank'
+        self.dset = Dataset(name=self.dset_name, user='guest')
+        self.dset.classical = False
+        self.dset.save()
+
+
     @mock.patch('rankomatic.worker_jobs.calculate_entailments')
     def test_get(self, mock_calculate_entailments):
-        dset_name = 'blank'
-        dset = Dataset(name=dset_name, user='guest')
-        dset.classical = False
-        dset.save()
-
+        self.init_dset()
         response = self.client.get(url_for('grammars.entailments',
-                                           dset_name=dset_name))
+                                           dset_name=self.dset_name))
         self.assert_200(response)
         assert "Entailments" in response.data
-        mock_calculate_entailments.assert_called_with(dset_name)
+        mock_calculate_entailments.assert_called_with(self.dset_name)
         self.assert_template_used('entailments.html')
+
+
+class TestAprioriEntailments(TestEntailment):
+
+    def test_get(self):
+        pass
+
+    def test_post(self):
+        self.init_dset()
+        self.dset.constraints = ['a', 'b', 'c']
+        self.dset.save()
+        data = {'apriori': '[["a", "b"], ["a", "c"]]'}
+        response = self.client.post(url_for('grammars.apriori_entailments',
+                                            dset_name=self.dset_name),
+                                    data=data)
+        self.assert_redirects(response, url_for('grammars.entailments',
+                                                dset_name=self.dset_name))
+        dset = Dataset.objects.get(name="blank", user="guest")
+        assert dset.apriori_ranking.string == "{(a, c), (a, b)}"
 
 
 class TestStatProfile(OTOrderBaseCase):

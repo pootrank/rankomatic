@@ -176,7 +176,8 @@ class GrammarInfoMaker():
     def _single_grammar_info(self, gram):
         cot_stats_by_cand = self.dset.get_cot_stats_by_cand(gram[1])
         return {
-            'grammar': self._make_grammar_string(gram[0]),
+            'apriori': self.dset.grammar_to_json(gram[0]),
+            'grammar': self.dset.grammar_to_string(gram[0]),
             'filename': self._make_grammar_filename(gram[0]),
             'cots_by_cand': cot_stats_by_cand,
             'input_totals': self._sum_all_cot_stats(cot_stats_by_cand)
@@ -196,9 +197,6 @@ class GrammarInfoMaker():
             raw_sum += cot_stat['num_cot']
             percent_sum += cot_stat['per_cot']
         return {'raw_sum': raw_sum, 'per_sum': percent_sum}
-
-    def _make_grammar_string(self, index):
-        return self.dset.grammar_to_string(index)
 
     def _make_grammar_filename(self, index):
         return 'grammar%d.png' % index

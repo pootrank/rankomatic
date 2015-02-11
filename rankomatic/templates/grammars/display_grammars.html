@@ -38,6 +38,9 @@
       <div class="span5">
         <span class="helper"></span>
         <img class="graph" src="{{ url_for('grammars.graph', dset_name=dset_name, filename=g['filename']) }}" alt="{{g['filename']}}"></img>
+        <form action="{{url_for('grammars.apriori_entailments', dset_name=dset_name)}}" method="POST">
+          <input type="hidden" name="apriori" value="{{g['apriori']}}" />
+          <a href="#" class="apriori-entailment-submitter">View entailments with this as the a priori ranking</a>
       </div>
       <div class="span2">
       </div>

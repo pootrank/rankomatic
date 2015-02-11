@@ -181,6 +181,7 @@ def test_make_grammar_info(mock_get_grammars):
                 ]
             },
             u'grammar': u'{(c1, c3), (c1, c2)}',
+            u'apriori': u'[["c1", "c3"], ["c1", "c2"]]',
             u'input_totals': {
                 u'idea': {u'raw_sum': 8, u'per_sum': 100.0},
                 u'lasi-a': {u'raw_sum': 8, u'per_sum': 100.0},
