@@ -9,166 +9,84 @@
   </li>
 </ul>
 <div class="navtab-content dataset-tab-content">
-    <form id="dataset" action="
-        {%- if example -%}
-        {{ url_for('tools.example_edit') }}
-        {%- elif edit -%}
-        {{ url_for('tools.edit', dset_name=dset_name) }}
-        {%- else -%}
-        {{ url_for('tools.calculator') }}
-        {%- endif -%}" method="POST">
-        <div class="row">
-            {%- if example -%}
-            <h2>Example dataset.</h2>
-            <p>
-            Feel free to make changes and check out the grammars and entailments.
-            {% if uname %}
-            Changes will be saved to your account when you click to view grammars.
-            {% else %}
-            Changes can be saved by logging in or creating an account after viewing the grammars.
-            {%- endif -%}
-            </p>
-            <p>
-            This dataset is adapted from <a href="http://www.stanford.edu/~kiparsky/Papers/nwave94.pdf">Kiparsky 1993</a>, and an in-depth discussion can be found in
-            <a href="http://web.stanford.edu/~anttila/research/torders/t-order-manual.pdf">Anttila and Andrus 2006</a>. In short, it is a dataset regarding word-final t-deletion.
-            word-final <i>t</i> is deleted if it is not parsed as part of a syllable, which are marked with square brackets. The constraints are as follows:
-            <table id="explain-constraints" class="table">
-                <tr>
-                    <td class="constraint">*Complex</td>
-                    <td>Avoid consonant clusters within a syllable.</td>
-                </tr>
-                <tr>
-                    <td class="constraint">Onset</td>
-                    <td>Syllables have onsets.</td>
-                </tr>
-                <tr>
-                    <td class="constraint">Parse</td>
-                    <td>Segments belong to syllables.</td>
-                </tr>
-                <tr>
-                    <td class="constraint">Align-L-Word</td>
-                    <td>Syllables cannot straddle word boundaries.</td>
-                </tr>
-                <tr>
-                    <td class="constraint">Align-R-Phrase</td>
-                    <td>Phrase-final consonants are also word-final.</td>
-                </tr>
-            </table>
-            </p>
-            {%- elif edit -%}
-            <h2>Editing...</h2>
-            {%- endif -%}
-            <div class="span12">
-                {{ form.name(placeholder="Dataset Title") }}
-            </div>
-        </div>
-        <div class="row">
-            <div class="span3">
-                <table id="buttons" cellspacing="0">
-                    <tr>
-                        <th>Constraints:</th>
-                        <td>
-                            <div class="btn-group">
-                                <button id="add_constraint" class="btn has-tooltip" type="button" data-title="Add a constraint">+</button>
-                                <button id="delete_constraint" class="btn has-tooltip" type="button" data-title="Delete a constraint">-</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Input Groups:</th>
-                        <td>
-                            <div class="btn-group">
-                                <button id="add_input_group" class="btn has-tooltip" type="button" data-title="Add an input group">+</button>
-                                <button id="delete_input_group" class="btn has-tooltip" type="button" data-title="Delete an input group">-</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>
-                            <div id="submit-btn-container" class="btn-group-vertical">
-                                <input type="submit" id="calculate_all" class="btn btn-primary has-popover" name="submit_button" value="All grammars" data-trigger="hover" data-title="Calculate all possible grammars" data-content="Calculates all grammars compatible with the dataset, both totally and partially orderd grammars." data-delay="200" data-placement="top" data-container="div#submit-btn-container"></input>
-                                <input type="submit" class="btn btn-secondary has-popover" name="submit_button" value="Classical grammars" data-trigger="hover" data-title="Calculate classical grammars only" data-content="Calculates only the totally-ordered grammars compatible with the dataset, as in classical Optimality Theory." data-delay="200" data-placement="bottom" data-container="div#submit-btn-container"></input>
-                                <input type="submit" id="entailments" class="btn btn-success has-popover" name="submit_button" value="Entailments" data-trigger="hover" data-title="Calculate entailments" data-content="Calculates the entailments, filtered by whatever ranking is specified on the 'Specify  ranking' tab." data-delay="200" data-placement="top" data-container="div#submit-btn-container"></input>
-                                {%- if edit -%}
-                                <input type="submit" class="btn btn-danger has-tooltip" name="submit_button" value="Cancel editing" data-title="...and return to account page" data-placement="bottom" data-container="div#submit-btn-container"></input>
-                                {%- endif -%}
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div class="span9">
-                <fieldset>
-                    {{ form.csrf_token() }}
-                    <table id="head_table" class="table table-alternate condensed" cellspacing="0">
-                        <thead>
-                            <tr id="tableaux_header">
-                                <th>Input</th>
-                                <th>Output</th>
-                                <th class="{%- if t_order -%}t-order{%- endif -%}">
-                                    {%- if not t_order -%}Optimal?{%- endif -%}
-                                </th>
-                                {%- set i = 1 %}
-                                {%- for constraint in form.constraints %}
-                                <th class="constraint">{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="C" ~ i) }}{% endif %}</th>
-                                {%- set i = i + 1 %}
-                                {%- endfor %}
-                                <th class="borderless"></th>
-                            </tr>
-                        </thead>
-                    </table>
-                    <div class="scrollable">
-                        <table id="tableaux" class="table table-alternate condensed" cellspacing="0">
-                            {%- for ig in form.input_groups %}
-                            <tbody id="" class="input-group">
-                                {{ ig.csrf_token() }}
-                                {% set first = true %}
-                                {% for c in ig.candidates %}
-                                <tr class="candidate {% if first %}input-header{% else %}output-only{% endif %}">
-                                    {{ c.csrf_token() }}
-                                    <td>{% if c.inp.raw_data %}{{ c.inp() }}{% else %}{{ c.inp(value="I1") }}{% endif %}</td>
-                                    <td>{% if c.outp.raw_data %}{{ c.outp() }}{% else %}{{ c.outp(value="O1") }}{% endif %}</td>
-                                    <td class="{%- if t_order -%}t-order{%- endif -%}">
-                                        {%- if not t_order -%}
-                                        {% if c.optimal.raw_data %}{{ c.optimal(value="true") }}{% else %}{{ c.optimal(value="false") }}{% endif %}
-                                        {%- else -%}
-                                        {{ c.optimal(value="true", type="hidden") }}
-                                        {%- endif -%}
-                                    </td>
-                                    {%- for constraint in c.vvector %}
-                                    <td>{% if constraint.raw_data %}{{ constraint() }}{% else %}{{ constraint(value="") }}{% endif %}</td>
-                                    {%- endfor -%}
-                                    <td class="borderless">
-                                        <div class="btn-group">
-                                            <button class="btn btn-small add_output has-tooltip" type=button data-placement="left" data-title="Add a candidate to this input group" data-container="tr">+</button>
-                                            <button class="btn btn-small delete_output has-tooltip" type=button data-placement="right" data-title="Delete a candidate from this input group" data-container="tr">-</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% set first = false %}
-                                {% endfor %}
-                            </tbody>
-                            {%- endfor %}
-                        </table>
-                    </div>
-                </fieldset>
-            </div>
-        </div>
-        <div class="row">
-            <div class="span4">
-                <div id="alert_spacer"></div>
-                <div class="alert" id="classical_only_alert">For datasets with more than 5 constraints, only the Classical (total order) grammars can be calculated.</div>
-            </div>
-            <div class="span8">
-            </div>
-        </div>
-      {{ form.apriori_ranking() }}
-    </form>
+  <h2>
+    <input id="dataset-name" type="text" placeholder="Dataset name" />
+  </h2>
+  <table class="tableaux">
+    <thead>
+      <tr>
+        <th class="heading">
+          <div class="heading-spacer"></div>
+          <div class="label-container">
+            <p>Input</p>
+          </div>
+        </th>
+        <th class="heading">
+          <div class="heading-spacer"></div>
+          <div class="label-container">
+            <p>Output</p>
+          </div>
+        </th>
+        <th class="heading">
+          <div class="heading-spacer"></div>
+          <div class="label-container">
+            <p>Optimal</p>
+          </div>
+        </th>
+        <th class="constraint">
+          <div class="col-controls">
+            <span class="add-left">+</span>
+            <span class="delete-this">&times;</span>
+            <span class="add-right">+</span>
+          </div>
+          <input type="text" value="C1" />
+        </th>
+        <th class="constraint">
+          <div class="col-controls">
+            <span class="add-left">+</span>
+            <span class="delete-this">&times;</span>
+            <span class="add-right">+</span>
+          </div>
+          <input type="text" value="C2" />
+        </th>
+        <th class="constraint">
+          <div class="col-controls">
+            <span class="add-left">+</span>
+            <span class="delete-this">&times;</span>
+            <span class="add-right">+</span>
+          </div>
+          <input type="text" value="C3" />
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="input">
+          <input type="text" value="I1" />
+        </td>
+        <td class="output">
+          <input type="text" value="O1" />
+        </td>
+        <td class="optimal">
+          <input type="checkbox" />
+        </td>
+        <td class="violation-vector">
+          <input type="number" />
+        </td>
+        <td class="violation-vector">
+          <input type="number" />
+        </td>
+        <td class="violation-vector">
+          <input type="number" />
+        </td>
+        <td class="row-controls">
+          <p class="add-above">+</p>
+          <p class="delete-this">&times;</p>
+          <p class="add-below">+</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
   <div class="navtab-content apriori-tab-content">
     <h2>Specify an apriori ranking</h2>

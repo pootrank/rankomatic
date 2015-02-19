@@ -229,3 +229,74 @@ body.simple-form {
     display: flex;
     align-items: center;
 }
+
+/* STUFF FOR NEW TABLEAUX */
+.add-left, .add-right, .delete-this {
+    /*width: 100%;*/
+    padding-left: 3px;
+    padding-right: 3px;
+}
+.add-left {
+    float: left;
+    text-align: left;
+}
+.delete-this {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+.add-right {
+    text-align: right;
+    float: right;
+}
+.tableaux input {
+    border: none;
+}
+.heading-spacer {
+    height: 0em;
+}
+.label-container p {
+    transform: translate(0, 70%);
+}
+.tableaux th, table.tableaux td {
+    border: 1px solid lightgray;
+}
+.tableaux th {
+    border-top: none;
+}
+.tableaux th:nth-of-type(1), .tableaux td:nth-of-type(1) {
+    border-left: none;
+}
+.tableaux th:last-of-type, .tableaux td:last-of-type {
+    border-right: none;
+}
+.tableaux td input {
+    width: 4em;
+    text-align: center;
+    transform: translate(0, 20%);
+}
+.tableaux input[type=checkbox] {
+    transform: translate(0, -20%);
+}
+.row-controls p, .col-controls span {
+    color: lightgray;
+}
+.row-controls p:hover, .col-controls span:hover {
+    cursor: pointer;
+    color: black;
+}
+.row-controls p {
+    margin: 0px;
+    max-height: 1em;
+}
+p.add-below {
+    margin-bottom: .5em;
+}
+#dataset-name {
+    border: none;
+    height: 60px;
+    line-height: 60px;
+    width: 400px;
+    font-size: 160%;
+    margin-bottom: 40px;
+}
