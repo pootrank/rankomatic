@@ -1,94 +1,81 @@
 {%- extends 'layout.html' -%}
 {%- block content %}
-<ul class="nav nav-tabs" id="edit_tabs">
-  <li id="dataset-tab" class="active navtab">
+{% raw %}
+<div ng-app="OtorderdTableaux">
+  <ul class="nav nav-tabs" id="edit_tabs">
+    <li id="dataset-tab" class="active navtab">
     <a href="#">Edit dataset</a>
-  </li>
-  <li id="apriori-tab" class="navtab">
+    </li>
+    <li id="apriori-tab" class="navtab">
     <a href="#">Specify ranking</a>
-  </li>
-</ul>
-<div class="navtab-content dataset-tab-content">
-  <h2>
-    <input id="dataset-name" type="text" placeholder="Dataset name" />
-  </h2>
-  <table class="tableaux">
-    <thead>
-      <tr>
-        <th class="heading">
-          <div class="heading-spacer"></div>
-          <div class="label-container">
-            <p>Input</p>
-          </div>
-        </th>
-        <th class="heading">
-          <div class="heading-spacer"></div>
-          <div class="label-container">
-            <p>Output</p>
-          </div>
-        </th>
-        <th class="heading">
-          <div class="heading-spacer"></div>
-          <div class="label-container">
-            <p>Optimal</p>
-          </div>
-        </th>
-        <th class="constraint">
-          <div class="col-controls">
-            <span class="add-left">+</span>
-            <span class="delete-this">&times;</span>
-            <span class="add-right">+</span>
-          </div>
-          <input type="text" value="C1" />
-        </th>
-        <th class="constraint">
-          <div class="col-controls">
-            <span class="add-left">+</span>
-            <span class="delete-this">&times;</span>
-            <span class="add-right">+</span>
-          </div>
-          <input type="text" value="C2" />
-        </th>
-        <th class="constraint">
-          <div class="col-controls">
-            <span class="add-left">+</span>
-            <span class="delete-this">&times;</span>
-            <span class="add-right">+</span>
-          </div>
-          <input type="text" value="C3" />
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="input">
-          <input type="text" value="I1" />
-        </td>
-        <td class="output">
-          <input type="text" value="O1" />
-        </td>
-        <td class="optimal">
-          <input type="checkbox" />
-        </td>
-        <td class="violation-vector">
-          <input type="number" />
-        </td>
-        <td class="violation-vector">
-          <input type="number" />
-        </td>
-        <td class="violation-vector">
-          <input type="number" />
-        </td>
-        <td class="row-controls">
-          <p class="add-above">+</p>
-          <p class="delete-this">&times;</p>
-          <p class="add-below">+</p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-  <div class="navtab-content apriori-tab-content">
+    </li>
+  </ul>
+  <div class="navtab-content dataset-tab-content" ng-controller="tableauxCtrl">
+    <h2>
+      <input id="dataset-name" type="text" placeholder="Dataset name" ng-model="dset.name" />
+    </h2>
+    <table fixed-header class="tableaux">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="heading">
+            <div class="heading-spacer"></div>
+            <div class="label-container">
+              <p>Input</p>
+            </div>
+          </th>
+          <th class="heading">
+            <div class="heading-spacer"></div>
+            <div class="label-container">
+              <p>Output</p>
+            </div>
+          </th>
+          <th class="heading">
+            <div class="heading-spacer"></div>
+            <div class="label-container">
+              <p>Optimal</p>
+            </div>
+          </th>
+          <th edit-inline class="constraint" ng-repeat="c in dset.constraints track by $index">
+            <div class="col-controls">
+              <span class="add-left" ng-click="add_constraint_left($index)">+</span>
+              <span class="delete-this" ng-click="delete_constraint($index)">&times;</span>
+              <span class="add-right" ng-click="add_constraint_right($index)">+</span>
+            </div>
+            <input type="text" placeholder="cons" ng-model="dset.constraints[$index]" />
+          </th>
+        </tr>
+      </thead>
+      <tbody class="input-group" ng-repeat="ig in dset.input_groups">
+        <tr ng-repeat="cand in ig.candidates">
+          <td class="ig-controls" rowspan="{{ig.candidates.length}}" ng-class="input_class(ig, cand)">
+            <p class="add-above" ng-click="add_input_group_above(ig)">+</p>
+            <p class="delete-this" ng-click="delete_input_group(ig)">&times;</p>
+            <p class="add-below" ng-click="add_input_group_below(ig)">+</p>
+          </td>
+          <td edit-inline class="input" rowspan="{{ig.candidates.length}}" ng-class="input_class(ig, cand)">
+            <input type="text" ng-model="ig.input" placeholder="Input"/>
+          </td>
+          <td edit-inline class="output">
+            <input type="text" ng-model="cand.output" placeholder="Output"/>
+          </td>
+          <td class="optimal">
+            <input type="checkbox" ng-model="cand.optimal" />
+          </td>
+          <td edit-inline class="violation-vector" ng-repeat="violation in cand.violation_vector track by $index">
+            <input type="number" min="0" ng-model="cand.violation_vector[$index]"/>
+          </td>
+          <td class="row-controls">
+            <p class="add-above" ng-click="add_candidate_above(cand, ig)">+</p>
+            <p class="delete-this" ng-click="delete_candidate(cand, ig)">&times;</p>
+            <p class="add-below" ng-click="add_candidate_below(cand, ig)">+</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <pre>{{dset | json}}</pre>
+  </div>
+  <div class="navtab-content apriori-tab-content hidden">
     <h2>Specify an apriori ranking</h2>
     <div class="row vertical-align">
       <div class="span2">
@@ -105,36 +92,37 @@
       </div>
     </div>
   </div>
-  {% raw %}
   <script type="text/x-handlebars-template" id="apriori_table_template">
     <table class="table" id="apriori_table">
-        <thead class="no_top_border">
+      <thead class="no_top_border">
         <tr>
           <th class="center_contents">This constraint...</th>
           <th id="header_label" class="center_contents">is ranked above these constraints</th>
         </tr>
-        </thead>
+      </thead>
       <tr>
-          <td class="center_contents empty_cell"></td>
+        <td class="center_contents empty_cell"></td>
         {{#constraints}}
-          <td class="constraint center_contents">{{constraint}}</td>
+        <td class="constraint center_contents">{{constraint}}</td>
         {{/constraints}}
       </tr>
       {{#constraints}}
-        <tr class="constraint_row" id="row_{{constraint}}">
-          <td class="constraint row_header center_contents">{{constraint}}</td>
-          {{#dominates}}
-          <td class="center_contents checkbox_container" name="{{this}}"></td>
-          {{/dominates}}
-        </tr>
+      <tr class="constraint_row" id="row_{{constraint}}">
+        <td class="constraint row_header center_contents">{{constraint}}</td>
+        {{#dominates}}
+        <td class="center_contents checkbox_container" name="{{this}}"></td>
+        {{/dominates}}
+      </tr>
       {{/constraints}}
     </table>
   </script>
-  {% endraw %}
+</div>
+{% endraw %}
 {%- endblock -%}
 {%- block js_footer -%}
+<script type="text/javascript" src="/javascript/bower_components/angular/angular.js"></script>
+<script type="text/javascript" src="/javascript/app.js"></script>
 <script type="text/javascript" src="/javascript/tabs.js"></script>
-<script type="text/javascript" src="/javascript/tableaux.js"></script>
 <script type="text/javascript" src="/javascript/transitive_set.js"></script>
 <script type="text/javascript" src="/javascript/ranking.js"></script>
 <script type="text/javascript" src="/javascript/ranking_table.js"></script>

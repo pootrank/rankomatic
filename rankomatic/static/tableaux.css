@@ -231,8 +231,14 @@ body.simple-form {
 }
 
 /* STUFF FOR NEW TABLEAUX */
+.tableaux {
+    height: 100%;
+    overflow-y: scroll;
+}
+.tableaux thead {
+    /*position: fixed;*/
+}
 .add-left, .add-right, .delete-this {
-    /*width: 100%;*/
     padding-left: 3px;
     padding-right: 3px;
 }
@@ -248,9 +254,6 @@ body.simple-form {
 .add-right {
     text-align: right;
     float: right;
-}
-.tableaux input {
-    border: none;
 }
 .heading-spacer {
     height: 0em;
@@ -277,11 +280,14 @@ body.simple-form {
 }
 .tableaux input[type=checkbox] {
     transform: translate(0, -20%);
+    width: initial;
 }
-.row-controls p, .col-controls span {
+.ig-controls p, .row-controls p, .col-controls span {
     color: lightgray;
 }
-.row-controls p:hover, .col-controls span:hover {
+.ig-controls p:hover,
+.row-controls p:hover,
+.col-controls span:hover {
     cursor: pointer;
     color: black;
 }
@@ -292,11 +298,61 @@ body.simple-form {
 p.add-below {
     margin-bottom: .5em;
 }
-#dataset-name {
+.tableaux input, #dataset-name {
     border: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+#dataset-name {
     height: 60px;
     line-height: 60px;
-    width: 400px;
+    width: 100%;
     font-size: 160%;
     margin-bottom: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+.tableaux td.not-first-input {
+    display: none;
+}
+.tableaux tr:hover,
+.tableaux tr:hover input {
+    background-color: #ebf5ff;
+}
+.tableaux tbody {
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+.tableaux th:last-child {
+    border-right: 1px solid lightgray
+}
+.tableaux td.ig-controls.not-first-input {
+    display: none;
+}
+.tableaux td.ig-controls,
+.tableaux td.input,
+.tableaux td.input input {
+    background-color: white;
+}
+.tableaux td {
+    height: 54px;
+}
+.dummy {
+    position: absolute;
+    visibility: hidden;
+    top: -9999px;
+    left: -9999px;
+}
+body {
+    margin-bottom: 100px;
+}
+.tableaux {
+    max-width: 85%;
+    margin-left: auto;
+    margin-right: auto;
+}
+thead {
+    background: solid white;
 }

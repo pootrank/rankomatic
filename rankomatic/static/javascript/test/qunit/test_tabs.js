@@ -1,6 +1,10 @@
 QUnit.module("TabList", {
     beforeEach: function() {
+        load_html();
         this.tablist = new TabList($("#tab-list"));
+    },
+    afterEach: function() {
+        remove_html();
     }
 });
 

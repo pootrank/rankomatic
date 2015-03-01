@@ -1,7 +1,13 @@
+load_html();
+
 (function(window, document, undefined) {
 QUnit.module("A Priori Ranking", {
     beforeEach: function() {
+        load_html();
         $("#apriori-tab").off('click').click(show_apriori_table);
+    },
+    afterEach: function() {
+        remove_html();
     }
 });
 

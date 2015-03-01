@@ -1,5 +1,6 @@
 QUnit.module("Relation", {
     beforeEach: function() {
+        load_html();
         this.cell = $("#relation");
         this.rel = new Relation(this.cell);
         this.assert_relation = function(reln, str) {
@@ -7,6 +8,9 @@ QUnit.module("Relation", {
             this.assert.equal(reln.inf, 'b', str + "inferior constraint ok");
             this.assert.ok(this.cell.is(reln.cell), str + "jQuery cell ok");
         }
+    },
+    afterEach: function() {
+        remove_html();
     }
  });
 

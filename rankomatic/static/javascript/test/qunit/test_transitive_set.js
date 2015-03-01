@@ -1,6 +1,10 @@
 QUnit.module("TransitiveSet", {
     beforeEach: function() {
+        load_html();
         this.tset = new TransitiveSet();
+    },
+    afterEach: function() {
+        remove_html();
     }
 });
 
