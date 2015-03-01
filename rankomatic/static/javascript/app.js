@@ -48,7 +48,8 @@ var Dataset = function() {
   }
 }
 
-app.controller("tableauxCtrl", ['$scope', function($scope) {
+app.controller("tableauxCtrl", ['$scope', '$rootScope',
+function($scope, $rootScope) {
   var MAX_NUM_CONSTRAINTS = 5;
   var MIN_NUM_CONSTRAINTS = 1;
   var MIN_NUM_INPUT_GROUPS = 1;
@@ -77,6 +78,7 @@ app.controller("tableauxCtrl", ['$scope', function($scope) {
       apply_to_constraints_and_vvecs(function(arr) {
         arr.insert(index, "");
       });
+      $rootScope.$broadcast('table_width_changed');
     }
   }
 
@@ -85,6 +87,7 @@ app.controller("tableauxCtrl", ['$scope', function($scope) {
       apply_to_constraints_and_vvecs(function(arr) {
         arr.remove(index);
       });
+      $rootScope.$broadcast('table_width_changed');
     }
   }
 
@@ -110,12 +113,14 @@ app.controller("tableauxCtrl", ['$scope', function($scope) {
   var add_input_group = function(index) {
     var ig =  new InputGroup($scope.dset.constraints.length);
     $scope.dset.input_groups.insert(index, ig);
+    $rootScope.$broadcast('table_width_changed');
   }
 
   $scope.delete_input_group = function(input_group) {
     if ($scope.dset.input_groups.length > MIN_NUM_INPUT_GROUPS){
       var index = $scope.dset.input_groups.indexOf(input_group);
       $scope.dset.input_groups.remove(index);
+      $rootScope.$broadcast('table_width_changed');
     }
   }
 
@@ -131,12 +136,14 @@ app.controller("tableauxCtrl", ['$scope', function($scope) {
 
   var add_candidate = function(index, input_group) {
     input_group.add_candidate(index, $scope.dset.constraints.length);
+    $rootScope.$broadcast('table_width_changed');
   }
 
   $scope.delete_candidate = function(cand, input_group) {
     if (input_group.candidates.length > MIN_NUM_CANDIDATES_PER_INPUT_GROUP) {
       var index = input_group.candidates.indexOf(cand);
       input_group.candidates.remove(index);
+      $rootScope.$broadcast('table_width_changed');
     } else {
       $scope.delete_input_group(input_group);
     }
@@ -151,7 +158,8 @@ app.controller("tableauxCtrl", ['$scope', function($scope) {
   }
 }]);
 
-app.directive("editInline", function() {
+app.directive("editInline", ['$rootScope', function($rootScope) {
+  var MIN_INPUT_WIDTH = 56;
   var link = function(scope, element, attrs) {
     element.append('<span class="dummy"></span>');
     var input = element.find('input');
@@ -164,84 +172,44 @@ app.directive("editInline", function() {
         spacer += 10;
       }
       dummy.html(input.val());
-      input.css('width', (dummy[0].offsetWidth + spacer) + 'px');
+      var input_width = dummy[0].offsetWidth + spacer;
+      input_width = Math.max(input_width, MIN_INPUT_WIDTH);
+      input.css('width', input_width + 'px');
       element.css('width', (input[0].offsetWidth + spacer) + 'px');
+      $rootScope.$broadcast('table_width_changed');
     });
   }
   return {link: link};
-});
+}]);
 
-app.directive("fixedHeader", ['$timeout', function($timeout) {
-  return {
-    restrict: 'A',
-    link: link
-  };
+app.directive("fixedHeader", ['$rootScope', '$timeout',
+  function($rootScope, $timeout) {
+    return {
+      restrict: 'A',
+      link: link
+    };
 
   function link(scope, element, attrs) {
-    //$timeout(function() {
-      //element.stickyTableHeaders({fixedOffset: 40});
-    //}, 0);
+    $timeout(function() {
+      element.wrap('<div />')
+      var head = element.find('thead');
+      element.before(head);
+      head.wrap('<table class="tableaux" />');
+      element.wrap('<div class="scrollable" />');
+      $rootScope.$on('table_width_changed', function() {
+        console.log('table width changed');
+        $('.tableaux thead th').each(function(index) {
+          var column = element.find('tbody:eq(0) td:eq('+index+')');
+          var head_width = $(this).width();
+          var column_width = column.width();
+          if (head_width < column_width) {
+            $(this).width(column_width);
+          } else if (head_width > column_width) {
+            column.width(head_width);
+          }
+        });
+      });
+      $rootScope.$broadcast('table_width_changed');
+    }, 0);
   }
 }]);
-  //var link = function(scope, element, attrs) {
-    //var fixed_header;
-    //function init() {
-      //element.wrap('<div class="container" />');
-      //fixed_header = element.clone();
-      //fixed_header
-        //.find("tbody")
-          //.remove()
-        //.end()
-        //.addClass("fixed")
-        //.insertBefore(element);
-      //resize_fixed();
-    //}
-
-    //function resize_fixed() {
-      //fixed_header.find("th").each(function(index) {
-        //var width = element.find('th').eq(index).outerWidth();
-        //$(this).css("width", width + "px");
-      //});
-    //}
-
-    //function scroll_fixed() {
-      //var offsets = get_offsets(this);
-      //console.log(offsets);
-      //if (original_header_visible(offsets)) {
-        //fixed_header.hide();
-      //} else if (original_header_not_visible) {
-        //fixed_header.show();
-      //}
-    //}
-
-    //function get_offsets(obj) {
-      //var table_offset_top = element.offset().top;
-      //return {
-        //offset: $(obj).scrollTop(),
-        //table_offset_top: table_offset_top,
-        //table_offset_bottom: get_bottom_offset(table_offset_top)
-      //}
-    //}
-
-    //function get_bottom_offset(top_offset) {
-      //return top_offset + element.height() - element.find("thead").height();
-    //}
-
-    //function original_header_visible(o) {
-      //return o.offset < o.table_offset_top || o.offset > o.table_offset_bottom;
-    //}
-
-    //function original_header_not_visible(o, fixed_header) {
-      //return (o.offset >= o.table_offset_top &&
-              //o.offset <= o.table_offset_bottom &&
-              //fixed_header.is(":hidden"));
-    //}
-
-    //$(document).ready(function() {
-      //$(window).resize(resize_fixed);
-      //$(window).scroll(scroll_fixed);
-      //init();
-    //});
-  //}
-  //return {link: link};
-//});

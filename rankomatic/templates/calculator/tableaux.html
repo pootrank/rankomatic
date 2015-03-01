@@ -42,8 +42,9 @@
               <span class="delete-this" ng-click="delete_constraint($index)">&times;</span>
               <span class="add-right" ng-click="add_constraint_right($index)">+</span>
             </div>
-            <input type="text" placeholder="cons" ng-model="dset.constraints[$index]" />
+            <input type="text" placeholder="Cons" ng-model="dset.constraints[$index]" />
           </th>
+          <th></th>
         </tr>
       </thead>
       <tbody class="input-group" ng-repeat="ig in dset.input_groups">
@@ -73,7 +74,7 @@
         </tr>
       </tbody>
     </table>
-    <pre>{{dset | json}}</pre>
+    <!--<pre>{{dset | json}}</pre>-->
   </div>
   <div class="navtab-content apriori-tab-content hidden">
     <h2>Specify an apriori ranking</h2>
@@ -120,6 +121,7 @@
 {% endraw %}
 {%- endblock -%}
 {%- block js_footer -%}
+<script type="text/javascript" src="/scripts/jquery.fixedheadertable.min.js"></script>
 <script type="text/javascript" src="/javascript/bower_components/angular/angular.js"></script>
 <script type="text/javascript" src="/javascript/app.js"></script>
 <script type="text/javascript" src="/javascript/tabs.js"></script>

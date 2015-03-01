@@ -171,7 +171,7 @@ body.simple-form {
     margin-right: auto;
 }
 .scrollable {
-    height: 400px;
+    max-height: 400px;
     overflow: auto;
 }
 #head_table {
@@ -231,13 +231,6 @@ body.simple-form {
 }
 
 /* STUFF FOR NEW TABLEAUX */
-.tableaux {
-    height: 100%;
-    overflow-y: scroll;
-}
-.tableaux thead {
-    /*position: fixed;*/
-}
 .add-left, .add-right, .delete-this {
     padding-left: 3px;
     padding-right: 3px;
@@ -261,11 +254,13 @@ body.simple-form {
 .label-container p {
     transform: translate(0, 70%);
 }
-.tableaux th, table.tableaux td {
-    border: 1px solid lightgray;
+.tableaux th, .tableaux td {
+    border-left: 1px solid lightgray;
+    border-bottom: 1px solid lightgray;
 }
 .tableaux th {
     border-top: none;
+    border-bottom: 2px solid black;
 }
 .tableaux th:nth-of-type(1), .tableaux td:nth-of-type(1) {
     border-left: none;
@@ -321,12 +316,16 @@ p.add-below {
 .tableaux tr:hover input {
     background-color: #ebf5ff;
 }
-.tableaux tbody {
-    border-top: 2px solid black;
+.tableaux tbody tr:last-child td,
+td.first-input {
     border-bottom: 2px solid black;
 }
+.tableaux tbody:last-child tr:last-child td,
+.tableaux tbody:last-child td.first-input {
+    border-bottom: 1px solid lightgray;
+}
 .tableaux th:last-child {
-    border-right: 1px solid lightgray
+    /*border-right: 1px solid lightgray*/
 }
 .tableaux td.ig-controls.not-first-input {
     display: none;
@@ -346,12 +345,14 @@ p.add-below {
     left: -9999px;
 }
 body {
-    margin-bottom: 100px;
+    margin-bottom: 50px;
+    overflow-y: scroll;
 }
 .tableaux {
     max-width: 85%;
     margin-left: auto;
     margin-right: auto;
+    border-collapse: separate;
 }
 thead {
     background: solid white;
