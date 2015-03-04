@@ -72,10 +72,10 @@ class DatasetConverter():
     @classmethod
     def _cand_dict(self, old_cand):
         return {
-            'inp': old_cand.input,
-            'outp': old_cand.output,
+            'input': old_cand.input,
+            'output': old_cand.output,
             'optimal': old_cand.optimal,
-            'vvector': old_cand.vvector
+            'violation_vector': old_cand.vvector
         }
 
     @classmethod

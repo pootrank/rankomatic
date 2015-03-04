@@ -1,0 +1,28 @@
+{
+    "name": "Poop",
+    "constraints": ["Aa", "Bb", "Cc"],
+    "input_groups": [
+        [
+            {
+                "input": "I1",
+                "output": "O1",
+                "optimal": true,
+                "violation_vector": [0, 1, 0]
+            },
+            {
+                "input": "I1",
+                "output": "O2",
+                "optimal": false,
+                "violation_vector": [1, 0, 1]
+            }
+        ],
+        [
+            {
+                "input": "I2",
+                "output": "O3",
+                "optimal": true,
+                "violation_vector": [1, 0, 0]
+            }
+        ]
+    ]
+}

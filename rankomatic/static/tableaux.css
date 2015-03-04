@@ -357,3 +357,9 @@ body {
 thead {
     background: solid white;
 }
+th.optimal, td.optimal {
+    width: 64px;
+}
+th.control-col {
+    width: 15px;
+}

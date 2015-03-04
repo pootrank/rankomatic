@@ -1,26 +1,50 @@
 'use strict';
+var IN_OUT_COL_MIN_WIDTH = 78;
+var MIN_INPUT_WIDTH = 56;
 
 var app = angular.module("OtorderdTableaux", []);
 
-var Candidate = function(num_constraints) {
-  num_constraints = num_constraints || 3;
-
-  var vvec = []
-  for (var i = 0; i < num_constraints; ++i) {
-    vvec.push('');
+var Candidate = function(init) {
+  var ret, vvec;
+  if (typeof init === "number") {
+    vvec = [];
+    for (var i = 0; i < init; ++i) {
+      vvec.push('');
+    }
+    ret = {
+      input: '',
+      output: '',
+      optimal: false,
+      violation_vector: vvec
+    };
+  } else if (init.constructor === Object &&
+             init.hasOwnProperty('input') &&
+             init.hasOwnProperty('output') &&
+             init.hasOwnProperty('optimal') &&
+             init.hasOwnProperty('violation_vector')) {
+    ret = init;
+  } else {
+    throw ('Error: Candidates must have input, output, '+
+          'optimal, and violation_vector properties');
   }
-
-  return {
-    input: '',
-    output: '',
-    optimal: false,
-    violation_vector: vvec
-  }
+  return ret;
 }
 
-var InputGroup = function(num_constraints) {
+var InputGroup = function(init) {
+  var candidates;
+  console.log(init.constructor);
+  if (!init) {
+    candidates = [new Candidate(3)];
+  } else if (typeof init === "number") {
+    candidates = [new Candidate(init)];
+  } else if (init.constructor === Object) {
+    candidates = [];
+    for (var i = 0; i < init.candidates.length; ++i) {
+      candidates.push(new Candidate(init.candidates[i]));
+    }
+  }
   return {
-    candidates: [new Candidate(num_constraints)],
+    candidates: candidates,
 
     get input() {
       return this.candidates[0].input;
@@ -40,22 +64,38 @@ var InputGroup = function(num_constraints) {
   }
 }
 
-var Dataset = function() {
-  return {
-    name: '',
-    constraints: ['', '', ''],
-    input_groups: [new InputGroup()]
+var Dataset = function(name, constraints, input_groups) {
+  name = name || '';
+  constraints = constraints || ['', '', ''];
+  if (!(input_groups && input_groups.length)) {
+    input_groups = [new InputGroup(constraints.length)];
+  } else {
+    for (var i = 0; i < input_groups.length; ++i) {
+      input_groups[i] = new InputGroup(input_groups[i]);
+    }
   }
+  input_groups = input_groups || [new InputGroup(constraints.length)];
+  this.name = name;
+  this.constraints = constraints;
+  this.input_groups = input_groups;
 }
 
-app.controller("tableauxCtrl", ['$scope', '$rootScope',
-function($scope, $rootScope) {
+app.controller("tableauxCtrl", ['$scope', '$rootScope', '$http',
+function($scope, $rootScope, $http) {
   var MAX_NUM_CONSTRAINTS = 5;
   var MIN_NUM_CONSTRAINTS = 1;
   var MIN_NUM_INPUT_GROUPS = 1;
   var MIN_NUM_CANDIDATES_PER_INPUT_GROUP = 1;
 
-  $scope.dset = new Dataset();
+  var dset_name = document.URL.match(/\/([^\/]*?)\/edit/)[1];
+  $http.get('/'+dset_name+'.json').success(function(data) {
+    console.log(data.name);
+    console.log(data.constraints);
+    console.log(data.input_groups);
+    $scope.dset = new Dataset(data.name, data.constraints, data.input_groups);
+    $rootScope.$broadcast('table_width_changed');
+  });
+
 
   $scope.input_class = function(input_group, candidate) {
     if (input_group.candidates.indexOf(candidate) === 0) {
@@ -158,58 +198,131 @@ function($scope, $rootScope) {
   }
 }]);
 
+app.directive("hideZero", ['$timeout', function($timeout) {
+  return {
+    link: function(scope, element, attrs) {
+      $timeout(function() {
+        hide_zero(element);
+        element.bind('change', function() {
+          hide_zero(element);
+        });
+      }, 0);
+    }
+  }
+
+  function hide_zero(element) {
+    if (element.val() == 0) {
+      element.val("");
+    }
+  }
+}]);
+
 app.directive("editInline", ['$rootScope', function($rootScope) {
-  var MIN_INPUT_WIDTH = 56;
   var link = function(scope, element, attrs) {
     element.append('<span class="dummy"></span>');
     var input = element.find('input');
     var dummy = element.find('span.dummy');
     dummy.html(input.val());
-    input.bind("keydown keyup", function() {
-      var spacer = 10;
-      var type = input.attr('type');
-      if (type === "number") {
-        spacer += 10;
+    scope.$on('resize_input_container', function(e, to_resize) {
+      if (to_resize.is(element)) {
+        resize_input_container(element);
       }
-      dummy.html(input.val());
-      var input_width = dummy[0].offsetWidth + spacer;
-      input_width = Math.max(input_width, MIN_INPUT_WIDTH);
-      input.css('width', input_width + 'px');
-      element.css('width', (input[0].offsetWidth + spacer) + 'px');
+    });
+    input.bind("change keyup", function() {
+      resize_input_container(element);
       $rootScope.$broadcast('table_width_changed');
     });
   }
-  return {link: link};
+
+  function resize_input_container(element) {
+    var input = element.find('input');
+    var dummy = element.find('.dummy');
+    var spacer = input.attr('type') === 'number' ? 20 : 10;
+    dummy.html(input.val());
+    var input_width = dummy[0].offsetWidth + spacer;
+    input_width = Math.max(input_width, MIN_INPUT_WIDTH);
+    input.width(input_width);
+    element.width(input[0].offsetWidth + spacer);
+  }
+
+  return {
+    restrict: 'A',
+    link: link
+  };
 }]);
 
 app.directive("fixedHeader", ['$rootScope', '$timeout',
+
   function($rootScope, $timeout) {
     return {
       restrict: 'A',
-      link: link
+      link: link,
     };
 
-  function link(scope, element, attrs) {
-    $timeout(function() {
-      element.wrap('<div />')
+    function link(scope, element, attrs) {
+      $timeout(function() {
+        fix_header(element);
+        register_width_listener(scope);
+        equalize_table_widths(scope);
+      }, 0);
+    }
+
+    function fix_header(element) {
+      element.wrap('<div />');
+
       var head = element.find('thead');
       element.before(head);
-      head.wrap('<table class="tableaux" />');
-      element.wrap('<div class="scrollable" />');
+      head.wrap('<table class="tableaux" />');  // retain CSS stuff on head
+
+      element.wrap('<div class="scrollable" />');  // make table scrollable
+    }
+
+    function register_width_listener(scope) {
       $rootScope.$on('table_width_changed', function() {
-        console.log('table width changed');
-        $('.tableaux thead th').each(function(index) {
-          var column = element.find('tbody:eq(0) td:eq('+index+')');
-          var head_width = $(this).width();
-          var column_width = column.width();
-          if (head_width < column_width) {
-            $(this).width(column_width);
-          } else if (head_width > column_width) {
-            column.width(head_width);
-          }
-        });
+        $timeout(function() {
+          equalize_table_widths(scope);
+        }, 0);
       });
-      $rootScope.$broadcast('table_width_changed');
-    }, 0);
-  }
+    }
+
+    function equalize_table_widths(scope) {
+      $('.tableaux thead th').each(function(index) {
+        index += 1;  // to use with nth-child
+        var $this = $(this);
+        var column = $('.tableaux tbody td:nth-child('+index+')');
+
+        if ($this.hasClass('constraint')) {
+          resize_constraint_column($this, column, scope);
+        } else if ($this.hasClass('input-output')) {
+          resize_input_output_column($this, column, scope);
+        }
+      });
+    }
+
+    function resize_constraint_column(elem, column, scope) {
+      resize_input_container(elem, scope);
+      column.width(elem.width());
+    }
+
+    function resize_input_container(container, scope) {
+      scope.$broadcast('resize_input_container', container);
+    }
+
+    function resize_input_output_column(elem, column, scope) {
+      var top = $(column[0]);
+      resize_input_container(top, scope);
+      var new_width = Math.max(IN_OUT_COL_MIN_WIDTH, get_column_width(column));
+      elem.width(new_width);
+      column.width(new_width);
+    }
+
+    function get_column_width(column) {
+      var inner_widths = $.map(column.toArray(), function(elem) {
+        var offset = elem.firstElementChild.offsetWidth;
+        return offset;
+      });
+      var inner_width = Math.max.apply(Math, inner_widths);
+      var column_width = inner_width + 10;
+      return column_width;
+    }
 }]);

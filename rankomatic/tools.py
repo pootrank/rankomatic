@@ -10,6 +10,7 @@ calculator, t-order, reads the forms, returns the results, etc.
 import random
 import string
 import urllib
+import json
 from mongoengine import OperationError as MongoInsertError
 from flask import (Blueprint, render_template, request, Markup,
                    flash, redirect, url_for, session)
@@ -310,8 +311,17 @@ class ExampleEditView(CalculatorView):
         )
 
 
+class DatasetToJson(EditView):
+
+    def _edit_get_html(self):
+        dset = get_dset(self.dset_name)
+        return json.dumps(dset.create_form_data())
+
+
 tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
+tools.add_url_rule('/<dset_name>.json/',
+                   view_func=DatasetToJson.as_view('dset_to_json'))
 tools.add_url_rule('/<dset_name>/edit/', view_func=EditView.as_view('edit'))
 tools.add_url_rule('/<dset_name>/edit_copy',
                    view_func=EditCopyView.as_view('edit_copy'))

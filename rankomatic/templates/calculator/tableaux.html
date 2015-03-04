@@ -17,23 +17,20 @@
     <table fixed-header class="tableaux">
       <thead>
         <tr>
-          <th></th>
-          <th class="heading">
-            <div class="heading-spacer"></div>
+          <th class="control-col"></th>
+          <th class="heading input-output">
             <div class="label-container">
-              <p>Input</p>
+              <p><span>Input</span></p>
             </div>
           </th>
-          <th class="heading">
-            <div class="heading-spacer"></div>
+          <th class="heading input-output">
             <div class="label-container">
-              <p>Output</p>
+              <p><span>Output</span></p>
             </div>
           </th>
-          <th class="heading">
-            <div class="heading-spacer"></div>
+          <th class="heading optimal">
             <div class="label-container">
-              <p>Optimal</p>
+              <p><span>Optimal</span></p>
             </div>
           </th>
           <th edit-inline class="constraint" ng-repeat="c in dset.constraints track by $index">
@@ -44,7 +41,7 @@
             </div>
             <input type="text" placeholder="Cons" ng-model="dset.constraints[$index]" />
           </th>
-          <th></th>
+          <th class="control-col"></th>
         </tr>
       </thead>
       <tbody class="input-group" ng-repeat="ig in dset.input_groups">
@@ -63,8 +60,8 @@
           <td class="optimal">
             <input type="checkbox" ng-model="cand.optimal" />
           </td>
-          <td edit-inline class="violation-vector" ng-repeat="violation in cand.violation_vector track by $index">
-            <input type="number" min="0" ng-model="cand.violation_vector[$index]"/>
+          <td class="violation-vector" ng-repeat="violation in cand.violation_vector track by $index">
+            <input hide-zero type="number" min="0" ng-model="cand.violation_vector[$index]"/>
           </td>
           <td class="row-controls">
             <p class="add-above" ng-click="add_candidate_above(cand, ig)">+</p>
@@ -74,7 +71,7 @@
         </tr>
       </tbody>
     </table>
-    <!--<pre>{{dset | json}}</pre>-->
+    <pre>{{dset | json}}</pre>
   </div>
   <div class="navtab-content apriori-tab-content hidden">
     <h2>Specify an apriori ranking</h2>
@@ -121,7 +118,6 @@
 {% endraw %}
 {%- endblock -%}
 {%- block js_footer -%}
-<script type="text/javascript" src="/scripts/jquery.fixedheadertable.min.js"></script>
 <script type="text/javascript" src="/javascript/bower_components/angular/angular.js"></script>
 <script type="text/javascript" src="/javascript/app.js"></script>
 <script type="text/javascript" src="/javascript/tabs.js"></script>
