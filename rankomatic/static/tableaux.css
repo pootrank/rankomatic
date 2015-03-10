@@ -354,7 +354,7 @@ body {
     margin-right: auto;
     border-collapse: separate;
 }
-thead {
+.tableaux thead {
     background: solid white;
 }
 th.optimal, td.optimal {

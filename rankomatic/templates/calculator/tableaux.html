@@ -1,7 +1,7 @@
 {%- extends 'layout.html' -%}
 {%- block content %}
 {% raw %}
-<div ng-app="OtorderdTableaux">
+<div ng-app="app">
   <ul class="nav nav-tabs" id="edit_tabs">
     <li id="dataset-tab" class="active navtab">
     <a href="#">Edit dataset</a>
@@ -10,9 +10,9 @@
     <a href="#">Specify ranking</a>
     </li>
   </ul>
-  <div class="navtab-content dataset-tab-content" ng-controller="tableauxCtrl">
+  <div class="navtab-content dataset-tab-content" ng-controller="Tableaux as t">
     <h2>
-      <input id="dataset-name" type="text" placeholder="Dataset name" ng-model="dset.name" />
+      <input id="dataset-name" type="text" placeholder="Dataset name" ng-model="t.dset.name" />
     </h2>
     <table fixed-header class="tableaux">
       <thead>
@@ -33,25 +33,25 @@
               <p><span>Optimal</span></p>
             </div>
           </th>
-          <th edit-inline class="constraint" ng-repeat="c in dset.constraints track by $index">
+          <th edit-inline class="constraint" ng-repeat="c in t.dset.constraints track by $index">
             <div class="col-controls">
-              <span class="add-left" ng-click="add_constraint_left($index)">+</span>
-              <span class="delete-this" ng-click="delete_constraint($index)">&times;</span>
-              <span class="add-right" ng-click="add_constraint_right($index)">+</span>
+              <span class="add-left" ng-click="t.add_constraint_left($index)">+</span>
+              <span class="delete-this" ng-click="t.delete_constraint($index)">&times;</span>
+              <span class="add-right" ng-click="t.add_constraint_right($index)">+</span>
             </div>
-            <input type="text" placeholder="Cons" ng-model="dset.constraints[$index]" />
+            <input type="text" placeholder="Cons" ng-model="t.dset.constraints[$index]" />
           </th>
           <th class="control-col"></th>
         </tr>
       </thead>
-      <tbody class="input-group" ng-repeat="ig in dset.input_groups">
+      <tbody class="input-group" ng-repeat="ig in t.dset.input_groups">
         <tr ng-repeat="cand in ig.candidates">
-          <td class="ig-controls" rowspan="{{ig.candidates.length}}" ng-class="input_class(ig, cand)">
-            <p class="add-above" ng-click="add_input_group_above(ig)">+</p>
-            <p class="delete-this" ng-click="delete_input_group(ig)">&times;</p>
-            <p class="add-below" ng-click="add_input_group_below(ig)">+</p>
+          <td class="ig-controls" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)">
+            <p class="add-above" ng-click="t.add_input_group_above(ig)">+</p>
+            <p class="delete-this" ng-click="t.delete_input_group(ig)">&times;</p>
+            <p class="add-below" ng-click="t.add_input_group_below(ig)">+</p>
           </td>
-          <td edit-inline class="input" rowspan="{{ig.candidates.length}}" ng-class="input_class(ig, cand)">
+          <td edit-inline class="input" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)">
             <input type="text" ng-model="ig.input" placeholder="Input"/>
           </td>
           <td edit-inline class="output">
@@ -64,14 +64,14 @@
             <input hide-zero type="number" min="0" ng-model="cand.violation_vector[$index]"/>
           </td>
           <td class="row-controls">
-            <p class="add-above" ng-click="add_candidate_above(cand, ig)">+</p>
-            <p class="delete-this" ng-click="delete_candidate(cand, ig)">&times;</p>
-            <p class="add-below" ng-click="add_candidate_below(cand, ig)">+</p>
+            <p class="add-above" ng-click="t.add_candidate_above(cand, ig)">+</p>
+            <p class="delete-this" ng-click="t.delete_candidate(cand, ig)">&times;</p>
+            <p class="add-below" ng-click="t.add_candidate_below(cand, ig)">+</p>
           </td>
         </tr>
       </tbody>
     </table>
-    <pre>{{dset | json}}</pre>
+    <!--<pre>{{dset | json}}</pre>-->
   </div>
   <div class="navtab-content apriori-tab-content hidden">
     <h2>Specify an apriori ranking</h2>
@@ -118,8 +118,26 @@
 {% endraw %}
 {%- endblock -%}
 {%- block js_footer -%}
+<!--Vendor stuff-->
 <script type="text/javascript" src="/javascript/bower_components/angular/angular.js"></script>
-<script type="text/javascript" src="/javascript/app.js"></script>
+
+<!--Bootstrapping-->
+<script type="text/javascript" src="/javascript/app/app.module.js"></script>
+
+<!--Dataset model-->
+<script type="text/javascript" src="/javascript/app/models/models.module.js"></script>
+<script type="text/javascript" src="/javascript/app/models/dataset.factory.js"></script>
+<script type="text/javascript" src="/javascript/app/models/input_group.factory.js"></script>
+<script type="text/javascript" src="/javascript/app/models/candidate.factory.js"></script>
+
+<!--Dataset editor-->
+<script type="text/javascript" src="/javascript/app/editor/editor.module.js"></script>
+
+<!--Tableaux side of editor-->
+<script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux.module.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux.controller.js"></script>
+
+<!--Non-angular (will deprecate)-->
 <script type="text/javascript" src="/javascript/tabs.js"></script>
 <script type="text/javascript" src="/javascript/transitive_set.js"></script>
 <script type="text/javascript" src="/javascript/ranking.js"></script>
