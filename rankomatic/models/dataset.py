@@ -61,6 +61,8 @@ class Dataset(db.Document):
 
     @grammars.setter
     def grammars(self, value):
+        if self._grammars is not None:
+            self._grammars.delete()
         grammar_list = GrammarList(grammars=value)
         grammar_list.save()
         self._grammars = grammar_list
@@ -302,3 +304,9 @@ class Dataset(db.Document):
         super(Dataset, self).save()
         self.apriori_ranking.dset = self
         super(Dataset, self).save()
+
+    def delete(self):
+        self.remove_old_files()
+        if self._grammars is not None:
+            self._grammars.delete()
+        super(Dataset, self).delete()

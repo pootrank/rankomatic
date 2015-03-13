@@ -7,6 +7,7 @@ import ot.data
 import test.structures.structures as structures
 from rankomatic import models, db
 from test.test_tools import delete_bad_datasets
+from rankomatic.models.grammar import GrammarList
 
 
 class TestDataset(object):
@@ -285,7 +286,6 @@ class TestDataset(object):
         self.d.sort_by = 'size'
         self.d.calculate_compatible_grammars()
         gram_str = self.d.grammar_to_string(0)
-        print gram_str
         assert gram_str == '{(c1, c3), (c1, c2)}'
 
     def test_grammar_to_json(self):
@@ -517,3 +517,14 @@ class TestDataset(object):
         data.update(ot.data.cv_dset)
         d = models.Dataset(data=data, data_is_from_form=False)
         assert d.num_total_cots() == 24
+
+    def test_delete_dset_deletes_grammar_list(self):
+        original_num_grammarlist = len(GrammarList.objects)
+        self.d.save()
+        self.d.calculate_compatible_grammars()
+        assert self.d.grammars
+        assert len(GrammarList.objects) == original_num_grammarlist + 1
+        self.d.grammars = None
+        assert len(GrammarList.objects) == original_num_grammarlist + 1
+        self.d.delete()
+        assert len(GrammarList.objects) == original_num_grammarlist
