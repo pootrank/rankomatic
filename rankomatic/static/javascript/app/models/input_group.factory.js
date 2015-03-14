@@ -33,10 +33,11 @@
           }
         },
 
-        add_candidate: function(index, num_constraints) {
+        add_candidate: function(index) {
+          var num_constraints = this.candidates[0].violation_vector.length;
           var cand = new Candidate(num_constraints);
           cand.input = this.input;
-          this.candidates.insert(index, cand);
+          this.candidates.splice(index, 0, cand);
         }
       }
     }

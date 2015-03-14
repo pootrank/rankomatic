@@ -12,8 +12,9 @@
     "jasmine-jquery": "^2.0.6",
     "karma": "^0.12.31",
     "karma-chrome-launcher": "^0.1.7",
-    "karma-jasmine": "^0.3.5",
     "karma-firefox-launcher": "^0.1.4",
+    "karma-jasmine": "^0.3.5",
+    "karma-phantomjs-launcher": "^0.1.4",
     "karma-qunit": "^0.1.4",
     "karma-safari-launcher": "^0.1.1",
     "qunitjs": "^1.17.1"

@@ -5,7 +5,7 @@ module.exports = function(config) {
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: 'jasmine',
+    basePath: './',
 
 
     // frameworks to use
@@ -15,9 +15,20 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      {pattern: '../../bower_components/angular/angular.js', included: true, served: true},
-      {pattern: 'test_basic.js', watched: true, served: true, included: true},
-      {pattern: '../../app/**/*.js', served: true, watched: true, included: true},
+      // vendor
+      'bower_components/angular/angular.js',
+      'bower_components/angular-mocks/angular-mocks.js',
+      'bower_components/angular-mocks/angular-mocks.js',
+      'bower_components/jquery/dist/jquery.js',
+      'bower_components/sinon/lib/sinon.js',
+
+      // modules
+      'app/**/*.module.js',
+
+      // src and test
+      'app/models/*.js',
+      'app/editor/**/*.js',
+      'app/*.js',
     ],
 
 

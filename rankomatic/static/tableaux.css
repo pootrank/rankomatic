@@ -299,6 +299,9 @@ p.add-below {
     -webkit-box-shadow: none;
     box-shadow: none;
 }
+.tableaux input.ng-invalid {
+    border: 1px solid red;
+}
 #dataset-name {
     height: 60px;
     line-height: 60px;

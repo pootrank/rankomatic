@@ -10,7 +10,7 @@
     <a href="#">Specify ranking</a>
     </li>
   </ul>
-  <div class="navtab-content dataset-tab-content" ng-controller="Tableaux as t">
+  <div class="navtab-content dataset-tab-content" ng-controller="TableauxController as t">
     <h2>
       <input id="dataset-name" type="text" placeholder="Dataset name" ng-model="t.dset.name" />
     </h2>
@@ -46,7 +46,7 @@
       </thead>
       <tbody class="input-group" ng-repeat="ig in t.dset.input_groups">
         <tr ng-repeat="cand in ig.candidates">
-          <td class="ig-controls" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)">
+          <td class="ig-controls" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)" ng-click="ig_ctrl.log()">
             <p class="add-above" ng-click="t.add_input_group_above(ig)">+</p>
             <p class="delete-this" ng-click="t.delete_input_group(ig)">&times;</p>
             <p class="add-below" ng-click="t.add_input_group_below(ig)">+</p>
@@ -71,7 +71,7 @@
         </tr>
       </tbody>
     </table>
-    <!--<pre>{{dset | json}}</pre>-->
+    <pre>{{t.dset | json}}</pre>
   </div>
   <div class="navtab-content apriori-tab-content hidden">
     <h2>Specify an apriori ranking</h2>
@@ -136,6 +136,9 @@
 <!--Tableaux side of editor-->
 <script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux.module.js"></script>
 <script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux.controller.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/hide_zero.directive.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/edit_inline.directive.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/fixed_header.directive.js"></script>
 
 <!--Non-angular (will deprecate)-->
 <script type="text/javascript" src="/javascript/tabs.js"></script>
