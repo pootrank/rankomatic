@@ -3,10 +3,10 @@
 
   angular
     .module('app.models')
-    .factory('Dataset', ['InputGroup', '$http', '$q', dataset]);
+    .factory('Dataset', ['InputGroup', '$http', dataset]);
 
-  function dataset(InputGroup, $http, $q) {
-    Dataset.get_from_url = get_from_url;
+  function dataset(InputGroup, $http) {
+    Dataset.get = get;
     return Dataset;
 
     function Dataset(name, constraints, input_groups) {
@@ -24,32 +24,15 @@
       this.input_groups = input_groups;
     }
 
-    function get_from_url(url) {
-      var edit_match = url.match(/\/([^\/]*?)\/edit/);
-      var blank_match = url.match(/calculator/);
-
-      if (edit_match) {
-        return dataset_to_edit(edit_match);
-      } else if (blank_match) {
-        return blank_dataset();
-      }
-    }
-
-    function dataset_to_edit(edit_match) {
-      var dset_name = edit_match[1];
+    function get(dset_name) {
       return $http.get('/' + dset_name + '.json')
-        .success(dataset_found);
+        .then(dataset_found);
     }
 
-    function dataset_found(data) {
+    function dataset_found(response) {
+      var data = response.data;
       var dset = new Dataset(data.name, data.constraints, data.input_groups);
       return dset;
     };
-
-    function blank_dataset() {
-      return $q(function(resolve) {
-        resolve({data: new Dataset()});
-      });
-    }
   }
 })();

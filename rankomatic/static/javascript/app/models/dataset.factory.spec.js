@@ -30,14 +30,16 @@
         expect(dset.input_groups).toEqual([{input: '', init: 3}]);
       });
 
-      it('should set name and constraints based on first two arguments, input_groups based on length of second', function() {
+      it('should set name and constraints based on first two arguments, '+
+         'input_groups based on length of second', function() {
         var dset = new Dataset('NAME', ['C1', 'C2', 'C3', 'C4']);
         expect(dset.name).toBe('NAME');
         expect(dset.constraints).toEqual(['C1', 'C2', 'C3', 'C4']);
         expect(dset.input_groups).toEqual([{input: '', init: 4}]);
       });
 
-      it('should set input_groups by calling InputGroup on each element in input_groups arg', function() {
+      it('should set input_groups by calling InputGroup on each element in '+
+         'input_groups arg', function() {
         var dset = new Dataset('name', ['A', 'B', 'C'], [1, 2, 3]);
         expect(dset.name).toBe('name');
         expect(dset.constraints).toEqual(['A', 'B', 'C']);
@@ -48,33 +50,26 @@
         ]);
       });
 
-      describe('class method: get_from_url', function() {
+      describe('class method: get', function() {
         var $httpBackend, $rootScope;
 
         beforeEach(inject(function(_$httpBackend_, _$rootScope_) {
           $httpBackend = _$httpBackend_;
           $rootScope = _$rootScope_;
+          $httpBackend.whenGET('/dset.json')
+            .respond({
+              name: 'dset',
+              constraints: ['A', 'B', 'C'],
+              input_groups: [1, 2, 3]
+            });
         }));
 
-        it('should return a blank dataset, without hitting server, when called with /calculator/ url', function() {
+        it('should hit server and return the asked-for dataset when called ' +
+           'with the name of a dataset', function() {
           var dset;
-          Dataset.get_from_url('/calculator/')
-            .then(function(response) {
-              dset = response.data;
-            });
-          $rootScope.$digest();  // make sure promise is resolved
-          expect(dset).toEqual(new Dataset());
-        });
-
-        it('should hit server and return the asked-for dataset when called with the edit url', function() {
-          var dset;
-          $httpBackend.expectGET('/dset.json').respond({
-            name: 'dset',
-            constraints: ['A', 'B', 'C'],
-            input_groups: [1, 2, 3]
-          });
-          Dataset.get_from_url('/dset/edit/').then(function(response) {
-            dset = response.data;
+          $httpBackend.expectGET('/dset.json');
+          Dataset.get('dset').then(function(data) {
+              dset = data;
           });
           $httpBackend.flush();
           expect(dset).toEqual(new Dataset('dset', ['A', 'B', 'C'], [1,2,3]));

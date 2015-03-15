@@ -5,27 +5,30 @@
     .module('app.editor.tableaux')
     .controller('TableauxController', [
       '$rootScope',
-      '$http',
+      '$location',
       'Dataset',
       'InputGroup',
       TableauxController
     ]);
 
-  function TableauxController($rootScope, $http, Dataset, InputGroup) {
+  function TableauxController($rootScope, $location, Dataset, InputGroup) {
     var vm = this;
 
-    var MAX_NUM_CONSTRAINTS = 5;
-    var MIN_NUM_CONSTRAINTS = 1;
-    var MIN_NUM_INPUT_GROUPS = 1;
-    var MIN_NUM_CANDIDATES_PER_INPUT_GROUP = 1;
+    vm.MAX_NUM_CONSTRAINTS = 5;
+    vm.MIN_NUM_CONSTRAINTS = 1;
+    vm.MIN_NUM_INPUT_GROUPS = 1;
+    vm.MIN_NUM_CANDIDATES_PER_INPUT_GROUP = 1;
 
     vm.input_class = input_class;
+
     vm.add_constraint_left = add_constraint_left;
     vm.add_constraint_right = add_constraint_right;
     vm.delete_constraint = delete_constraint;
+
     vm.add_input_group_above = add_input_group_above;
     vm.add_input_group_below = add_input_group_below;
     vm.delete_input_group = delete_input_group;
+
     vm.add_candidate_above = add_candidate_above;
     vm.add_candidate_below = add_candidate_below;
     vm.delete_candidate = delete_candidate;
@@ -33,11 +36,19 @@
     get_dataset();
 
     function get_dataset() {
-      Dataset.get_from_url(document.URL)
-        .then(set_dset);
+      var url = $location.absUrl();  // we need stuff before the hash
+      var edit_match = url.match(/\/([^\/]*?)\/edit/);
+      var blank_match = url.match(/calculator/);
 
-      function set_dset(response) {
-        vm.dset = response.data;
+      if (edit_match) {
+        Dataset.get(edit_match[1])
+          .then(set_dset);
+      } else if (blank_match) {
+        set_dset(new Dataset());
+      }
+
+      function set_dset(data) {
+        vm.dset = data;
         $rootScope.$broadcast('table_width_changed');
       }
     }
@@ -58,8 +69,8 @@
       add_constraint(index + 1);
     }
 
-    var add_constraint = function(index) {
-      if (vm.dset.constraints.length < MAX_NUM_CONSTRAINTS) {
+    function add_constraint(index) {
+      if (vm.dset.constraints.length < vm.MAX_NUM_CONSTRAINTS) {
         apply_to_constraints_and_vvecs(function(arr) {
           arr.insert(index, "");
         });
@@ -68,7 +79,7 @@
     }
 
     function delete_constraint(index) {
-      if (vm.dset.constraints.length > MIN_NUM_CONSTRAINTS) {
+      if (vm.dset.constraints.length > vm.MIN_NUM_CONSTRAINTS) {
         apply_to_constraints_and_vvecs(function(arr) {
           arr.remove(index);
         });
@@ -102,7 +113,7 @@
     }
 
     function delete_input_group(input_group) {
-      if (vm.dset.input_groups.length > MIN_NUM_INPUT_GROUPS){
+      if (vm.dset.input_groups.length > vm.MIN_NUM_INPUT_GROUPS){
         var index = vm.dset.input_groups.indexOf(input_group);
         vm.dset.input_groups.remove(index);
         $rootScope.$broadcast('table_width_changed');
@@ -125,7 +136,7 @@
     }
 
     function delete_candidate(cand, input_group) {
-      if (input_group.candidates.length > MIN_NUM_CANDIDATES_PER_INPUT_GROUP) {
+      if (input_group.candidates.length > vm.MIN_NUM_CANDIDATES_PER_INPUT_GROUP) {
         var index = input_group.candidates.indexOf(cand);
         input_group.candidates.remove(index);
         $rootScope.$broadcast('table_width_changed');
