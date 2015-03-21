@@ -14,11 +14,11 @@
 
       function hide_first_and_when_changed() {
         hide_zero();  // hide it to begin
-        hide_on_change(element);
+        hide_on_change();
       }
 
       function hide_zero() {
-        if (element.val() == 0) {
+        if (element.val() == 0) {  // double equals on purpose
           element.val("");
         }
       }

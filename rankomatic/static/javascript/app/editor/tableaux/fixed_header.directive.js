@@ -51,7 +51,9 @@
 
       function resize_constraint_column(elem, column, scope) {
         resize_input_container(elem, scope);
-        column.width(elem.width());
+        var new_width = elem.width();
+        elem.width(new_width);
+        column.width(new_width);
       }
 
       function resize_input_container(container, scope) {
