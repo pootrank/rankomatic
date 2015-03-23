@@ -2,6 +2,7 @@
 {%- block content %}
 {% raw %}
 <div ng-app="app">
+  <div ng-controller="EditorController as editor">
   <ul class="nav nav-tabs" id="edit_tabs">
     <li id="dataset-tab" class="active navtab">
     <a href="#">Edit dataset</a>
@@ -71,7 +72,6 @@
         </tr>
       </tbody>
     </table>
-    <!--<pre>{{t.dset | json}}</pre>-->
   </div>
   <div class="navtab-content apriori-tab-content hidden">
     <h2>Specify an apriori ranking</h2>
@@ -114,6 +114,8 @@
       {{/constraints}}
     </table>
   </script>
+<!--<pre>{{editor.dset | json}}</pre>-->
+</div>
 </div>
 {% endraw %}
 {%- endblock -%}
@@ -132,6 +134,7 @@
 
 <!--Dataset editor-->
 <script type="text/javascript" src="/javascript/app/editor/editor.module.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/editor.controller.js"></script>
 
 <!--Tableaux side of editor-->
 <script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux.module.js"></script>

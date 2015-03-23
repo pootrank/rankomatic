@@ -6,12 +6,12 @@
     .controller('TableauxController', [
       '$rootScope',
       '$location',
-      'Dataset',
       'InputGroup',
+      '$scope',
       TableauxController
     ]);
 
-  function TableauxController($rootScope, $location, Dataset, InputGroup) {
+  function TableauxController($rootScope, $location, InputGroup, $scope) {
     var vm = this;
 
     vm.MAX_NUM_CONSTRAINTS = 5;
@@ -33,24 +33,12 @@
     vm.add_candidate_below = add_candidate_below;
     vm.delete_candidate = delete_candidate;
 
-    get_dataset();
+    //get_dataset();
+    $rootScope.$on('dset_loaded', get_dataset);
 
     function get_dataset() {
-      var url = $location.absUrl();  // we need stuff before the hash
-      var edit_match = url.match(/\/([^\/]*?)\/edit/);
-      var blank_match = url.match(/calculator/);
-
-      if (edit_match) {
-        Dataset.get(edit_match[1])
-          .then(set_dset);
-      } else if (blank_match) {
-        set_dset(new Dataset());
-      }
-
-      function set_dset(data) {
-        vm.dset = data;
-        $rootScope.$broadcast('table_width_changed');
-      }
+      vm.dset = $scope.editor.dset;
+      $rootScope.$broadcast('table_width_changed');
     }
 
     function input_class(input_group, candidate) {

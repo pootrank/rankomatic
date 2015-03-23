@@ -6,42 +6,6 @@
     beforeEach(module('app.editor.tableaux'));
     beforeEach(function() {
       module(function($provide) {
-        $provide.factory('Dataset', function() {
-          return jasmine.createSpy('Dataset').and.callFake(function() {
-            return {
-              name: 'name',
-              constraints: ['a', 'b', 'c'],
-              input_groups: [
-                {
-                  input: 'i1',
-                  add_candidate: jasmine.createSpy(),
-                  candidates: [
-                    {
-                      output: 'o1',
-                      violation_vector: [1, 2, 3]
-                    },
-                    {
-                      output: 'o2',
-                      violation_vector: [1, 2, 3]
-                    },
-                  ]
-                },
-                {
-                  input: 'i2',
-                  add_candidate: jasmine.createSpy(),
-                  candidates: [
-                    {
-                      violation_vector: [1, 2, 3]
-                    },
-                    {
-                      violation_vector: [1, 2, 3]
-                    },
-                  ]
-                }
-              ]
-            };
-          });
-        });
         $provide.factory('InputGroup', function() {
           return jasmine.createSpy('InputGroup').and.callFake(function() {
             return {
@@ -59,50 +23,67 @@
     });
 
     describe('controller: TableauxController', function() {
-      var $controller, $location, $rootScope, Dataset, url;
+      var $controller, $location, $rootScope, url, InputGroup;
 
-      beforeEach(inject(function(_$controller_, _$location_, _$rootScope_,
-                                _Dataset_, $q) {
+      beforeEach(inject(function(_$controller_, _$location_, _$rootScope_, $q) {
         $location = _$location_;
         $controller = _$controller_;
         $rootScope = _$rootScope_;
-        Dataset = _Dataset_;
-        spyOn($rootScope, '$broadcast').and.returnValue({});
+        spyOn($rootScope, '$broadcast').and.callThrough();
         var promise = $q(function(resolve) {
           resolve('dataset');
         });
-        Dataset.get = jasmine.createSpy('Dataset.get')
-          .and.returnValue(promise);
+
+        $rootScope.editor = {
+          dset: {
+            name: 'name',
+            constraints: ['a', 'b', 'c'],
+            input_groups: [
+              {
+              input: 'i1',
+              add_candidate: jasmine.createSpy(),
+              candidates: [
+                {
+                output: 'o1',
+                violation_vector: [1, 2, 3]
+              },
+              {
+                output: 'o2',
+                violation_vector: [1, 2, 3]
+              },
+              ]
+            },
+            {
+              input: 'i2',
+              add_candidate: jasmine.createSpy(),
+              candidates: [
+                {
+                violation_vector: [1, 2, 3]
+              },
+              {
+                violation_vector: [1, 2, 3]
+              },
+              ]
+            }
+            ]
+          }
+        }
       }));
 
       it('should be defined when loaded', function() {
-        var ctrl = $controller('TableauxController');
+        var scope = $rootScope.$new();
+        var ctrl = $controller('TableauxController', {$scope: scope});
         expect(ctrl).toBeDefined();
       });
-
-      it('should set blank dset for url /calculator/', function() {
-        spyOn($location, 'absUrl').and.returnValue('/calculator/');
-        var ctrl = $controller('TableauxController');
-        expect(Dataset).toHaveBeenCalled();
-        expect($rootScope.$broadcast).toHaveBeenCalledWith('table_width_changed');
-      });
-
-      it('should call get for url /dset_name/edit/', function() {
-        spyOn($location, 'absUrl').and.returnValue('/dset_name/edit/');
-        var ctrl = $controller('TableauxController');
-        $rootScope.$digest();
-        expect(Dataset.get).toHaveBeenCalledWith('dset_name');
-        expect(ctrl.dset).toBe('dataset');
-        expect($rootScope.$broadcast).toHaveBeenCalledWith('table_width_changed');
-      })
 
       describe('methods', function() {
         var ctrl, vvec;
 
-
         beforeEach(function() {
           spyOn($location, 'absUrl').and.returnValue('/calculator/');
-          ctrl = $controller('TableauxController');
+          ctrl = $controller('TableauxController', {$scope: $rootScope.$new()});
+          $rootScope.$broadcast('dset_loaded');
+          $rootScope.$digest();
           this.vvec = function() {
             return ctrl.dset.input_groups[0].candidates[0].violation_vector;
           }
@@ -336,7 +317,6 @@
             expect($rootScope.$broadcast).toHaveBeenCalledWith('table_width_changed');
             expect(this.ig).not.toEqual(igs[0]);
           });
-
         });
       });
     });
