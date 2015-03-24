@@ -53,22 +53,22 @@ base_form_data = {
     'constraints-0': u'a',
     'constraints-1': u'b',
     'constraints-2': u'c',
-    'input_groups-0-candidates-0-inp': u'a',
-    'input_groups-0-candidates-1-inp': u'a',
-    'input_groups-0-candidates-2-inp': u'a',
-    'input_groups-0-candidates-0-outp': u'b',
-    'input_groups-0-candidates-1-outp': u'c',
-    'input_groups-0-candidates-2-outp': u'd',
+    'input_groups-0-candidates-0-input': u'a',
+    'input_groups-0-candidates-1-input': u'a',
+    'input_groups-0-candidates-2-input': u'a',
+    'input_groups-0-candidates-0-output': u'b',
+    'input_groups-0-candidates-1-output': u'c',
+    'input_groups-0-candidates-2-output': u'd',
     'input_groups-0-candidates-0-optimal': u'true',
-    'input_groups-0-candidates-0-vvector-0': u'',
-    'input_groups-0-candidates-0-vvector-1': u'',
-    'input_groups-0-candidates-0-vvector-2': u'',
-    'input_groups-0-candidates-1-vvector-0': u'',
-    'input_groups-0-candidates-1-vvector-1': u'',
-    'input_groups-0-candidates-1-vvector-2': u'',
-    'input_groups-0-candidates-2-vvector-0': u'',
-    'input_groups-0-candidates-2-vvector-1': u'',
-    'input_groups-0-candidates-2-vvector-2': u'',
+    'input_groups-0-candidates-0-violation_vector-0': u'',
+    'input_groups-0-candidates-0-violation_vector-1': u'',
+    'input_groups-0-candidates-0-violation_vector-2': u'',
+    'input_groups-0-candidates-1-violation_vector-0': u'',
+    'input_groups-0-candidates-1-violation_vector-1': u'',
+    'input_groups-0-candidates-1-violation_vector-2': u'',
+    'input_groups-0-candidates-2-violation_vector-0': u'',
+    'input_groups-0-candidates-2-violation_vector-1': u'',
+    'input_groups-0-candidates-2-violation_vector-2': u'',
     'apriori_ranking': u'[["a", "c"]]',
     'name': u'blank',
     'submit_button': u'All grammars'
@@ -84,9 +84,9 @@ def change_one_value(key, value):
 valid_form_data = ImmutableMultiDict(base_form_data)
 
 constraints_not_unique = change_one_value('constraints-1', 'a')
-inputs_not_same = change_one_value('input_groups-0-candidates-0-inp', 'b')
-outputs_not_unique = change_one_value('input_groups-0-candidates-1-outp', 'b')
-special_chars = change_one_value('input_groups-0-candidates-0-inp', '$')
+inputs_not_same = change_one_value('input_groups-0-candidates-0-input', 'b')
+outputs_not_unique = change_one_value('input_groups-0-candidates-1-output', 'b')
+special_chars = change_one_value('input_groups-0-candidates-0-input', '$')
 non_json_ranking = change_one_value('apriori_ranking',
                                     u'[["a", "b"], ["a", "c"]')
 non_list_ranking = change_one_value('apriori_ranking', u'{"a": ["b", "c"] }')

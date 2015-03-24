@@ -62,7 +62,10 @@ class Dataset(db.Document):
     @grammars.setter
     def grammars(self, value):
         if self._grammars is not None:
-            self._grammars.delete()
+            try:
+                self._grammars.delete()
+            except AttributeError:
+                pass  # the grammar list doesn't exist in the db
         grammar_list = GrammarList(grammars=value)
         grammar_list.save()
         self._grammars = grammar_list
@@ -308,5 +311,8 @@ class Dataset(db.Document):
     def delete(self):
         self.remove_old_files()
         if self._grammars is not None:
-            self._grammars.delete()
+            try:
+                self._grammars.delete()
+            except AttributeError:
+                pass  # this is when grammar is null
         super(Dataset, self).delete()

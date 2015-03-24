@@ -8,10 +8,11 @@
       '$location',
       'InputGroup',
       '$scope',
+      '$timeout',
       TableauxController
     ]);
 
-  function TableauxController($rootScope, $location, InputGroup, $scope) {
+  function TableauxController($rootScope, $location, InputGroup, $scope, $timeout) {
     var vm = this;
 
     vm.MAX_NUM_CONSTRAINTS = 5;
@@ -38,7 +39,9 @@
 
     function get_dataset() {
       vm.dset = $scope.editor.dset;
-      $rootScope.$broadcast('table_width_changed');
+      $timeout(function() {
+        $rootScope.$broadcast('table_width_changed');
+      }, 0);
     }
 
     function input_class(input_group, candidate) {

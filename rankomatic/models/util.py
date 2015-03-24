@@ -14,10 +14,10 @@ class DatasetConverter():
     @classmethod
     def _process_candidate(cls, form_cand):
         return {
-            'output': form_cand['outp'],
-            'input': form_cand['inp'],
+            'output': form_cand['output'],
+            'input': form_cand['input'],
             'optimal': form_cand['optimal'],
-            'vvector': cls._make_violation_vector_dict(form_cand['vvector'])}
+            'violation_vector': cls._make_violation_vector_dict(form_cand['violation_vector'])}
 
     @classmethod
     def _make_violation_vector_dict(cls, list_vvect):
@@ -75,7 +75,7 @@ class DatasetConverter():
             'input': old_cand.input,
             'output': old_cand.output,
             'optimal': old_cand.optimal,
-            'violation_vector': old_cand.vvector
+            'violation_vector': old_cand.violation_vector
         }
 
     @classmethod
@@ -85,7 +85,7 @@ class DatasetConverter():
                 'input': c.input,
                 'output': c.output,
                 'optimal': c.optimal,
-                'vvector': cls._make_violation_vector_dict(c.vvector)
+                'violation_vector': cls._make_violation_vector_dict(c.violation_vector)
             } for c in dset.candidates
         ]
 

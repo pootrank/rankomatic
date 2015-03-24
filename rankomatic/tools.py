@@ -180,11 +180,12 @@ class EditView(CalculatorView):
             flash("Saved %s as %s!" % (dset.name, dset.user))
 
     def _edit_get_html(self):
-        return render_template(
-            'tableaux.html', dset_name=self.dset_name,
-            form=get_form_from_dset_name(self.dset_name), active='calculator',
-            t_order=False, edit=True
-        )
+        #return render_template(
+            #'tableaux.html', dset_name=self.dset_name,
+            #form=get_form_from_dset_name(self.dset_name), active='calculator',
+            #t_order=False, edit=True
+        #)
+        return render_template('tableaux.html')
 
     @init_tableaux_form_on_self
     @validates_tableaux_form
@@ -315,7 +316,9 @@ class DatasetToJson(EditView):
 
     def _edit_get_html(self):
         dset = get_dset(self.dset_name)
-        return json.dumps(dset.create_form_data())
+        ret = json.dumps(dset.create_form_data())
+        print ret
+        return ret
 
 
 tools.add_url_rule('/calculator/',

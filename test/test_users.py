@@ -44,6 +44,7 @@ class TestSignup(OTOrderBaseCase):
         self.assert_template_used('signup.html')
 
     def test_successful_signup(self):
+        #import pdb; pdb.set_trace()
         response = self.client.post(url_for('users.signup'),
                                     data={'username': 'jane',
                                           'password': 'password',
