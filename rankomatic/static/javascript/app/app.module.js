@@ -3,7 +3,8 @@
 
     angular.module("app", [
         'app.models',
-        'app.editor'
+        'app.editor',
+        'ui.bootstrap'
     ]);
 
 })();

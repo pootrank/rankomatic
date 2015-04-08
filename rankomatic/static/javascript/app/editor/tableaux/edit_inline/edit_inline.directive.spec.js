@@ -12,7 +12,7 @@
       var SHORT_INPUT = 'short';
 
       beforeEach(inject(function($compile, $rootScope) {
-        var html = $('<div edit-inline><input type="text"></input></div>');
+        var html = $('<div ot-edit-inline><input type="text"></input></div>');
         $(document).find('body').append(html);
         this.$r = $rootScope;
         this.div = $compile(html)($rootScope);

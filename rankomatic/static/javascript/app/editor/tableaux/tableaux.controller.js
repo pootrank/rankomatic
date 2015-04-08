@@ -5,14 +5,12 @@
     .module('app.editor.tableaux')
     .controller('TableauxController', [
       '$rootScope',
-      '$location',
-      'InputGroup',
       '$scope',
-      '$timeout',
+      'InputGroup',
       TableauxController
     ]);
 
-  function TableauxController($rootScope, $location, InputGroup, $scope, $timeout) {
+  function TableauxController($rootScope, $scope, InputGroup) {
     var vm = this;
 
     vm.MAX_NUM_CONSTRAINTS = 5;
@@ -34,14 +32,12 @@
     vm.add_candidate_below = add_candidate_below;
     vm.delete_candidate = delete_candidate;
 
-    //get_dataset();
+    get_dataset();
     $rootScope.$on('dset_loaded', get_dataset);
 
     function get_dataset() {
       vm.dset = $scope.editor.dset;
-      $timeout(function() {
-        $rootScope.$broadcast('table_width_changed');
-      }, 0);
+      $rootScope.$broadcast('table_width_changed');
     }
 
     function input_class(input_group, candidate) {

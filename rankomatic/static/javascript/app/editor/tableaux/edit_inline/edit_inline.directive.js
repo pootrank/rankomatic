@@ -1,7 +1,7 @@
 (function() {
   angular
     .module('app.editor.tableaux')
-    .directive('editInline',
+    .directive('otEditInline',
                ['$rootScope', editInline]);
 
   function editInline($rootScope) {
@@ -24,6 +24,7 @@
         element.append('<span class="dummy"></span>');
         var elems = get_inner_elems(element);
         elems.dummy.html(elems.input.val());
+        elems.dummy.css('font-size', elems.input.css('font-size'));
         return elems;
       }
 

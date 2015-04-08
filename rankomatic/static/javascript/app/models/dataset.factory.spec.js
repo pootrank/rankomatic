@@ -50,29 +50,76 @@
         ]);
       });
 
-      describe('class method: get', function() {
+      describe('http methods --', function() {
         var $httpBackend, $rootScope;
 
         beforeEach(inject(function(_$httpBackend_, _$rootScope_) {
           $httpBackend = _$httpBackend_;
           $rootScope = _$rootScope_;
-          $httpBackend.whenGET('/dset.json')
+        }));
+
+        describe('get', function() {
+          beforeEach(function() {
+            $httpBackend.whenGET('/dset.json')
             .respond({
               name: 'dset',
               constraints: ['A', 'B', 'C'],
-              input_groups: [1, 2, 3]
+              input_groups: [1, 2, 3],
+              apriori_ranking: '[["A", "B"]]'
             });
-        }));
-
-        it('should hit server and return the asked-for dataset when called ' +
-           'with the name of a dataset', function() {
-          var dset;
-          $httpBackend.expectGET('/dset.json');
-          Dataset.get('dset').then(function(data) {
-              dset = data;
           });
-          $httpBackend.flush();
-          expect(dset).toEqual(new Dataset('dset', ['A', 'B', 'C'], [1,2,3]));
+
+          it('should hit server and return the asked-for dataset when called ' +
+             'with the name of a dataset', function() {
+            var dset;
+            $httpBackend.expectGET('/dset.json');
+            Dataset.get('dset').then(function(data) {
+              dset = data;
+            });
+            $httpBackend.flush();
+            expect(dset).toEqual(new Dataset('dset',
+                                             ['A', 'B', 'C'],
+                                             [1,2,3],
+                                             [['A', 'B']]
+                                            ));
+          });
+        });
+
+        describe('save', function() {
+          beforeEach(function() {
+            $httpBackend.whenPOST('/save_dset/')
+              .respond(function(method, url, data) {
+                return [200, data, {}];
+              });
+          });
+
+          it('should hit server and respond that resource was successfully saved', function() {
+            var dset = new Dataset('dset', ['A', 'B', 'C'],
+                                   [1, 2, 3], [['A', 'B']]);
+            $httpBackend.expectPOST('/save_dset/');
+            dset.save().then(function(data) {
+              expect(data.status).toBe(200);
+            });
+            $httpBackend.flush();
+          });
+        });
+
+        describe('delete', function() {
+          beforeEach(function() {
+            $httpBackend.whenGET('/delete/dset')
+              .respond(function(method, url, data) {
+                return [200, 'dset deleted ok', {}];
+              });
+          });
+
+          it('should hit delete url with dset name', function() {
+            var dset = new Dataset('dset', ['a', 'b', 'c'], [1, 2, 3]);
+            $httpBackend.expectGET('/delete/dset');
+            dset.del().then(function(data) {
+              expect(data.status).toBe(200);
+            });
+            $httpBackend.flush();
+          });
         });
       });
     });

@@ -302,12 +302,33 @@ p.add-below {
 .tableaux input.ng-invalid {
     border: 1px solid red;
 }
+h2 {
+    width: 100%;
+    text-align: center;
+}
+.dset-ctrl {
+    color: darkgray;
+}
+.dset-ctrl:hover {
+    cursor: pointer;
+    color: black;
+}
+.editor-controls-container {
+    display: inline-block;
+    line-height: 100%;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+.editor-controls-container span, .editor-controls-container a {
+    margin-left: auto;
+    margin-right: auto;
+}
 #dataset-name {
     height: 60px;
     line-height: 60px;
-    width: 100%;
+    min-width: 350px;
     font-size: 160%;
-    margin-bottom: 40px;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
@@ -365,4 +386,7 @@ th.optimal, td.optimal {
 }
 th.control-col {
     width: 15px;
+}
+iframe {
+    width: 100%;
 }

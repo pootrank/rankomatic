@@ -3,125 +3,37 @@
 {% raw %}
 <div ng-app="app">
   <div ng-controller="EditorController as editor">
-  <ul class="nav nav-tabs" id="edit_tabs">
-    <li id="dataset-tab" class="active navtab">
-    <a href="#">Edit dataset</a>
-    </li>
-    <li id="apriori-tab" class="navtab">
-    <a href="#">Specify ranking</a>
-    </li>
-  </ul>
-  <div class="navtab-content dataset-tab-content" ng-controller="TableauxController as t">
-    <h2>
-      <input id="dataset-name" type="text" placeholder="Dataset name" ng-model="t.dset.name" />
-    </h2>
-    <table fixed-header class="tableaux">
-      <thead>
-        <tr>
-          <th class="control-col"></th>
-          <th class="heading input-output">
-            <div class="label-container">
-              <p><span>Input</span></p>
-            </div>
-          </th>
-          <th class="heading input-output">
-            <div class="label-container">
-              <p><span>Output</span></p>
-            </div>
-          </th>
-          <th class="heading optimal">
-            <div class="label-container">
-              <p><span>Optimal</span></p>
-            </div>
-          </th>
-          <th edit-inline class="constraint" ng-repeat="c in t.dset.constraints track by $index">
-            <div class="col-controls">
-              <span class="add-left" ng-click="t.add_constraint_left($index)">+</span>
-              <span class="delete-this" ng-click="t.delete_constraint($index)">&times;</span>
-              <span class="add-right" ng-click="t.add_constraint_right($index)">+</span>
-            </div>
-            <input type="text" placeholder="Cons" ng-model="t.dset.constraints[$index]" />
-          </th>
-          <th class="control-col"></th>
-        </tr>
-      </thead>
-      <tbody class="input-group" ng-repeat="ig in t.dset.input_groups">
-        <tr ng-repeat="cand in ig.candidates">
-          <td class="ig-controls" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)" ng-click="ig_ctrl.log()">
-            <p class="add-above" ng-click="t.add_input_group_above(ig)">+</p>
-            <p class="delete-this" ng-click="t.delete_input_group(ig)">&times;</p>
-            <p class="add-below" ng-click="t.add_input_group_below(ig)">+</p>
-          </td>
-          <td edit-inline class="input" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)">
-            <input type="text" ng-model="ig.input" placeholder="Input"/>
-          </td>
-          <td edit-inline class="output">
-            <input type="text" ng-model="cand.output" placeholder="Output"/>
-          </td>
-          <td class="optimal">
-            <input type="checkbox" ng-model="cand.optimal" />
-          </td>
-          <td class="violation-vector" ng-repeat="violation in cand.violation_vector track by $index">
-            <input hide-zero type="number" min="0" ng-model="cand.violation_vector[$index]"/>
-          </td>
-          <td class="row-controls">
-            <p class="add-above" ng-click="t.add_candidate_above(cand, ig)">+</p>
-            <p class="delete-this" ng-click="t.delete_candidate(cand, ig)">&times;</p>
-            <p class="add-below" ng-click="t.add_candidate_below(cand, ig)">+</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="navtab-content apriori-tab-content hidden">
-    <h2>Specify an apriori ranking</h2>
-    <div class="row vertical-align">
-      <div class="span2">
-        <a href="#" id="clear" class="btn btn-danger">Clear ranking</a>
-      </div>
-      <div class="span10">
-        <div id="apriori_table_container"></div>
-      </div>
+    <div class="alert" ng-repeat="err in editor.errors">
+        <button type="button" class="close" ng-click="editor.remove_error(err)" data-dismiss="alert">&times;</button>
+        <strong ng-bind="err"></strong>
     </div>
-    <div class="row">
-      <div class="span2"></div>
-      <div class="span10">
-        <div class="alert" id="ranking_required_alert">That ranking is required by transitivity. In order to remove it, you'll have to adjust the other rankings.</div>
-      </div>
+    <div class="alert" ng-repeat="msg in editor.messages">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong ng-bind="msg"></strong>
     </div>
+    <ot-editor-controls></ot-editor-controls>
+    <tabset>
+      <tab heading="Tableaux">
+        <ot-tableaux-editor></ot-tableaux-editor>
+      </tab>
+      <tab heading="A priori ranking">
+        <ot-apriori-editor></ot-apriori-editor>
+      </tab>
+      <tab heading="Grammars">
+        <button class="btn btn-primary">Refresh</button>
+        <iframe ng-src="{{editor.grammar_url()}}"></iframe>
+      </tab>
+      </tabset>
+    <!--</div>-->
+  <!--<pre>{{editor.dset | json}}</pre>-->
   </div>
-  <script type="text/x-handlebars-template" id="apriori_table_template">
-    <table class="table" id="apriori_table">
-      <thead class="no_top_border">
-        <tr>
-          <th class="center_contents">This constraint...</th>
-          <th id="header_label" class="center_contents">is ranked above these constraints</th>
-        </tr>
-      </thead>
-      <tr>
-        <td class="center_contents empty_cell"></td>
-        {{#constraints}}
-        <td class="constraint center_contents">{{constraint}}</td>
-        {{/constraints}}
-      </tr>
-      {{#constraints}}
-      <tr class="constraint_row" id="row_{{constraint}}">
-        <td class="constraint row_header center_contents">{{constraint}}</td>
-        {{#dominates}}
-        <td class="center_contents checkbox_container" name="{{this}}"></td>
-        {{/dominates}}
-      </tr>
-      {{/constraints}}
-    </table>
-  </script>
-<pre>{{editor.dset | json}}</pre>
-</div>
 </div>
 {% endraw %}
 {%- endblock -%}
 {%- block js_footer -%}
 <!--Vendor stuff-->
 <script type="text/javascript" src="/javascript/bower_components/angular/angular.js"></script>
+<script type="text/javascript" src="/javascript/bower_components/angular-bootstrap/ui-bootstrap-custom-build/ui-bootstrap-custom-tpls-0.12.1.min.js"></script>
 
 <!--Bootstrapping-->
 <script type="text/javascript" src="/javascript/app/app.module.js"></script>
@@ -135,18 +47,26 @@
 <!--Dataset editor-->
 <script type="text/javascript" src="/javascript/app/editor/editor.module.js"></script>
 <script type="text/javascript" src="/javascript/app/editor/editor.controller.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/controls/editor_controls.directive.js"></script>
 
 <!--Tableaux side of editor-->
 <script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux.module.js"></script>
 <script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux.controller.js"></script>
-<script type="text/javascript" src="/javascript/app/editor/tableaux/hide_zero.directive.js"></script>
-<script type="text/javascript" src="/javascript/app/editor/tableaux/edit_inline.directive.js"></script>
-<script type="text/javascript" src="/javascript/app/editor/tableaux/fixed_header.directive.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/hide_zero/hide_zero.directive.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/edit_inline/edit_inline.directive.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/fixed_header/fixed_header.directive.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/tableaux/tableaux_editor.directive.js"></script>
+
+<!--Apriori editor-->
+<script type="text/javascript" src="/javascript/app/editor/apriori/apriori.module.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/apriori/apriori.controller.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/apriori/apriori_editor.directive.js"></script>
+<script type="text/javascript" src="/javascript/app/editor/apriori/transitive_set/transitive_set.factory.js"></script>
 
 <!--Non-angular (will deprecate)-->
-<script type="text/javascript" src="/javascript/tabs.js"></script>
-<script type="text/javascript" src="/javascript/transitive_set.js"></script>
-<script type="text/javascript" src="/javascript/ranking.js"></script>
-<script type="text/javascript" src="/javascript/ranking_table.js"></script>
-<script type="text/javascript" src="/javascript/apriori_ranking.js"></script>
+<!--<script type="text/javascript" src="/javascript/tabs.js"></script>-->
+<!--<script type="text/javascript" src="/javascript/transitive_set.js"></script>-->
+<!--<script type="text/javascript" src="/javascript/ranking.js"></script>-->
+<!--<script type="text/javascript" src="/javascript/ranking_table.js"></script>-->
+<!--<script type="text/javascript" src="/javascript/apriori_ranking.js"></script>-->
 {%- endblock -%}

@@ -29,6 +29,7 @@ module.exports = function(config) {
       'app/models/*.js',
       'app/editor/**/*.js',
       'app/*.js',
+      'app/**/*.js'
     ],
 
 
