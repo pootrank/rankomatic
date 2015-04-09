@@ -10,7 +10,7 @@ class Candidate(db.EmbeddedDocument):
     input = db.StringField(max_length=255, default="")
     output = db.StringField(max_length=255, default="")
     optimal = db.BooleanField()
-    vvector = db.ListField(
+    violation_vector = db.ListField(
         db.IntField(),
         default=lambda: [0 for i in xrange(3)],
     )
@@ -21,5 +21,5 @@ class Candidate(db.EmbeddedDocument):
             self.input = data['input']
             self.output = data['output']
             self.optimal = data['optimal']
-            vvec = data['vvector']
-            self.vvector = [vvec[k] for k in sorted(vvec.keys())]
+            vvec = data['violation_vector']
+            self.violation_vector = [vvec[k] for k in sorted(vvec.keys())]

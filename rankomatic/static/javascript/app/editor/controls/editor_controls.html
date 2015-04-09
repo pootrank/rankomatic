@@ -1,0 +1,14 @@
+<!--Relies on being nested inside EditorController as editor-->
+<h2>
+  <span class="editor-controls-container">
+    <span class="dset-ctrl" ng-click="editor.save_dset()">
+      <i class="fa fa-floppy-o"></i>
+    </span>
+    <span ot-edit-inline>
+      <input id="dataset-name" type="text" placeholder="Dataset name" ng-model="editor.dset.name" />
+    </span>
+    <span class="dset-ctrl" ng-click="editor.delete_dset()">
+      <i class="fa fa-trash-o"></i>
+    </span>
+  </span>
+</h2>

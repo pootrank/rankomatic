@@ -7,6 +7,7 @@ import ot.data
 import test.structures.structures as structures
 from rankomatic import models, db
 from test.test_tools import delete_bad_datasets
+from rankomatic.models.grammar import GrammarList
 
 
 class TestDataset(object):
@@ -87,57 +88,57 @@ class TestDataset(object):
             'input_groups': [
                 {'candidates': [
                     {
-                        'inp': 'ovea',
-                        'outp': 'o-ve-a',
-                        'vvector': [0, 1, 1, 0],
+                        'input': 'ovea',
+                        'output': 'o-ve-a',
+                        'violation_vector': [0, 1, 1, 0],
                         'optimal': True
                     },
                     {
-                        'inp': 'ovea',
-                        'outp': 'o-vee',
-                        'vvector': [0, 0, 0, 1],
+                        'input': 'ovea',
+                        'output': 'o-vee',
+                        'violation_vector': [0, 0, 0, 1],
                         'optimal': True
                     }
                 ]},
                 {'candidates': [
                     {
-                        'inp': 'idea',
-                        'outp': 'i-de-a',
-                        'vvector': [0, 1, 1, 0],
+                        'input': 'idea',
+                        'output': 'i-de-a',
+                        'violation_vector': [0, 1, 1, 0],
                         'optimal': True
                     },
                     {
-                        'inp': 'idea',
-                        'outp': 'i-dee',
-                        'vvector': [1, 0, 0, 1],
+                        'input': 'idea',
+                        'output': 'i-dee',
+                        'violation_vector': [1, 0, 0, 1],
                         'optimal': False
                     }
                 ]},
                 {'candidates': [
                     {
-                        'inp': 'lasi-a',
-                        'outp': 'la-si-a',
-                        'vvector': [0, 0, 1, 0],
+                        'input': 'lasi-a',
+                        'output': 'la-si-a',
+                        'violation_vector': [0, 0, 1, 0],
                         'optimal': True
                     },
                     {
-                        'inp': 'lasi-a',
-                        'outp': 'la-sii',
-                        'vvector': [0, 0, 0, 1],
+                        'input': 'lasi-a',
+                        'output': 'la-sii',
+                        'violation_vector': [0, 0, 0, 1],
                         'optimal': True
                     }
                 ]},
                 {'candidates': [
                     {
-                        'inp': 'rasia',
-                        'outp': 'ra-si-a',
-                        'vvector': [0, 0, 1, 0],
+                        'input': 'rasia',
+                        'output': 'ra-si-a',
+                        'violation_vector': [0, 0, 1, 0],
                         'optimal': True
                     },
                     {
-                        'inp': 'rasia',
-                        'outp': 'ra-sii',
-                        'vvector': [1, 0, 0, 1],
+                        'input': 'rasia',
+                        'output': 'ra-sii',
+                        'violation_vector': [1, 0, 0, 1],
                         'optimal': False
                     }
                 ]}
@@ -224,13 +225,13 @@ class TestDataset(object):
                     'input': 'a',
                     'output': 'b',
                     'optimal': True,
-                    'vvector': {1: 1, 2: 0, 3: 1}
+                    'violation_vector': {1: 1, 2: 0, 3: 1}
                 },
                 {
                     'input': 'a',
                     'output': 'c',
                     'optimal': False,
-                    'vvector': {1: 0, 2: 1, 3: 0}
+                    'violation_vector': {1: 0, 2: 1, 3: 0}
                 }
             ],
             'name': 'blank'
@@ -285,7 +286,6 @@ class TestDataset(object):
         self.d.sort_by = 'size'
         self.d.calculate_compatible_grammars()
         gram_str = self.d.grammar_to_string(0)
-        print gram_str
         assert gram_str == '{(c1, c3), (c1, c2)}'
 
     def test_grammar_to_json(self):
@@ -303,13 +303,13 @@ class TestDataset(object):
                     'input': 'a',
                     'output': 'b',
                     'optimal': True,
-                    'vvector': {1: 0, 2: 0, 3: 0}
+                    'violation_vector': {1: 0, 2: 0, 3: 0}
                 },
                 {
                     'input': 'a',
                     'output': 'c',
                     'optimal': False,
-                    'vvector': {1: 1, 2: 1, 3: 1}
+                    'violation_vector': {1: 1, 2: 1, 3: 1}
                 }
             ]
         }
@@ -348,7 +348,7 @@ class TestDataset(object):
             'candidates': [{
                 'input': 'a',
                 'output': 'b',
-                'vvector': {1: 0, 2: 0, 3: 0},
+                'violation_vector': {1: 0, 2: 0, 3: 0},
                 'optimal': True
             }],
             'name': 'blank'
@@ -517,3 +517,14 @@ class TestDataset(object):
         data.update(ot.data.cv_dset)
         d = models.Dataset(data=data, data_is_from_form=False)
         assert d.num_total_cots() == 24
+
+    def test_delete_dset_deletes_grammar_list(self):
+        original_num_grammarlist = len(GrammarList.objects)
+        self.d.save()
+        self.d.calculate_compatible_grammars()
+        assert self.d.grammars
+        assert len(GrammarList.objects) == original_num_grammarlist + 1
+        self.d.grammars = None
+        assert len(GrammarList.objects) == original_num_grammarlist + 1
+        self.d.delete()
+        assert len(GrammarList.objects) == original_num_grammarlist

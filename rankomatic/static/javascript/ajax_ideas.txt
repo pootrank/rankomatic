@@ -1,0 +1,6 @@
+1) when saved send "not calculated"
+2) when clicked ask "have i been calculated?"
+    a) if yes, display
+    b) if no, fire calculate URL and start spinning
+        i) ask for calculated info, right before timeeout ask again
+        ii) display on receipt

@@ -10,10 +10,12 @@ calculator, t-order, reads the forms, returns the results, etc.
 import random
 import string
 import urllib
+import json
 from mongoengine import OperationError as MongoInsertError
 from flask import (Blueprint, render_template, request, Markup,
-                   flash, redirect, url_for, session)
+                   flash, redirect, url_for, session, abort)
 from flask.views import MethodView
+from werkzeug.exceptions import HTTPException
 from rankomatic.forms import TableauxForm
 from rankomatic.models import Dataset
 from rankomatic.util import (get_username, get_dset, is_logged_in,
@@ -179,11 +181,7 @@ class EditView(CalculatorView):
             flash("Saved %s as %s!" % (dset.name, dset.user))
 
     def _edit_get_html(self):
-        return render_template(
-            'tableaux.html', dset_name=self.dset_name,
-            form=get_form_from_dset_name(self.dset_name), active='calculator',
-            t_order=False, edit=True
-        )
+        return render_template('tableaux.html')
 
     @init_tableaux_form_on_self
     @validates_tableaux_form
@@ -310,10 +308,50 @@ class ExampleEditView(CalculatorView):
         )
 
 
+class DatasetToJson(EditView):
+
+    def _edit_get_html(self):
+        dset = get_dset(self.dset_name)
+        return json.dumps(dset.create_form_data())
+
+
+class SaveDsetView(MethodView):
+
+    def post(self):
+        data = json.loads(request.data)
+        try:
+            data['apriori_ranking'] = json.dumps(data['apriori_ranking'])
+        except KeyError:
+            data['apriori_ranking'] = '[]'
+
+        dset = Dataset(data, data_is_from_form=True)
+        dset.user = get_username()
+
+        try:
+            old_dset = get_dset(dset.name)
+            old_dset.remove_old_files()
+            old_dset.delete()
+        except HTTPException:
+            pass
+
+        try:
+            dset.save()
+        except:
+            abort(422)
+
+        return 'successfully saved'
+
+
+
+
 tools.add_url_rule('/calculator/',
                    view_func=CalculatorView.as_view('calculator'))
+tools.add_url_rule('/<dset_name>.json/',
+                   view_func=DatasetToJson.as_view('dset_to_json'))
 tools.add_url_rule('/<dset_name>/edit/', view_func=EditView.as_view('edit'))
 tools.add_url_rule('/<dset_name>/edit_copy',
                    view_func=EditCopyView.as_view('edit_copy'))
 tools.add_url_rule('/example_edit/',
                    view_func=ExampleEditView.as_view('example_edit'))
+tools.add_url_rule('/save_dset/',
+                   view_func = SaveDsetView.as_view('save_dset'))

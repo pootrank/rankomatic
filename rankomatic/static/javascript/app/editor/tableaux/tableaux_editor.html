@@ -1,0 +1,59 @@
+<div class="navtab-content dataset-tab-content" ng-controller="TableauxController as t">
+  <table fixed-header class="tableaux">
+    <thead>
+      <tr>
+        <th class="control-col"></th>
+        <th class="heading input-output">
+          <div class="label-container">
+            <p><span>Input</span></p>
+          </div>
+        </th>
+        <th class="heading input-output">
+          <div class="label-container">
+            <p><span>Output</span></p>
+          </div>
+        </th>
+        <th class="heading optimal">
+          <div class="label-container">
+            <p><span>Optimal</span></p>
+          </div>
+        </th>
+        <th ot-edit-inline class="constraint" ng-repeat="c in t.dset.constraints track by $index">
+          <div class="col-controls">
+            <span class="add-left" ng-click="t.add_constraint_left($index)">+</span>
+            <span class="delete-this" ng-click="t.delete_constraint($index)">&times;</span>
+            <span class="add-right" ng-click="t.add_constraint_right($index)">+</span>
+          </div>
+          <input type="text" placeholder="Cons" ng-model="t.dset.constraints[$index]" />
+        </th>
+        <th class="control-col"></th>
+      </tr>
+    </thead>
+    <tbody class="input-group" ng-repeat="ig in t.dset.input_groups">
+      <tr ng-repeat="cand in ig.candidates">
+        <td class="ig-controls" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)" ng-click="ig_ctrl.log()">
+          <p class="add-above" ng-click="t.add_input_group_above(ig)">+</p>
+          <p class="delete-this" ng-click="t.delete_input_group(ig)">&times;</p>
+          <p class="add-below" ng-click="t.add_input_group_below(ig)">+</p>
+        </td>
+        <td ot-edit-inline class="input" rowspan="{{ig.candidates.length}}" ng-class="t.input_class(ig, cand)">
+          <input type="text" ng-model="ig.input" placeholder="Input"/>
+        </td>
+        <td ot-edit-inline class="output">
+          <input type="text" ng-model="cand.output" placeholder="Output"/>
+        </td>
+        <td class="optimal">
+          <input type="checkbox" ng-model="cand.optimal" />
+        </td>
+        <td class="violation-vector" ng-repeat="violation in cand.violation_vector track by $index">
+          <input hide-zero type="number" min="0" ng-model="cand.violation_vector[$index]"/>
+        </td>
+        <td class="row-controls">
+          <p class="add-above" ng-click="t.add_candidate_above(cand, ig)">+</p>
+          <p class="delete-this" ng-click="t.delete_candidate(cand, ig)">&times;</p>
+          <p class="add-below" ng-click="t.add_candidate_below(cand, ig)">+</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -53,10 +53,10 @@ def check_invalid_zero_input(invalid_input):
 
 
 class CandForm(Form):
-    inp = TextField(default="")
-    outp = TextField(default="")
+    input = TextField(default="")
+    output = TextField(default="")
     optimal = BooleanField(default="")
-    vvector = FieldList(forms.ZeroIntegerField())
+    violation_vector = FieldList(forms.ZeroIntegerField())
 
 
 class IGForm(Form):

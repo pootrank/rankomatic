@@ -73,13 +73,13 @@ class CandidateForm(Form):
     all their validation.
     """
 
-    inp = TextField(default="",
+    input = TextField(default="",
                     validators=[validators.Length(min=1, max=255,
                                                   message="Input names must be"
                                                   " between 1 and 255 "
                                                   "characters in length")],
                     )
-    outp = TextField(default="",
+    output = TextField(default="",
                      validators=[validators.Length(min=1, max=255,
                                                    message="Output names must "
                                                    "be between1 and 255 "
@@ -89,7 +89,7 @@ class CandidateForm(Form):
                                                 " checked (true) or unchecked "
                                                 "(false)")],
     )
-    vvector = FieldList(
+    violation_vector = FieldList(
         ZeroIntegerField(validators=[
             validators.NumberRange(min=0,
                                    message="Violation vectors must consist of "
@@ -128,7 +128,7 @@ class InputsSame(object):
         self.message = message
 
     def __call__(self, form, field):
-        inps = [c['inp'] for c in field.data]
+        inps = [c['input'] for c in field.data]
         if len(set(inps)) > 1:
             raise ValidationError(self.message)
 
@@ -142,7 +142,7 @@ class OutputsUnique(object):
         self.message = message
 
     def __call__(self, form, field):
-        outps = [c['outp'] for c in field.data]
+        outps = [c['output'] for c in field.data]
         if len(outps) > len(set(outps)):
             raise ValidationError(self.message)
 
@@ -159,7 +159,7 @@ class NoSpecialChars(object):
         self.message = message
 
     def __call__(self, form, field):
-        input_output_strings = [c['inp'] + c['outp'] for c in field.data]
+        input_output_strings = [c['input'] + c['output'] for c in field.data]
         chars_to_check = set("".join(input_output_strings))
         for special_char in self.special_chars:
             if special_char in chars_to_check:
@@ -301,11 +301,11 @@ class TableauxForm(Form):
 
     def _set_candidate_raw_data(self, cand):
         cand.raw_data = cand.data
-        cand.inp.raw_data = cand.inp.data
-        cand.outp.raw_data = cand.outp.data
+        cand.input.raw_data = cand.input.data
+        cand.output.raw_data = cand.output.data
         cand.optimal.raw_data = cand.optimal.data
-        cand.vvector.raw_data = cand.vvector.data
-        for constraint in cand.vvector:
+        cand.violation_vector.raw_data = cand.violation_vector.data
+        for constraint in cand.violation_vector:
             constraint.raw_data = [constraint.data]
 
     def _flatten(self, unflat):

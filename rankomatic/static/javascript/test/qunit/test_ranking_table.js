@@ -1,5 +1,12 @@
 (function(window, document, undefined) {
-QUnit.module('RankingTable');
+QUnit.module('RankingTable', {
+    beforeEach: function() {
+        load_html();
+    },
+    afterEach: function() {
+        remove_html();
+    }
+});
 
 QUnit.test('constructor', function(assert) {
     var $table = $('#ranking');

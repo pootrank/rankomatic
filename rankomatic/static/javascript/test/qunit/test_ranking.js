@@ -1,5 +1,7 @@
 QUnit.module('Ranking', {
     beforeEach: function() {
+        load_html();
+
         this.ranking = new Ranking();
         this.reln = new Relation({sup: 'a', inf: 'b'});
         this.ranking.add(this.reln);
@@ -17,6 +19,9 @@ QUnit.module('Ranking', {
             var inverse = new Relation({sup: reln.inf, inf: reln.sup});
             this.assert.ok(!inverse.is_active(), str + " inverse deactivated");
         }
+    },
+    afterEach: function() {
+        remove_html();
     }
 });
 
