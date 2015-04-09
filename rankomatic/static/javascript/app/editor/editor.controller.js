@@ -16,6 +16,7 @@
     vm.errors = [];
     vm.messages = [];
     vm.grammar_url = grammar_url;
+    vm.entailment_url = entailment_url;
     vm.save_dset = save_dset;
     vm.remove_error = remove_error;
     vm.remove_message = remove_message;
@@ -37,13 +38,21 @@
     }
 
     function grammar_url() {
+      return make_dset_url('grammars/0');
+    }
+
+    function make_dset_url(tail) {
       var url;
       if (typeof vm.dset !== "undefined") {
-        url = '/' + vm.dset.name + '/grammars/0'
+        url = '/' + vm.dset.name +'/' + tail;
       } else {
         url = "#"
       }
       return url;
+    }
+
+    function entailment_url() {
+      return make_dset_url('entailments');
     }
 
     function set_dset(data) {

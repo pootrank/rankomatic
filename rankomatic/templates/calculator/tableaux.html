@@ -20,8 +20,13 @@
         <ot-apriori-editor></ot-apriori-editor>
       </tab>
       <tab heading="Grammars">
-        <button class="btn btn-primary">Refresh</button>
-        <iframe ng-src="{{editor.grammar_url()}}"></iframe>
+        <div class="btn-group-vertical">
+          <a class="btn btn-primary" ng-href="{{editor.grammar_url()}}">All grammars</a>
+          <a class="btn btn-secondary" ng-href="{{editor.grammar_url()}}?page=0&classical=True&sort_by=rank_volume">Classical grammars</a>
+        </div>
+      </tab>
+      <tab heading="Entailments">
+        <a class="btn btn-success" ng-href="{{editor.entailment_url()}}">Entailments</a>
       </tab>
       </tabset>
     <!--</div>-->

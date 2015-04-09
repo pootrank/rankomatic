@@ -22,8 +22,7 @@
             ng-repeat="constraint_1 in a.dset.constraints"
             ng-class="{'checked': a.ranking.contains(constraint_0, constraint_1),
                        'deactivated': a.ranking.cannot_add(constraint_0, constraint_1)}"
-            ng-click="a.add_or_remove(constraint_0, constraint_1)"
-          >
+            ng-click="a.add_or_remove(constraint_0, constraint_1)">
             {{a.ranking.contains(constraint_0, constraint_1) ? "&#10003;" : ""}}
           </td>
         </tr>

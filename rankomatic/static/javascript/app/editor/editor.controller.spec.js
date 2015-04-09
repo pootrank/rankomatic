@@ -184,6 +184,22 @@
             expect(this.ctrl.messages.length).toBe(0);
           });
         });
+
+        describe('grammar_url', function() {
+
+          it('should return the correct url', function() {
+            this.build_controller(true);
+            expect(this.ctrl.grammar_url()).toBe('/dset/grammars/0');
+          });
+        });
+
+        describe('entailment_url', function() {
+
+          it('should return the correct url', function() {
+            this.build_controller(true);
+            expect(this.ctrl.entailment_url()).toBe('/dset/entailments');
+          });
+        });
       });
     });
   });
