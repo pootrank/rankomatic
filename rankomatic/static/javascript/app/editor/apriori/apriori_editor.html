@@ -14,12 +14,12 @@
         </thead>
         <tr>
           <td class="center_contents empty_cell"></td>
-          <td class="constraint center_contents" ng-repeat="constraint in a.dset.constraints">{{constraint}}</td>
+          <td class="constraint center_contents" ng-repeat="constraint in a.dset.constraints track by $index">{{constraint}}</td>
         </tr>
-        <tr class="constraint_row" ng-repeat="constraint_0 in a.dset.constraints" id="row_{{constraint_0}}">
+        <tr class="constraint_row" ng-repeat="constraint_0 in a.dset.constraints track by $index" id="row_{{constraint_0}}">
           <td class="constraint row_header center_contents">{{constraint_0}}</td>
           <td class="center_contents checkbox_container"
-            ng-repeat="constraint_1 in a.dset.constraints"
+            ng-repeat="constraint_1 in a.dset.constraints track by $index"
             ng-class="{'checked': a.ranking.contains(constraint_0, constraint_1),
                        'deactivated': a.ranking.cannot_add(constraint_0, constraint_1)}"
             ng-click="a.add_or_remove(constraint_0, constraint_1)">
@@ -37,5 +37,4 @@
       </div>
     </div>
   </div>
-  <pre>{{a.dset | json}}</pre>
 </div>
