@@ -45,6 +45,13 @@
     };
 
     function save() {
+      this.input_groups.forEach(function(ig) {
+        ig.candidates.forEach(function(cand) {
+          cand.violation_vector.forEach(function(v, index) {
+            cand.violation_vector[index] = cand.violation_vector[index] || 0;
+          });
+        });
+      });
       return $http.post('/save_dset/', {
         name: this.name,
         constraints: this.constraints,

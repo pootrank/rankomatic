@@ -1,9 +1,9 @@
 (function() {
   angular
     .module('app.editor.tableaux')
-    .directive("hideZero", ['$timeout', hideZero]);
+    .directive("hideZero", ['$timeout', '$rootScope', hideZero]);
 
-  function hideZero($timeout) {
+  function hideZero($timeout, $rootScope) {
     return {
       restrict: 'A',
       link: set_up_hiding
@@ -18,7 +18,7 @@
       }
 
       function hide_zero() {
-        if (element.val() == 0) {  // double equals on purpose
+        if (element.val() == 0 || element.val() === null) {  // double equals on purpose
           element.val("");
         }
       }

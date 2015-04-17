@@ -35,6 +35,12 @@
         this.input.triggerHandler('change');
         expect(this.input.val()).toBe('');
       });
+
+      it('should show an empty string for null', function() {
+        this.input.val(null);
+        this.input.triggerHandler('change');
+        expect(this.input.val()).toBe('');
+      });
     });
   });
 })();

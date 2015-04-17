@@ -13,7 +13,7 @@
   function TableauxController($rootScope, $scope, InputGroup) {
     var vm = this;
 
-    vm.MAX_NUM_CONSTRAINTS = 5;
+    vm.MAX_NUM_CONSTRAINTS = 6;
     vm.MIN_NUM_CONSTRAINTS = 1;
     vm.MIN_NUM_INPUT_GROUPS = 1;
     vm.MIN_NUM_CANDIDATES_PER_INPUT_GROUP = 1;
