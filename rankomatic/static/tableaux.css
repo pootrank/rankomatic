@@ -390,3 +390,7 @@ th.control-col {
 iframe {
     width: 100%;
 }
+
+h2.landing-sub {
+    text-align: left;
+}

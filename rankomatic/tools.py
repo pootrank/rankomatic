@@ -263,11 +263,8 @@ class EditCopyView(CalculatorView):
 class ExampleEditView(CalculatorView):
 
     def get(self):
-        return render_template(
-            'tableaux.html', dset_name="Kiparsky",
-            form=get_form_from_dset_name("Kiparsky"), active='calculator',
-            edit=False, example=True, js_includes=['example_edit.js']
-        )
+        # TODO get example to render and edit without logging in
+        return redirect(url_for('.edit', dset_name="Kiparsky"))
 
     @init_tableaux_form_on_self
     @validates_tableaux_form
