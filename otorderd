@@ -22,6 +22,7 @@ from rankomatic.worker_jobs import (_calculate_entailments,
                                     _calculate_grammars_and_statistics)
 
 GRAMS_PER_PAGE = 20
+MIN_CONSTRAINTS = 2
 MAX_CONSTRAINTS = 6
 DEFAULT_NUM_CONSTRAINTS = 5
 DEFAULT_NUM_WORKERS = 5
@@ -136,13 +137,13 @@ if args.cmd == START:
             num_constraints = args.num_constraints
         else:
             num_constraints = DEFAULT_NUM_CONSTRAINTS
-        msg = "loading lattices 3-{}".format(num_constraints)
+        msg = "loading lattices {}-{}".format(MIN_CONSTRAINTS, num_constraints)
         log_info(msg)
-        lattices = [load_lattice(i) for i in xrange(3, num_constraints + 1)]
+        lattices = [load_lattice(i) for i in xrange(MIN_CONSTRAINTS, num_constraints + 1)]
 
 def get_fast_dset(dset_name, username):
     dset = get_dset(dset_name, username=username)
-    index = dset.poot.set_n - 3
+    index = dset.poot.set_n - MIN_CONSTRAINTS
     dset.poot._mongo_db = None
     dset.poot._lattice = lattices[index]
     return dset
