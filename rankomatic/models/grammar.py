@@ -35,6 +35,7 @@ class Grammar(db.EmbeddedDocument):
 
         if list_gram is not None:
             self.list_grammar = list_gram
+            print self.list_grammar
             frozenset_gram = self._make_frozenset_gram()
 
         if frozenset_gram is not None:

@@ -10,7 +10,7 @@
     </tr>
   </thead>
   <tbody>
-    {%- for dset in dsets -%}
+    {%- for dset in dsets|sort(reverse=True, attribute='upload_date') -%}
     <tr id="{{ dset.name|urlencode }}">
       <td class="lead dset_name">{{ dset.name }}</td>
       <td>

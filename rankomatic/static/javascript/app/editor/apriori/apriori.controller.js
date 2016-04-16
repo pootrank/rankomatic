@@ -19,6 +19,7 @@
 
       get_dataset();
       $rootScope.$on('dset_loaded', get_dataset);
+      $rootScope.$on('constraint_deleted', clear_ranking);
 
       function dset_is_defined() {
         return typeof vm.dset !== 'undefined';

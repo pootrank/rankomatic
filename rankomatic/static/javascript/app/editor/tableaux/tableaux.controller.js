@@ -71,6 +71,7 @@
           arr.remove(index);
         });
         $rootScope.$broadcast('table_width_changed');
+        $rootScope.$broadcast('constraint_deleted');
       }
     }
 
